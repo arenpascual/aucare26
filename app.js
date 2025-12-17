@@ -115,19 +115,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// route
-
-app.get('/', async (req, res) => {
-    res.render('index');
-
-});
-
-
-app.get('/h', async (req, res) => {
-    res.render('home');
-
-});
-
 
 app.use((req, res, next) => {
   try {
@@ -234,6 +221,18 @@ const uploadPhoto = multer({
   }
 });
 
+ // routes
+
+app.get('/', async (req, res) => {
+    res.render('index');
+});
+
+app.get('/h', async (req, res) => {
+    res.render('home');
+});
+app.get('/d', async (req, res) => {
+    res.render('dashboard');
+})
 
 app.use((req, res) => {
   res.status(404);
