@@ -115,10 +115,19 @@ app.use((req, res, next) => {
   next();
 });
 
+// route
+
 app.get('/', async (req, res) => {
     res.render('index');
 
 });
+
+
+app.get('/h', async (req, res) => {
+    res.render('home');
+
+});
+
 
 app.use((req, res, next) => {
   try {
