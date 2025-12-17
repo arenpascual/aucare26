@@ -230,6 +230,7 @@ app.get('/', async (req, res) => {
 app.get('/h', async (req, res) => {
     res.render('home');
 });
+
 app.get('/d', async (req, res) => {
     res.render('dashboard');
 })
