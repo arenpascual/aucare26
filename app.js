@@ -19,8 +19,8 @@ process.env.TZ = "Asia/Manila";
 
 // Database Connection to!
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ Audres25 DB Access Granted'))
-  .catch(err => console.error('❌ Audres25 DB Access Denied, Why? :', err));
+  .then(() => console.log('✅ AuCare DB Access Granted'))
+  .catch(err => console.error('❌ AuCare DB Access Denied, Why? :', err));
 
 // Setup ng Session
 const store = new MongoDBStore({
