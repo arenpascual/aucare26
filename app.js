@@ -13,6 +13,12 @@ const dayjs = require('dayjs');
 const helmet = require('helmet');
 
 
+const Users = require('./model/user');
+const Allergy = require('./model/allergy');
+const Inventory = require('./model/inventory');
+const Logs = require('./model/log');
+const Visits = require('./model/visit');
+
 const app = express();
 const PORT = process.env.PORT;
 process.env.TZ = "Asia/Manila";
@@ -29,7 +35,7 @@ const store = new MongoDBStore({
 });
 
 store.on('error', (error) => {
-  console.error('Naku, Session store error:', error);
+  console.error('Naku, Aray mo Session store error:', error);
 });
 
 // Mga Middleware
@@ -46,7 +52,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
 }));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'ferry2025',
+  secret: process.env.SESSION_SECRET || 'aucare2026',
   resave: false,
   saveUninitialized: false,
   store: store,
@@ -234,6 +240,8 @@ app.get('/h', async (req, res) => {
 app.get('/d', async (req, res) => {
     res.render('dashboard');
 })
+
+
 
 app.use((req, res) => {
   res.status(404);
