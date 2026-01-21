@@ -239,9 +239,79 @@ app.get('/h', async (req, res) => {
 
 app.get('/d', async (req, res) => {
     res.render('dashboard');
-})
+});
 
+app.get('/s', async (req, res) => {
+    res.render('sign');
+});
 
+app.get('/h', async (req, res) => {
+    res.render('help');
+});
+
+app.get('/f', async (req, res) => {
+    res.render('forgot');
+});
+
+app.get('/vs', async (req, res) => {
+    res.render('VisitSubmit');
+});
+
+app.get('/v1', async (req, res) => {
+    res.render('visit1');
+});
+
+app.get('/vv1', async (req, res) => {
+    res.render('VisitView1');
+});
+
+app.get('/p', async (req, res) => {
+    res.render('profile');
+});
+
+app.get('/v2', async (req, res) => {
+    res.render('visit2');
+});
+
+app.get('/vv2', async (req, res) => {
+    res.render('VisitView2');
+});
+
+app.get('/nv', async (req, res) => {
+    res.render('NewVisit');
+});
+
+app.get('/va', async (req, res) => {
+    res.render('VisitArchive');
+});
+
+app.get('/e', async (req, res) => {
+    res.render('employee');
+});
+
+app.get('/ne', async (req, res) => {
+    res.render('NewEmployee');
+});
+
+app.get('/ea', async (req, res) => {
+    res.render('EmployeeArchive');
+});
+
+app.get('/um', async (req, res) => {
+    res.render('UserManagement');
+});
+
+app.get('/ua', async (req, res) => {
+    res.render('UserArchive');
+});
+
+app.get('/nu', async (req, res) => {
+    res.render('NewUser');
+});
+
+app.get('/l', async (req, res) => {
+    res.render('logs');
+});
 
 app.use((req, res) => {
   res.status(404);
