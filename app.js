@@ -238,87 +238,87 @@ app.get('/h', async (req, res) => {
 });
 
 app.get('/d', async (req, res) => {
-    res.render('dashboard');
+    res.render('dashboard',{ title: 'Dashboard', active: 'd'} );
 });
 
 app.get('/r', async (req, res) => {
-    res.render('request');
+    res.render('request',{ title: 'Request', active: 'r'});
 });
 
 app.get('/st', async (req, res) => {
-    res.render('stocks');
+    res.render('stocks',{ title: 'Stocks', active: 'st'});
 });
 
 app.get('/s', async (req, res) => {
-    res.render('sign');
+    res.render('sign',{ title: 'Sign', active: 's'});
 });
 
 app.get('/h', async (req, res) => {
-    res.render('help');
+    res.render('help',{ title: 'Help', active: 'h'});
 });
 
 app.get('/f', async (req, res) => {
-    res.render('forgot');
+    res.render('forgot',{ title: 'Forgot Password', active: 'f'});
 });
 
 app.get('/vs', async (req, res) => {
-    res.render('VisitSubmit');
+    res.render('VisitSubmit',{ title: 'Visit Submit', active: 'vs'});
 });
 
 app.get('/v1', async (req, res) => {
-    res.render('visit1');
+    res.render('visit1',{ title: 'Visit1', active: 'v1'});
 });
 
 app.get('/vv1', async (req, res) => {
-    res.render('VisitView1');
+    res.render('VisitView1',{ title: 'Visit View1', active: 'vv1'});
 });
 
 app.get('/p', async (req, res) => {
-    res.render('profile');
+    res.render('profile',{ title: 'Profile', active: 'p'});
 });
 
 app.get('/v2', async (req, res) => {
-    res.render('visit2');
+    res.render('visit2',{ title: 'Visit2', active: 'v2'});
 });
 
 app.get('/vv2', async (req, res) => {
-    res.render('VisitView2');
+    res.render('VisitView2',{ title: 'Visit View2', active: 'vv2'});
 });
 
 app.get('/nv', async (req, res) => {
-    res.render('NewVisit');
+    res.render('NewVisit',{ title: 'New Visit', active: 'nv'});
 });
 
 app.get('/va', async (req, res) => {
-    res.render('VisitArchive');
+    res.render('VisitArchive',{ title: 'Visit Archive', active: 'va'});
 });
 
 app.get('/e', async (req, res) => {
-    res.render('employee');
+    res.render('employee',{ title: 'Employee', active: 'e'});
 });
 
 app.get('/ne', async (req, res) => {
-    res.render('NewEmployee');
+    res.render('NewEmployee',{ title: 'New Employee', active: 'ne'});
 });
 
 app.get('/ea', async (req, res) => {
-    res.render('EmployeeArchive');
+    res.render('EmployeeArchive',{ title: 'Employee Archive', active: 'ea'});
 });
 
 app.get('/um', async (req, res) => {
-    res.render('UserManagement');
+    res.render('UserManagement',{ title: 'User Management', active: 'um'});
 });
 
 app.get('/ua', async (req, res) => {
-    res.render('UserArchive');
+    res.render('UserArchive',{ title: 'User Archive', active: 'ua'});
 });
 
 app.get('/nu', async (req, res) => {
-    res.render('NewUser');
+    res.render('NewUser',{ title: 'New User', active: 'nu'});
 });
 
 app.get('/l', async (req, res) => {
-    res.render('logs');
+    res.render('logs',{ title: 'Logs', active: 'l'});
 });
 
 app.use((req, res) => {
