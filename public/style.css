@@ -320,14 +320,6 @@ main {
 .sidef {
     width: 15%;
     padding: 10px;
-    /*
-    background: 
-        radial-gradient(circle at 10% 5%, var(--primary), transparent 15%),
-        radial-gradient(circle at 1% 1%,  var(--primary), transparent 30%);
-    background-blend-mode: lighten;
-    backdrop-filter: blur(10px);
-    background-color: var(--primary);
-    */
 }
 .mainf {
     width: 85%;
