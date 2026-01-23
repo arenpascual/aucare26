@@ -241,6 +241,10 @@ app.get('/d', async (req, res) => {
     res.render('dashboard');
 });
 
+app.get('/r', async (req, res) => {
+    res.render('request');
+});
+
 app.get('/s', async (req, res) => {
     res.render('sign');
 });
