@@ -245,6 +245,10 @@ app.get('/r', async (req, res) => {
     res.render('request');
 });
 
+app.get('/st', async (req, res) => {
+    res.render('stocks');
+});
+
 app.get('/s', async (req, res) => {
     res.render('sign');
 });
