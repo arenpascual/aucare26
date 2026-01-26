@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ewan ko hindi ko alam</title>
+    <title><%= title %></title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -21,16 +21,16 @@
             <a href="/um" class="nav mnav <% if ( active === 'um' ) { %> active <% } %>"><i class="fa-solid fa-user-friends"></i>Users</a>
             <a href="/l" class="nav mnav <% if ( active === 'l' ) { %> active <% } %>"><i class="fa-solid fa-cog"></i>Log</a>
         </div>
-        <div class="height10 justifyStart corner15 bgTint10 padding10 gap10">
+        <div class="height10 justifyStart corner15 bgTint12 padding10 gap10">
             <div class="width0">
-                <a href="/p" class="height0 width0"><img src="/images/profile.jpg" alt="" class="h50 w50 corner500"></a>
+                <a href="/p" class="height0 width0"><img src="/images/profile.png" alt="" class="h50 w50 corner500"></a>
             </div>
             <div class="width0 col alignStart">
                 <% if ( active === 'p') { %>
-                <p>Profile Page</p>
+                <p class="size14 str500">Profile Page</p>
                 <p class="opacity0">Admin</p>
                 <% } else { %>
-                <p >Hi, Jess</p>
+                <p class="size14 str500" >Hi, Jess</p>
                 <p>Admin</p>
                 <% } %>
             </div>

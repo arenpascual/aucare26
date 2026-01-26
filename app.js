@@ -249,6 +249,10 @@ app.get('/st', async (req, res) => {
     res.render('stocks',{ title: 'Stocks', active: 'st'});
 });
 
+app.get('/sta', async (req, res) => {
+    res.render('stocksArchive',{ title: 'Archive Stocks', active: 'st'});
+});
+
 app.get('/s', async (req, res) => {
     res.render('sign',{ title: 'Sign', active: 's'});
 });
