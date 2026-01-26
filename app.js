@@ -302,7 +302,7 @@ app.get('/ne', async (req, res) => {
 });
 
 app.get('/ea', async (req, res) => {
-    res.render('EmployeeArchive',{ title: 'Employee Archive', active: 'ea'});
+    res.render('EmployeeArchive',{ title: 'Employee Archive', active: 'e'});
 });
 
 app.get('/um', async (req, res) => {
@@ -310,7 +310,7 @@ app.get('/um', async (req, res) => {
 });
 
 app.get('/ua', async (req, res) => {
-    res.render('UserArchive',{ title: 'User Archive', active: 'ua'});
+    res.render('UserArchive',{ title: 'User Archive', active: 'um'});
 });
 
 app.get('/nu', async (req, res) => {
