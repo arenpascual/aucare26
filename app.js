@@ -262,7 +262,7 @@ app.get('/f', async (req, res) => {
 });
 
 app.get('/vs', async (req, res) => {
-    res.render('VisitSubmit',{ title: 'Visit Submit', active: 'vs'});
+    res.render('VisitSubmit',{ title: 'Visit Submit', active: 'v2'});
 });
 
 app.get('/v1', async (req, res) => {
@@ -270,7 +270,7 @@ app.get('/v1', async (req, res) => {
 });
 
 app.get('/vv1', async (req, res) => {
-    res.render('VisitView1',{ title: 'Visit View1', active: 'vv1'});
+    res.render('VisitView1',{ title: 'Visit View1', active: 'v1'});
 });
 
 app.get('/p', async (req, res) => {
@@ -282,15 +282,15 @@ app.get('/v2', async (req, res) => {
 });
 
 app.get('/vv2', async (req, res) => {
-    res.render('VisitView2',{ title: 'Visit View2', active: 'vv2'});
+    res.render('VisitView2',{ title: 'Visit View2', active: 'v2'});
 });
 
 app.get('/nv', async (req, res) => {
-    res.render('NewVisit',{ title: 'New Visit', active: 'nv'});
+    res.render('NewVisit',{ title: 'New Visit', active: 'v2'});
 });
 
 app.get('/va', async (req, res) => {
-    res.render('VisitArchive',{ title: 'Visit Archive', active: 'va'});
+    res.render('VisitArchive',{ title: 'Visit Archive', active: 'v2'});
 });
 
 app.get('/e', async (req, res) => {
@@ -298,7 +298,7 @@ app.get('/e', async (req, res) => {
 });
 
 app.get('/ne', async (req, res) => {
-    res.render('NewEmployee',{ title: 'New Employee', active: 'ne'});
+    res.render('NewEmployee',{ title: 'New Employee', active: 'e'});
 });
 
 app.get('/ea', async (req, res) => {
@@ -314,7 +314,7 @@ app.get('/ua', async (req, res) => {
 });
 
 app.get('/nu', async (req, res) => {
-    res.render('NewUser',{ title: 'New User', active: 'nu'});
+    res.render('NewUser',{ title: 'New User', active: 'um'});
 });
 
 app.get('/l', async (req, res) => {
