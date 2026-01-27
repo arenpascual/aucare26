@@ -455,7 +455,7 @@ a:hover, button:hover {
     align-items: center;
     text-decoration: none;
     padding: 10px;
-    border-radius: 14px;
+    border-radius: 12px;
     font-weight: 600;
     border: 0.5px solid rgb(206, 206, 206);
     cursor: pointer;

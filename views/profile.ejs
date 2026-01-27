@@ -1,5 +1,116 @@
 <% layout('layout') %>
 
+<div class="gap10">
+    <section class="width30 bgSoft corner15 col padding20 shadow1" id="infoCard">
+        <img src="/images/profile.png" alt="" class="h130 w130 corner500">
+        <p class="size28 str500">Lalaine Roma</p>
+        <p class="size16 str400">Sub-Admin</p>
+        <br>
+        <section class="col alignStart bgWhite corner10">
+            <p class="size16 str400">lvroma.au@phinmaed.com</p>
+            <p class="size16 str400">0224567465</p>
+            <p class="size16 str400">CSDL</p>
+        </section>
+        <br>
+        <section class="gap10 padding0">
+            <a href="javascript:void(0)" class="nav width100 border0 editBtn" id="editBtn"><i class="fas fa-pen"></i>Edit Info</a>
+            <a href="javascript:void(0)" class="nav width100 border0 keyBtn" id="keyBtn"><i class="fas fa-key"></i>Change Password</a>
+        </section>
+    </section>
 
+    
+    <form class="width30 bgWhite corner15 col padding20 shadow1 gap10 hidden" id="editCard">
+        <p class="size28 str500">Edit Information</p>
+        <div class="field">
+            <label for="">First Name</label>
+            <input type="text">
+        </div>
+        <div class="field">
+            <label for="">Middle Name</label>
+            <input type="text">
+        </div>
+        <div class="field">
+            <label for="">Last Name</label>
+            <input type="text">
+        </div>
+        <div class="field">
+            <label for="">Ext Name</label>
+            <input type="text">
+        </div>
+        <br>
+        <div class="field">
+            <label for="">Email</label>
+            <input type="text">
+        </div>
+        <div class="field">
+            <label for="">School ID</label>
+            <input type="text">
+        </div>
+        <div class="field">
+            <label for="">Department</label>
+            <div class="selectBar">
+                <select name="" id="">
+                    <option value="">CSDL</option>
+                </select>
+            </div>
+        </div>
+        <div class="row gap10">
+            <a class="nav width100" id="closeEdit">Cancel</a>
+            <button class="nav pnav width100 ">Update</button>
+        </div>
+    </form>
 
+    
+    
+    <form class="width30 bgWhite corner15 col padding20 shadow1 gap10 hidden" id="passCard">
+        <p class="size28 str500">Change Password</p>
+        <p class="noteBlue width100">Instruction Here</p>
+        <div class="field">
+            <label for="">Current Password</label>
+            <input type="password">
+        </div>
+        <div class="field">
+            <label for="">Create Password</label>
+            <input type="password">
+        </div>
+        <div class="field">
+            <label for="">New Password</label>
+            <input type="password">
+        </div>
+        <div class="row gap10">
+            <a class="nav width100" id="closePassword">Cancel</a>
+            <button class="nav pnav width100 ">Reset</button>
+        </div>
+    </form>
 
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const info = document.getElementById('infoCard');
+    const edit = document.getElementById('editCard');
+    const pass = document.getElementById('passCard');
+
+    // Simple function to switch views
+    const show = (card) => {
+        [info, edit, pass].forEach(c => c.classList.add('hidden'));
+        card.classList.remove('hidden');
+    };
+
+    // Open Forms
+    document.getElementById('editBtn').onclick = (e) => { e.stopPropagation(); show(edit); };
+    document.getElementById('keyBtn').onclick = (e) => { e.stopPropagation(); show(pass); };
+
+    // Cancel / Close Buttons
+    document.getElementById('closeEdit').onclick = () => show(info);
+    document.getElementById('closePassword').onclick = () => show(info);
+
+    // Click outside to return to infoCard
+    document.onclick = (e) => {
+        if (!edit.contains(e.target) && !pass.contains(e.target)) show(info);
+    };
+
+    // Prevent closing when clicking inside the forms
+    [edit, pass].forEach(c => c.onclick = e => e.stopPropagation());
+});
+</script>
