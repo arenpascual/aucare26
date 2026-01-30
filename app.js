@@ -234,7 +234,7 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/h', async (req, res) => {
-    res.render('home');
+    res.render('home',{ title: 'Home', active: 'h'});
 });
 
 app.get('/d', async (req, res) => {

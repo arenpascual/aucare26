@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .empCard:hover {
+            box-shadow: var(--shadow1);
+        }
+        .empCard:hover img {
+            border: 1px solid var(--blue500);
+        }
+        .empCard:hover p {
+            color: var(--blue500);
+        }
+        .stCard:hover {
+            cursor: pointer;
+            box-shadow: var(--shadow2);
+        }
+        .stCard:hover img {
+            border: 1px solid var(--blue500);
+        }
+        .stCard:hover p {
+            color: var(--blue500);
+        }
+        .stCard:hover a {
+            color: var(--blue500);
+        }
+    </style>
+</head>
+<body class="col polaroid">
+
+    <div class="height0 shadow2 headf justifyBetween padding10 bgWhite">
+        <div class="width0 gap10">
+            <img src="/images/logo.png" alt="" class="corner500 h60 w60">
+        </div>
+        <div class="width0 gap10">
+            <a href="/a" class="corner500 h60 w60 padding5">
+                <img src="/images/profile.png" alt="" class="corner500 height100 width100">
+            </a>
+        </div>
+    </div>
+
+    <div class="height90">
+        <%- body %>
+    </div>
+</body>
+</html>
