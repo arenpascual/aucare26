@@ -15,7 +15,7 @@ const helmet = require('helmet');
 
 const Users = require('./model/user');
 const Allergy = require('./model/allergy');
-const Inventory = require('./model/inventory');
+const Stocks = require('./model/stocks');
 const Logs = require('./model/log');
 const Visits = require('./model/visit');
 
