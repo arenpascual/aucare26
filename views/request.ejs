@@ -1,11 +1,21 @@
 <% layout('layout') %>
 
+<form class="width30 absolute shadow2 corner15 translateCenter col index100 bgWhite gap10 hidden" id="editCard">
+    <div class="nav cnavLG"><i class="fas fa-xmark-circle"></i></div>
+    <p class="size24 str5">DECLINE?</p>
+    <p class="size18 textCenter textBalance">Are you sure you want to decline this request?</p>
+    <div class="height0 gap10">
+        <button class="nav borderPrimary width100">No, Cancel</button>
+        <button class="nav pnav width100">Yes, Proceed</button>
+    </div>
+</form>
+
 <div class="height10 justifyBetween">
     <div class="width0">
         <p class="size40 str400">Visit Request</p>
     </div>
     <div class="width0 gap8 ">
-        <a href="" class="nav pnav w100"> <i class="fas fa-plus"></i> New Request</a>
+        <a href="" class="nav w100"> Archive</a>
     </div>
 
 </div>
@@ -22,14 +32,47 @@
     </div>
 
     <section class="height90 bgGray200 corner12 col gap10 block overflow-y1">
-        <div class="height0 corner12 shadow1 padding20 bgWhite col alignStart relative colorPrimary">
-                <p class="size14 absolute right15 top15">August 20, 2025</p>
-                <p class="size18 str500">Arenvie Pascual <span class="size12 border0 bgGreen100">Pending</span></p>
-                <p class="size14">4th Year &bull; Bachelor of Science in Information Technology</p>
-                <p class="size14 str500">Complaint: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">Headache</span></p>
+        <div class="height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10">
+            <p class="size14 absolute right15 top15">August 20, 2025</p>
+            <p class="size18 str500">Arenvie Pascual <span class="size12 border0 bgGreen100">Pending</span></p>
+            <p class="size14">4th Year &bull; Bachelor of Science in Information Technology</p>
+            <p class="size14 str500">Complaint: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">Headache</span></p>
+            <div class="area0 absolute bottom15 right15 width0 height0 gap10">
+                <a href="javascript:void(0)" class="editBtn nav borderPrimary width150">Decline</a>
+                <a href="javascript:void(0)" class="appBtn nav pnav width150">Accept</a>
             </div>
+        </div>
+        <div class="height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10">
+            <p class="size14 absolute right15 top15">August 20, 2025</p>
+            <p class="size18 str500">Mark Jess Pagaling <span class="size12 border0 bgGreen100">Pending</span></p>
+            <p class="size14">4th Year &bull; Bachelor of Science in Information Technology</p>
+            <p class="size14 str500">Complaint: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">Diarrhea</span></p>
+            <div class="area0 absolute bottom15 right15 width0 height0 gap10">
+                <a href="javascript:void(0)" class="editBtn nav borderPrimary width150">Decline</a>
+                <a href="javascript:void(0)" class="appBtn nav pnav width150">Accept</a>
+            </div>
+        </div>
+    </section>
 </div>
 
 
 
 
+
+<script>
+    const editCard = document.getElementById('editCard');
+    const editBtns = document.querySelectorAll('.editBtn');
+    const closeBtn = document.querySelector('.closeBtn');
+
+    // Show edit card when ANY edit button is clicked
+    editBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            editCard.classList.remove('hidden');
+        });
+    });
+
+    // Hide edit card when close button is clicked
+    closeBtn.addEventListener('click', () => {
+        editCard.classList.add('hidden');
+    });
+</script>
