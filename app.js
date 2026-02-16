@@ -419,6 +419,19 @@ app.get('/seed-admins', async (req, res) => {
                 suspend: false
             },
             {
+                fName: "Aren",
+                lName: "Pascual",
+                eName: "arenpascual",
+                username: "aren123",
+                email: "aren@aucare.com",
+                password: "arenpo123",
+                role: "Student",
+                dump: true,
+                archive: false,
+                verify: true,
+                suspend: false
+            },
+            {
                 fName: "System",
                 lName: "Admin",
                 eName: "SysAdmin",
