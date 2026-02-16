@@ -38,30 +38,28 @@
             </section>
         </section>
         <div class="up height0 padding20">
-            <form class="bgWhite shadow1 height0 gap10 padding30 width80" action="/d">
+            <form class="bgWhite shadow1 height0 gap10 padding30 width80" action="/login" method="POST">
                 <p class="size20 str500">Already have an account?</p>
+                  <% if (error) { %>
+                  <section class="noteRed"><%= error %></section>
+                  <% } %>
                 <div class="field">
                     <label class="str500" for="username">Username</label>
-                    <input type="text">
+                    <input type="text" name="username" required>
                 </div>
                 <div class="field">
                     <label for="" class="str500">Password</label>
-                    <input type="password" name="" id="">
+                    <input type="password" name="password" id="" required>
                 </div>
+    
                 <div class="row">
-                    <input type="text" class="width20">
-                    <div class="nav cnav border0"><i class="fas fa-plus"></i></div>
-                    <input type="text" class="width20">
-                    <div class="nav cnav border0"><i class="fas fa-equals"></i></div>
-                    <input type="text" class="width20">
+                    <input type="text" class="width20" value="" readonly> <div class="nav cnav border0"><i class="fas fa-plus"></i></div>
+                    <input type="text" class="width20" value="" readonly> <div class="nav cnav border0"><i class="fas fa-equals"></i></div>
+                    <input type="text" name="captcha_input" class="width20" placeholder=""> <input type="hidden" name="captcha_expected" value="15">
                     <a href="" class="nav cnav marginLeft10"><i class="fas fa-rotate"></i></a>
                 </div>
                 <div class="field">
-                    <button class="nav pnav  width100 ">Log In</button>
-                </div>
-                <div class="row gap10">
-                    <a href="/d" class="nav snav width100">Admin</a>
-                    <a href="/h" class="nav snav width100">Users</a>
+                    <button type="submit" class="nav pnav  width100 ">Log In</button>
                 </div>
                 <a href="/f">Forgot Password</a>
             </form>

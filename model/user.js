@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({
 
   role: {
     type: String,
-    enum: ['Student','Admin','Sub Admin','Super Admin', 'Faculty','Non Teaching Staff','Security Personnel','Maintenance Personnel','Canteen Staff','Visitor','Contractual','Seed','Dev'],
+    enum: ['Student','Admin','Sub Admin','Super Admin', 'Faculty','Staff','Security','Maintenance','Canteen Staff','Visitor','Contractual','Seed','Dev'],
     required: true
   },
 
@@ -61,7 +61,10 @@ const userSchema = new mongoose.Schema({
   photo: { type: String, trim: true },
 
   username: { type: String, required: true, unique: true, trim: true },
-  password: { type: String, required: true }
+  password: { type: String, required: true },
+
+  // Add this to your userSchema in model/user.js
+dump: { type: Boolean, default: false }
 }, {
   timestamps: true
 });

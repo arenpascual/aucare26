@@ -13,11 +13,30 @@ const dayjs = require('dayjs');
 const helmet = require('helmet');
 
 
+// Models
 const Users = require('./model/user');
 const Allergy = require('./model/allergy');
 const Stocks = require('./model/stocks');
 const Logs = require('./model/log');
 const Visits = require('./model/visit');
+const Complaint = require('./model/complaint');
+const Dispense = require('./model/dispense');
+
+// Auth Middleware
+const isLogin = require('./middleware/isLogin');
+
+// Data Table Middlewares
+const isAdmin = require('./middleware/isAdmin');
+const isUsers = require('./middleware/isUsers');
+const isStocks = require('./middleware/isStocks');
+const isLogs = require('./middleware/isLogs');
+const isVisit = require('./middleware/isVisit');
+
+// Archive Middlewares (For your archive/history pages)
+const isArchiveAdmin = require('./middleware/isArchiveAdmin');
+const isArchiveStock = require('./middleware/isArchiveStock');
+const isArchiveUser = require('./middleware/isArchiveUser');
+const isArchiveVisit = require('./middleware/isArchiveVisit');
 
 const app = express();
 const PORT = process.env.PORT;
@@ -57,6 +76,7 @@ app.use(session({
   saveUninitialized: false,
   store: store,
   cookie: { 
+    secure: false, // Set to true if using HTTPS
     maxAge: 1000 * 60 * 60 * 24 // para matic isang araw lang
   }
 }));
@@ -232,12 +252,62 @@ const uploadPhoto = multer({
 app.get('/', async (req, res) => {
     res.render('index');
 });
+app.post('/login', async (req, res) => { // Removed isLogin from here
+    try {
+        const { username, password } = req.body;
+
+        // 1. Basic Validation
+        if (!username || !password) {
+            req.session.error = "Please provide both username and password.";
+            return req.session.save(() => res.redirect('/'));
+        }
+
+        // 2. Find User
+        const user = await Users.findOne({ username, archive: false });
+
+        // 3. Verify User and Password
+        if (!user || user.password !== password) { 
+            req.session.error = "Invalid username or password.";
+            return req.session.save(() => res.redirect('/'));
+        }
+
+        // 4. Check account status
+        if (user.suspend) {
+            req.session.error = "Your account has been suspended.";
+            return req.session.save(() => res.redirect('/'));
+        }
+
+        // 5. Establish Session
+        req.session.user = user;
+
+        // 6. Create Audit Log
+        await Logs.create({
+            who: user._id,
+            what: `User logged into the system: ${user.username}`,
+            archive: false
+        });
+
+        // 7. Success Redirect
+        req.session.save(() => {
+            if (['Super Admin', 'Admin', 'Sub-Admin'].includes(user.role)) {
+                return res.redirect('/d');
+            } else {
+                return res.redirect('/h');
+            }
+        });
+
+    } catch (err) {
+        console.error('Login Error:', err.message);
+        req.session.error = "An error occurred during login.";
+        req.session.save(() => res.redirect('/'));
+    }
+});
 
 app.get('/h', async (req, res) => {
     res.render('home',{ title: 'Home', active: 'h'});
 });
 
-app.get('/d', async (req, res) => {
+app.get('/d', isLogin, async (req, res) => {
     res.render('dashboard',{ title: 'Dashboard', active: 'd'} );
 });
 
@@ -297,7 +367,7 @@ app.get('/va', async (req, res) => {
     res.render('VisitArchive',{ title: 'Visit Archive', active: 'v2'});
 });
 
-app.get('/e', async (req, res) => {
+app.get('/e', isAdmin, async (req, res) => {
     res.render('employee',{ title: 'Employee', active: 'e'});
 });
 
@@ -323,6 +393,65 @@ app.get('/nu', async (req, res) => {
 
 app.get('/l', async (req, res) => {
     res.render('logs',{ title: 'Logs', active: 'l'});
+});
+
+
+
+
+
+
+
+
+app.get('/seed-admins', async (req, res) => {
+    try {
+        const adminAccounts = [
+            {
+                fName: "Super",
+                lName: "Admin",
+                eName: "SuperAdmin",
+                username: "superadmin",
+                email: "superadmin@aucare.com",
+                password: "password123",
+                role: "Super Admin",
+                dump: true,
+                archive: false,
+                verify: true,
+                suspend: false
+            },
+            {
+                fName: "System",
+                lName: "Admin",
+                eName: "SysAdmin",
+                username: "admin",
+                email: "admin@aucare.com",
+                password: "password123",
+                role: "Admin",
+                dump: true,
+                archive: false,
+                verify: true,
+                suspend: false
+            },
+            {
+                fName: "Support",
+                lName: "Admin",
+                eName: "SubAdmin",
+                username: "subadmin",
+                email: "subadmin@aucare.com",
+                password: "password123",
+                role: "Sub Admin",
+                dump: true,
+                archive: false,
+                verify: true,
+                suspend: false
+            }
+        ];
+
+        await Users.insertMany(adminAccounts);
+        res.send("Successfully inserted 3 Admin accounts with plain text passwords.");
+    } catch (err) {
+        console.error("Seeding Error:", err.message);
+        res.status(500).send(`Seeding Error: ${err.message}`);
+    }
 });
 
 app.use((req, res) => {
