@@ -336,8 +336,8 @@ app.get('/s', async (req, res) => {
     res.render('sign',{ title: 'Sign', active: 's'});
 });
 
-app.get('/h', async (req, res) => {
-    res.render('help',{ title: 'Help', active: 'h'});
+app.get('/hp', async (req, res) => {
+    res.render('help',{ title: 'Help', active: 'hp'});
 });
 
 app.get('/f', async (req, res) => {
@@ -345,7 +345,7 @@ app.get('/f', async (req, res) => {
 });
 
 app.get('/vs', async (req, res) => {
-    res.render('VisitSubmit',{ title: 'Visit Submit', active: 'v2'});
+    res.render('VisitSubmit',{ title: 'Visit Submit', active: 'v'});
 });
 
 app.get('/v1', async (req, res) => {
