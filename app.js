@@ -77,7 +77,7 @@ if (isProduction) {
 }
 
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'aucare2026',
   resave: false,
   saveUninitialized: false,
   store: store,
