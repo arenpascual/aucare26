@@ -321,6 +321,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
+
 app.get('/h', isLogin, async (req, res) => {
     res.render('home',{ title: 'Home', active: 'h'});
 });
@@ -417,6 +418,10 @@ app.get('/l', isLogs, isLogin, async (req, res) => {
     res.render('logs',{ title: 'Logs', active: 'l'});
 });
 
+app.get('/otp', async (req, res) => {
+    res.render('otp',{ title: 'Otp', active: 'otp'});
+});
+
 
 
 
@@ -486,6 +491,37 @@ app.get('/seed-admins', async (req, res) => {
     } catch (err) {
         console.error("Seeding Error:", err.message);
         res.status(500).send(`Seeding Error: ${err.message}`);
+    }
+});
+
+app.post('/api/verify-email', async (req, res) => {
+    // 1. Get email from frontend and clean it up
+    const { email } = req.body;
+    
+    if (!email) {
+        return res.status(400).json({ message: "Email is required." });
+    }
+
+    try {
+        // 2. Query your REAL MongoDB collection (Users model)
+        // We trim and use case-insensitive search to be safe
+        const user = await Users.findOne({ 
+            email: email.trim().toLowerCase(),
+            archive: false // Only find active users
+        });
+
+        if (user) {
+            // 3. SUCCESS: Store the email in session so the /otp page knows who it's for
+            req.session.resetEmail = user.email;
+            
+            return res.status(200).json({ success: true });
+        } else {
+            // 4. FAIL: User not found in MongoDB
+            return res.status(404).json({ message: "That email isn't in our system." });
+        }
+    } catch (error) {
+        console.error("Verification Error:", error);
+        res.status(500).json({ message: "Server error occurred." });
     }
 });
 
