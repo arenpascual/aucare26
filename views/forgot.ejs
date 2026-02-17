@@ -39,14 +39,44 @@
                 <p class="noteGray">Enter your email to verify. You will be notified with an OTP code.</p>
                 <div class="field">
                     <label for="" class="str500">Email</label>
-                    <input type="password" name="" id="">
+                    <input type="email" name="email" id="email" required>
                 </div>
                 <br>
                 <div class="field">
-                    <button class="nav pnav  width100 ">Verify</button>
+                    
                 </div>
             </form>
         </div>
     </div>
+    <script>
+        document.querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // 1. Get the email value
+    const emailInput = document.getElementById('email'); 
+    const email = emailInput.value;
+
+    try {
+        // 2. Send to Backend for verification
+        const response = await fetch('/api/verify-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // 3. SUCCESS: Redirect to OTP page
+            window.location.href = '/otp'; 
+        } else {
+            // 4. FAIL: User not found
+            alert(data.message); 
+        }
+    } catch (err) {
+        alert("Server connection failed.");
+    }
+});
+    </script>
 </body>
 </html>
