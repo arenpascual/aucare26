@@ -321,12 +321,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-<<<<<<< HEAD
-
-app.get('/h', async (req, res) => {
-=======
 app.get('/h', isLogin, async (req, res) => {
->>>>>>> e50f09ed5a0a1f49bfc72052871fa74df8cdb11d
     res.render('home',{ title: 'Home', active: 'h'});
 });
 

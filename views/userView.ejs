@@ -1,14 +1,110 @@
 <% layout('layout') %>
+<style>
+    .mainf {
+        padding: 0;
+    }
+    .shape {
+        clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 0% 100%);
+    }
+</style>
+<div class="polaroid">
 
-<div class="bgRed absolute left20 top20 width30 height0 padding30 justifyStart">
-    <section class=" padding0">
-        <section>
-            <img class="h65 w65 " src="/images/logo.png" alt="">
+    <a href="javascript:void(0)" id="exportCard" class="nav pnav absolute left20 top20">Export Health Card</a>
+    
+    <div class="bgWhite shadow1 absolute left20 top70 width40 height0 justifyStart col hidden" id="healthCard">
+        <section class="justifyBetween padding0 relative">
+            <section class="bgIndigo950 justifyStart width60 gap5" style="border-bottom-right-radius: 40px;">
+                <img src="/images/logo.png" alt="" class="corner500 h50 w50">
+                <div class="section padding0 alignStart col white width0">
+                    <p class="size24">AuCare</p>
+                    <p class="size10 str300" style="margin-top: -5px !important;">PHINMA Araullo University South Campus</p>
+                </div>
+            </section>
+            <section class="width0">
+                <p class="size22 str500">Emergency Card</p>
+            </section>
         </section>
-        <section class="col justifyStart bgBlue">
-            <p class="size24">AuCare</p>
-            <p>Phinma Araullo University</p>
+        <section class="col alignStart">
+            <p class="size16">Name: </p>
+            <p class="size16">Address: </p>
+            <p class="size16">Contact Number: </p>
         </section>
-    </section>
+        <section class="bgGray padding5">
+            <p class="size18 str500 upperCase">MEDICAL CONCERNS</p>
+        </section>
+        <section class="">
+            <section class="col alignStart padding0">
+              <p class="size16">Allergies: </p>
+            </section>
+            <section class="col alignStart padding0">
+            <p class="size16">Health History: </p>
+            </section>
+        </section>
+        <section class="bgGray padding5">
+            <p class="size18 str500 upperCase">EMERGENCY CONTACT</p>
+        </section>
+        <section class="t">
+            <section class="col alignStart padding0">
+                <p class="size16">Contact #1</p>
+                <p class="size16">Name: </p>
+                <p class="size16">Address: </p>
+                <p class="size16">Contact Number: </p>
+                <p class="size16">Relationship: </p>
+            </section>
+            <section class="col alignStart padding0">
+                <p class="size16">Contact #1</p>
+                <p class="size16">Name: </p>
+                <p class="size16">Address: </p>
+                <p class="size16">Contact Number: </p>
+                <p class="size16">Relationship: </p>
+            </section>
+        </section>
+        <br>
+        <section class="bgIndigo950"></section>
+        <br>
+
+    </div>
+
 </div>
 
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    document.getElementById('exportCard').addEventListener('click', function () {
+    const originalCard = document.getElementById('healthCard');
+
+    // 1. Clone the card
+    const clone = originalCard.cloneNode(true);
+
+    // 2. Style the clone so it's "visible" to the script but hidden from the user
+    Object.assign(clone.style, {
+        display: 'flex',       // Ensure it's not 'none'
+        position: 'absolute',
+        top: '-9999px',        // Push it far off-screen
+        left: '-9999px',
+        width: '40%',        // Match your desired card width
+        height: 'auto'
+    });
+
+    document.body.appendChild(clone);
+
+    // 3. Capture the clone
+    html2canvas(clone, {
+        useCORS: true,
+        scale: 3,              // Higher scale for better print quality
+        backgroundColor: null,
+        logging: false         // Clean up the console
+    }).then(canvas => {
+        const image = canvas.toDataURL("image/png");
+        const link = document.createElement('a');
+        link.download = 'AuCare-Emergency-Card.png';
+        link.href = image;
+        link.click();
+
+        // 4. Remove the clone from the DOM
+        document.body.removeChild(clone);
+    }).catch(err => {
+        console.error("Export failed:", err);
+    });
+});
+</script>
