@@ -494,34 +494,65 @@ app.get('/seed-admins', async (req, res) => {
     }
 });
 
-app.post('/api/verify-email', async (req, res) => {
-    // 1. Get email from frontend and clean it up
-    const { email } = req.body;
-    
-    if (!email) {
-        return res.status(400).json({ message: "Email is required." });
+const nodemailer = require('nodemailer');
+
+// Configure the transporter using your .env credentials
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS 
     }
+});
+
+app.post('/api/verify-email', async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required." });
 
     try {
-        // 2. Query your REAL MongoDB collection (Users model)
-        // We trim and use case-insensitive search to be safe
+        // 1. Find the user in your MongoDB Users model
         const user = await Users.findOne({ 
             email: email.trim().toLowerCase(),
-            archive: false // Only find active users
+            archive: false 
         });
 
-        if (user) {
-            // 3. SUCCESS: Store the email in session so the /otp page knows who it's for
-            req.session.resetEmail = user.email;
-            
-            return res.status(200).json({ success: true });
-        } else {
-            // 4. FAIL: User not found in MongoDB
-            return res.status(404).json({ message: "That email isn't in our system." });
+        if (!user) {
+            return res.status(404).json({ message: "That email is not registered with AuCare." });
         }
+
+        // 2. Generate a 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // 3. Store OTP and Email in session for verification on the /otp page
+        req.session.otpCode = otp;
+        req.session.resetEmail = user.email;
+        req.session.otpExpires = Date.now() + 600000; // Code valid for 10 mins
+
+        // 4. Send the Email
+        const mailOptions = {
+            from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+            to: user.email,
+            subject: "Your AuCare Verification Code",
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                    <h2 style="color: #0056b3; text-align: center;">AuCare Verification</h2>
+                    <p>Hello,</p>
+                    <p>You requested a password reset. Please use the following code:</p>
+                    <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px;">
+                        ${otp}
+                    </div>
+                    <p>This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+                </div>`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        // 5. Send success back to your frontend script
+        return res.status(200).json({ success: true });
+
     } catch (error) {
-        console.error("Verification Error:", error);
-        res.status(500).json({ message: "Server error occurred." });
+        console.error("Forgot Password Error:", error);
+        res.status(500).json({ message: "Failed to send verification email." });
     }
 });
 
