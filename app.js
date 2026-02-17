@@ -70,16 +70,25 @@ app.use(express.static(path.join(__dirname, 'public'), {
   etag: true
 }));
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (isProduction) {
+  app.set('trust proxy', 1);
+}
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'aucare2026',
   resave: false,
   saveUninitialized: false,
   store: store,
-  cookie: { 
-    secure: false, // Set to true if using HTTPS
-    maxAge: 1000 * 60 * 60 * 24 // para matic isang araw lang
+  cookie: {
+    secure: isProduction,
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 1000 * 60 * 60 * 24
   }
 }));
+
 
 // Helmet security middleware
 app.use(
@@ -327,7 +336,7 @@ app.get('/s', async (req, res) => {
     res.render('sign',{ title: 'Sign', active: 's'});
 });
 
-app.get('/h', async (req, res) => {
+app.get('/hp', async (req, res) => {
     res.render('help',{ title: 'Help', active: 'hp'});
 });
 
@@ -336,7 +345,7 @@ app.get('/f', async (req, res) => {
 });
 
 app.get('/vs', async (req, res) => {
-    res.render('VisitSubmit',{ title: 'Visit Submit', active: 'v2'});
+    res.render('VisitSubmit',{ title: 'Visit Submit', active: 'v'});
 });
 
 app.get('/v1', async (req, res) => {
