@@ -31,6 +31,7 @@ const isUsers = require('./middleware/isUsers');
 const isStocks = require('./middleware/isStocks');
 const isLogs = require('./middleware/isLogs');
 const isVisit = require('./middleware/isVisit');
+const isRequest = require('./middleware/isRequest');
 
 // Archive Middlewares (For your archive/history pages)
 const isArchiveAdmin = require('./middleware/isArchiveAdmin');
@@ -261,42 +262,50 @@ const uploadPhoto = multer({
 app.get('/', async (req, res) => {
     res.render('index');
 });
-app.post('/login', async (req, res) => { // Removed isLogin from here
-    try {
-        const { username, password } = req.body;
 
-        // 1. Basic Validation
+app.post('/login', async (req, res) => {
+    try {
+        // 0. Extract captcha fields along with username and password
+        const { username, password, captcha_input, captcha_expected } = req.body;
+
+        // 1. Captcha Validation (NEW)
+        if (!captcha_input || captcha_input !== captcha_expected) {
+            req.session.error = "Captcha is incorrect. Please try again.";
+            return req.session.save(() => res.redirect('/'));
+        }
+
+        // 2. Basic Validation
         if (!username || !password) {
             req.session.error = "Please provide both username and password.";
             return req.session.save(() => res.redirect('/'));
         }
 
-        // 2. Find User
+        // 3. Find User
         const user = await Users.findOne({ username, archive: false });
 
-        // 3. Verify User and Password
+        // 4. Verify User and Password
         if (!user || user.password !== password) { 
             req.session.error = "Invalid username or password.";
             return req.session.save(() => res.redirect('/'));
         }
 
-        // 4. Check account status
+        // 5. Check account status
         if (user.suspend) {
             req.session.error = "Your account has been suspended.";
             return req.session.save(() => res.redirect('/'));
         }
 
-        // 5. Establish Session
+        // 6. Establish Session
         req.session.user = user;
 
-        // 6. Create Audit Log
+        // 7. Create Audit Log
         await Logs.create({
             who: user._id,
             what: `User logged into the system: ${user.username}`,
             archive: false
         });
 
-        // 7. Success Redirect
+        // 8. Success Redirect
         req.session.save(() => {
             if (['Super Admin', 'Admin', 'Sub-Admin'].includes(user.role)) {
                 return res.redirect('/d');
@@ -312,7 +321,7 @@ app.post('/login', async (req, res) => { // Removed isLogin from here
     }
 });
 
-app.get('/h', async (req, res) => {
+app.get('/h', isLogin, async (req, res) => {
     res.render('home',{ title: 'Home', active: 'h'});
 });
 
@@ -320,15 +329,15 @@ app.get('/d', isLogin, async (req, res) => {
     res.render('dashboard',{ title: 'Dashboard', active: 'd'} );
 });
 
-app.get('/r', async (req, res) => {
+app.get('/r', isRequest, isLogin, async (req, res) => {
     res.render('request',{ title: 'Request', active: 'r'});
 });
 
-app.get('/st', async (req, res) => {
+app.get('/st', isStocks, isLogin, async (req, res) => {
     res.render('stocks',{ title: 'Stocks', active: 'st'});
 });
 
-app.get('/sta', async (req, res) => {
+app.get('/sta', isArchiveStock, isLogin, async (req, res) => {
     res.render('stocksArchive',{ title: 'Archive Stocks', active: 'st'});
 });
 
@@ -344,63 +353,63 @@ app.get('/f', async (req, res) => {
     res.render('forgot',{ title: 'Forgot Password', active: 'f'});
 });
 
-app.get('/vs', async (req, res) => {
+app.get('/vs', isLogin, async (req, res) => {
     res.render('VisitSubmit',{ title: 'Visit Submit', active: 'v'});
 });
 
-app.get('/v1', async (req, res) => {
+app.get('/v1', isLogin, async (req, res) => {
     res.render('visit1',{ title: 'Visit1', active: 'v1'});
 });
 
-app.get('/vv1', async (req, res) => {
+app.get('/vv1', isLogin, async (req, res) => {
     res.render('VisitView1',{ title: 'Visit View1', active: 'v1'});
 });
 
-app.get('/p', async (req, res) => {
+app.get('/p', isLogin, async (req, res) => {
     res.render('profile',{ title: 'Profile', active: 'p'});
 });
 
-app.get('/v2', async (req, res) => {
+app.get('/v2', isVisit, isLogin, async (req, res) => {
     res.render('visit2',{ title: 'Visit2', active: 'v2'});
 });
 
-app.get('/vv2', async (req, res) => {
+app.get('/vv2', isVisit, isLogin, async (req, res) => {
     res.render('VisitView2',{ title: 'Visit View2', active: 'v2'});
 });
 
-app.get('/nv', async (req, res) => {
+app.get('/nv', isLogin, async (req, res) => {
     res.render('NewVisit',{ title: 'New Visit', active: 'v2'});
 });
 
-app.get('/va', async (req, res) => {
+app.get('/va', isArchiveVisit, isLogin,  async (req, res) => {
     res.render('VisitArchive',{ title: 'Visit Archive', active: 'v2'});
 });
 
-app.get('/e', isAdmin, async (req, res) => {
+app.get('/e', isAdmin, isLogin, async (req, res) => {
     res.render('employee',{ title: 'Employee', active: 'e'});
 });
 
-app.get('/ne', async (req, res) => {
+app.get('/ne', isLogin, async (req, res) => {
     res.render('NewEmployee',{ title: 'New Employee', active: 'e'});
 });
 
-app.get('/ea', async (req, res) => {
+app.get('/ea', isArchiveAdmin, isLogin, async (req, res) => {
     res.render('EmployeeArchive',{ title: 'Employee Archive', active: 'e'});
 });
 
-app.get('/um', async (req, res) => {
+app.get('/um', isUsers, isLogin, async (req, res) => {
     res.render('UserManagement',{ title: 'User Management', active: 'um'});
 });
 
-app.get('/ua', async (req, res) => {
+app.get('/ua', isArchiveUser, isLogin, async (req, res) => {
     res.render('UserArchive',{ title: 'User Archive', active: 'um'});
 });
 
-app.get('/nu', async (req, res) => {
+app.get('/nu', isLogin, async (req, res) => {
     res.render('NewUser',{ title: 'New User', active: 'um'});
 });
 
-app.get('/l', async (req, res) => {
+app.get('/l', isLogs, isLogin, async (req, res) => {
     res.render('logs',{ title: 'Logs', active: 'l'});
 });
 
