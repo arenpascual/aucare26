@@ -3,9 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Index</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        
+    </style>
 </head>
-<body>
+<body class="polaroid">
+
+    <div class="left width60 col">
+        <div class="top relative">
+            <i class="fas fa-stethoscope absolute opacity1  top38 size90 h160 w160 padding20 corner500 porcelain" style="left: 120px;"></i>
+            <div class="height0 width0 index50">
+                <img src="/images/logo.png" alt="" class="corner500 h140">
+            </div>
+            <div class="col width0 alignStart colorPrimary index50">
+                <p class="size90 str500">AuCare</p>
+                <p class="size30 textWrap" style="margin-top:-25px !important;">PHINMA Araullo University South Campus</p>
+            </div>
+        </div>
+        <div class="bottom justifyStart paddingInline75 paddingBottom70 paddingTop20">
+            <section class=" h300 corner15 padding20 glass col alignStart gap15">
+                <p class="size18 str500 marginLeft10 colorPrimary">Need Help? <a href="" class="inline sizeInherit underline">Learn More </a></p>
+                <video class="abstractBG2 width100 height100 corner15" src="/image/video.mp4"></video>
+            </section>
+        </div>
+    </div>
+    <div class="right width40 col">
+        <div class="up col gap10 alignStart height0 padding20">
+            <a href="/" class="nav"><i class="fas fa-chevron-left"></i> Back</a>
+            <form class="bgWhite shadow1 height0 gap10 padding30 width80" action="">
+                <div class="nav cnavLG"><i class="fas fa-key"></i></div>
+                <p class="size20 str500"> Confirm Code</p>
+                <p class="noteGray">Enter the OTP sent to your email. This code expires in 5 minutes.</p>
+                <div class="field">
+                    <label for="" class="str500">Please enter the OTP code sent to your email to continue.</label>
+                    <section class="gap5">
+                    <input type="email" name="email" id="email" required>
+                    <input type="email" name="email" id="email" required>
+                    <input type="email" name="email" id="email" required>
+                    <input type="email" name="email" id="email" required>
+                    <input type="email" name="email" id="email" required>
+                    <input type="email" name="email" id="email" required>
+                    </section>
+                </div>
+                <br>
+                <div class="field">
+                    <button class="nav pnav  width100 ">Verify</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
     
+    // 1. Get the email value
+    const emailInput = document.getElementById('email'); 
+    const email = emailInput.value;
+
+    try {
+        // 2. Send to Backend for verification
+        const response = await fetch('/api/verify-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // 3. SUCCESS: Redirect to OTP page
+            window.location.href = '/otp'; 
+        } else {
+            // 4. FAIL: User not found
+            alert(data.message); 
+        }
+    } catch (err) {
+        alert("Server connection failed.");
+    }
+});
+    </script>
 </body>
 </html>
