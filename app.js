@@ -328,7 +328,7 @@ app.get('/s', async (req, res) => {
 });
 
 app.get('/h', async (req, res) => {
-    res.render('help',{ title: 'Help', active: 'h'});
+    res.render('help',{ title: 'Help', active: 'hp'});
 });
 
 app.get('/f', async (req, res) => {
