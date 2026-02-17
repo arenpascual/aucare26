@@ -312,6 +312,7 @@ app.post('/login', async (req, res) => { // Removed isLogin from here
     }
 });
 
+
 app.get('/h', async (req, res) => {
     res.render('home',{ title: 'Home', active: 'h'});
 });
@@ -390,6 +391,10 @@ app.get('/ea', async (req, res) => {
 
 app.get('/um', async (req, res) => {
     res.render('UserManagement',{ title: 'User Management', active: 'um'});
+});
+
+app.get('/uv', async (req, res) => {
+    res.render('userView',{ title: 'userView', active: 'um'});
 });
 
 app.get('/ua', async (req, res) => {
