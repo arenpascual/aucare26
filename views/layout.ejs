@@ -31,6 +31,39 @@
     </style>
 </head>
 <body>
+    <% if ( user.reset === true ) { %>
+        <div class="fgCard bgWhite absolute left0 top0 index100">
+            <section class="height0 width30 bgWhite shadow1 col padding30 corner30 gap10">
+                <p class="size30">Reset Password</p>
+                <section class="height0 bgWhite alignStart col borderGray corner12">
+                    <p>Take Note! Password must contain the following:</p>
+                    <p>&bull; Minimum of 8 characters</p>
+                    <p>&bull; Combination of letter and number</p>
+                    <p>&bull; At least 1 upper case letter</p>
+                    <p>&bull; At least 1 special character</p>
+                </section> 
+                <br>
+                <section class="field">
+                    <label class="str500 col alignStart" for="">Temporary Password</label>
+                    <input type="text" name="username" required>
+                </section>
+                <section class="field">
+                    <label class="str500 col" for="">Create Password</label>
+                    <input type="text" name="username" required>
+                </section>
+                <section class="field">
+                    <label class="str500 col" for="">Confirm Password</label>
+                    <input type="text" name="username" required>
+                </section>
+                <br>
+                <section class="justifyBetween padding0">
+                    <a href=""  class="nav w150">Cancel</a>
+                    <a href=""  class="nav pnav w150">Update</a>
+                </section>
+            </section>
+        </div>
+    <% } %>
+
     <div class="sidef">
         <div class="height16 geo corner15 borderPrimary">
             <img src="/images/logo.png" alt="" class="corner500 h95 ">

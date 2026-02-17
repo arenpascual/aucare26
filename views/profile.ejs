@@ -1,7 +1,8 @@
 <% layout('layout') %>
 
 <div class="gap10 polaroid corner8">
-    <section class="width30 bgWhite corner15 col padding20 shadow1" id="infoCard">
+    <section class="width30 bgWhite corner15 col padding20 shadow1 relative" id="infoCard">
+        <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right20 top20"><i class="fas fa-sign-out"></i></a>
         <img src="/images/profile.png" alt="" class="h130 w130 corner500">
         <p class="size28 str500">Lalaine Roma</p>
         <p class="size16 str400">Sub-Admin</p>
@@ -15,6 +16,17 @@
         <section class="gap10 padding0">
             <a href="javascript:void(0)" class="nav width100 borderPrimary editBtn" id="editBtn"><i class="fas fa-pen"></i>Edit Info</a>
             <a href="javascript:void(0)" class="nav width100 borderPrimary keyBtn" id="keyBtn"><i class="fas fa-key"></i>Change Password</a>
+        </section>
+    </section>
+    
+    <section class="width30 bgWhite corner15 col padding20 shadow1 relative hidden" id="lgCard">
+        <div href="" class="nav cnavLG"><i class="fas fa-sign-out"></i></div>
+        <br>
+        <p class="size18 textCenter textBalance">Are you sure you want to Log Out?</p>
+        <br>
+        <section class="padding0 justifyBetween gap10">
+            <a href="javascript:void(0)" class="nav width100">Cancel</a>
+            <a href="/" class="nav pnav width100">Log Out</a>
         </section>
     </section>
 
@@ -90,16 +102,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const info = document.getElementById('infoCard');
     const edit = document.getElementById('editCard');
     const pass = document.getElementById('passCard');
+    const lg = document.getElementById('lgCard');
 
     // Simple function to switch views
     const show = (card) => {
-        [info, edit, pass].forEach(c => c.classList.add('hidden'));
+        [info, edit, pass, lg].forEach(c => c.classList.add('hidden'));
         card.classList.remove('hidden');
     };
 
     // Open Forms
     document.getElementById('editBtn').onclick = (e) => { e.stopPropagation(); show(edit); };
     document.getElementById('keyBtn').onclick = (e) => { e.stopPropagation(); show(pass); };
+    document.getElementById('lgBtn').onclick = (e) => { e.stopPropagation(); show(lg); };
 
     // Cancel / Close Buttons
     document.getElementById('closeEdit').onclick = () => show(info);

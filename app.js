@@ -11,6 +11,7 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const dayjs = require('dayjs');
 const helmet = require('helmet');
+const crypto = require('crypto');
 
 
 // Models
@@ -554,6 +555,81 @@ app.post('/api/verify-email', async (req, res) => {
         console.error("Forgot Password Error:", error);
         res.status(500).json({ message: "Failed to send verification email." });
     }
+});
+
+// Route para i-verify ang OTP code
+app.post('/api/verify-otp', async (req, res) => {
+    const { otp } = req.body;
+    const sessionOtp = req.session.otpCode;
+    const expiry = req.session.otpExpires;
+    const userEmail = req.session.resetEmail; // Sinave natin ito sa /verify-email route
+
+    // 1. Validations
+    if (!sessionOtp || !userEmail) {
+        return res.status(400).json({ message: "Session expired. Please start over." });
+    }
+    if (Date.now() > expiry) {
+        return res.status(400).json({ message: "OTP has expired." });
+    }
+    if (otp !== sessionOtp) {
+        return res.status(400).json({ message: "Invalid OTP code." });
+    }
+
+    try {
+        // 2. Generate Random Temporary Password (8 characters)
+        const tempPassword = crypto.randomBytes(4).toString('hex'); 
+
+        // 3. Update User Password sa MongoDB
+        // TANDAAN: Kung gumagamit ka ng bcrypt, i-hash mo muna ang tempPassword bago i-save.
+        // Pero base sa code mo kanina, plain text ang gamit mo (user.password === password)
+        const updatedUser = await Users.findOneAndUpdate(
+            { email: userEmail },
+            { password: tempPassword,
+              reset: true
+             },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        // 4. Send the Temporary Password to Email
+        const mailOptions = {
+            from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+            to: userEmail,
+            subject: "Your Temporary Password - AuCare",
+            html: `
+                <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
+                    <h2 style="color: #0056b3;">Password Reset Successful</h2>
+                    <p>Your password has been reset. Use the temporary password below to log in:</p>
+                    <div style="background: #fdfdfd; padding: 10px; border: 1px dashed #ccc; font-size: 20px; text-align: center; font-weight: bold;">
+                        ${tempPassword}
+                    </div>
+                    <p style="color: red;">Important: Please change this password immediately after logging in for your security.</p>
+                    <br>
+                    
+                </div>`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        // 5. Clean up session
+        req.session.otpCode = null;
+        req.session.otpExpires = null;
+        // Keep req.session.resetEmail temporarily if needed for the success page
+
+        return res.status(200).json({ success: true });
+
+    } catch (error) {
+        console.error("OTP Success Error:", error);
+        res.status(500).json({ message: "Something went wrong while resetting your password." });
+    }
+});
+
+// Route para sa Success Page
+app.get('/success', (req, res) => {
+    res.render('successOtp', { title: 'Success', active: 'f' });
 });
 
 app.use((req, res) => {
