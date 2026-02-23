@@ -44,12 +44,15 @@
                   <section class="noteRed"><%= error %></section>
                   <% } %>
                 <div class="field">
-                    <label class="str500" for="username">Username</label>
-                    <input type="text" name="username" required>
+                    <label class="str500" for="username"> Username</label> 
+                    <input type="text" name="username" placeholder="enter your email" required>
                 </div>
                 <div class="field">
-                    <label for="" class="str500">Password</label>
-                    <input type="password" name="password" id="" required>
+                    <label for="" class="str500"> Password </label>
+                    <section class="padding0 relative">
+                        <input type="password" name="password" placeholder="enter your password" id="" required >
+                        <button class="absolute right10" style="top: 50%; transform: translateY(-50%);"><i class="fas fa-eye"></i></button>
+                    </section>
                 </div>
     
                 <div class="row">
@@ -118,6 +121,20 @@
                 this.style.color = "red"; // Incorrect
             }
         });
+    });
+</script>
+<script>
+    document.querySelector('.fa-eye').parentElement.addEventListener('click', function(e) {
+        e.preventDefault();
+        const input = this.previousElementSibling;
+        const icon = this.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
     });
 </script>
 </body>
