@@ -1,32 +1,201 @@
 <% layout('layout') %>
+
+<!-- RESTORE CONFIRM MODAL -->
+<div class="modalBackdrop hidden" id="modalBackdrop"></div>
+
+<div class="height0 width30 absolute shadow2 corner10 translateCenter col index100 bgWhite alignStart gap10 hidden" id="restoreCard" style="padding:24px;">
+    <p class="size24 str5">Restore Item?</p>
+    <p class="size14" style="color:var(--black10);">This item will be moved back to active stocks.</p>
+    <input type="hidden" id="restoreId">
+    <p class="size16 str500" id="restoreItemName" style="color:var(--primary);"></p>
+    <div class="height0 gap10" style="width:100%; margin-top:10px;">
+        <button type="button" class="nav borderPrimary width100" id="cancelRestore">Cancel</button>
+        <button type="button" class="nav pnav width100" id="confirmRestore">Restore</button>
+    </div>
+</div>
+
+<div class="height0 width30 absolute shadow2 corner10 translateCenter col index100 bgWhite alignStart gap10 hidden" id="deleteCard" style="padding:24px;">
+    <p class="size24 str5" style="color:var(--bs-danger);">Permanently Delete?</p>
+    <p class="size14" style="color:var(--black10);">This action cannot be undone. The item will be permanently removed.</p>
+    <input type="hidden" id="deleteId">
+    <p class="size16 str500" id="deleteItemName" style="color:var(--bs-danger);"></p>
+    <div class="height0 gap10" style="width:100%; margin-top:10px;">
+        <button type="button" class="nav borderPrimary width100" id="cancelDelete">Cancel</button>
+        <button type="button" class="nav width100" id="confirmDelete" style="background:var(--bs-danger); color:white;">Delete Permanently</button>
+    </div>
+</div>
+
+<!-- PAGE HEADER -->
 <div class="height10 justifyBetween">
     <div class="width0">
         <a href="/st" class="nav w100"><i class="fas fa-chevron-left"></i> Return</a>
     </div>
-    <div class="width0 gap8 ">
+    <div class="width0">
         <p class="size40 str400">Archive Stock Management</p>
     </div>
 </div>
+
+<!-- FLASH MESSAGES -->
+<% if (success) { %>
+<div class="absolute right20 bottom20 width0 height0 size14 padding10 corner10" style="background:#d4edda; color:#155724; border:1px solid #c3e6cb; margin-bottom:8px;">
+    <i class="fas fa-check-circle"></i> <%= success %>
+</div>
+<% } %>
+<% if (error) { %>
+<div class="absolute right20 bottom20 width0 height0 size14 padding10 corner10" style="background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; margin-bottom:8px;">
+    <i class="fas fa-exclamation-circle"></i> <%= error %>
+</div>
+<% } %>
+
+<!-- MAIN CONTENT -->
 <div class="height90 col justifyStart">
     <div class="height10 justifyBetween">
-        <div class="width0">
-            <div class="selectBar w190"><i class="fas fa-filter"></i><select name="" id="">
-                <option value=""></i> Filter By</option>
-            </select></div>
+        <div class="width0 gap8">
+            <div class="selectBar w190">
+                <i class="fas fa-filter"></i>
+                <select id="categoryFilter">
+                    <option value="">Filter By</option>
+                    <option value="medicine">Medicines</option>
+                    <option value="supply">Supplies</option>
+                </select>
+            </div>
         </div>
-        <div class="width0 gap8 ">
-            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id=""></div>
+        <div class="width0 gap8">
+            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" id="searchInput" placeholder="Search archived..."></div>
         </div>
-    
     </div>
-    <section class="wrap justifyStart alignStretch gap20">
-        <section class="stCard stCard width20 shadow1 corner10 padding15 relative height0 col alignStart justifyStart">
-            <div class="cnav absolute top15 right15 borderGray"><i class="fas fa-stethoscope"></i></div>
-            <img src="/images/item.png" alt="" class="h100 corner10">
-            <p class="size20 str500">Face Shield</p>
-            <p class="size14">33 packs</p>
-            <p class="size12 textWrap">This is the sample description of the item listed above</p>
-            <a href="" class="nav marginTop10"><i class="fas fa-pen"></i> Update Stock</a>
-        </section>
+
+    <section class="wrap justifyStart alignStretch gap20" id="archiveGrid">
+        <% if (archivedStocks && archivedStocks.length > 0) { %>
+            <% archivedStocks.forEach(item => { %>
+                <%
+                    const typeIcon = item.type === 'medicine' ? 'fa-stethoscope' : 'fa-box-open';
+                %>
+                <section class="stCard width20 shadow1 corner10 padding15 relative height0 col alignStart justifyStart"
+                    style="opacity:0.8;"
+                    data-category="<%= item.type %>"
+                    data-name="<%= item.name.toLowerCase() %>">
+
+                    <div class="cnav absolute top15 right15 borderGray">
+                        <i class="fas <%= typeIcon %>"></i>
+                    </div>
+
+                    <!-- Archived badge -->
+                    <div class="absolute" style="top:10px; left:10px;  color:white; font-size:9px; padding:2px 6px; border-radius:20px; font-weight:600;">ARCHIVED</div>
+
+                    <img src="/images/item.png" alt="<%= item.name %>" class="h100 corner10" style="filter:grayscale(50%);">
+
+                    <p class="size20 str500"><%= item.name %></p>
+                    <p class="size14" style="color:var(--black12);"><%= item.remaining %> <%= item.unit %></p>
+                    <p class="size11" style="color:var(--black12); text-transform:uppercase; letter-spacing:0.5px; margin:2px 0;"><%= item.type %></p>
+                    <p class="size12 textWrap" style="color:var(--black10);"><%= item.description || 'No description provided.' %></p>
+
+                    <div class="height0 gap8" style="width:100%; padding-top:10px;z-index: 200;">
+                        <a href="javascript:void(0)"
+                            class="restoreBtn nav"
+                            style="flex:1; text-align:center; font-size:11px;"
+                            data-id="<%= item._id %>"
+                            data-name="<%= item.name %>">
+                            <i class="fas fa-undo"></i> Restore
+                        </a>
+                        <a href="javascript:void(0)"
+                            class="deleteBtn nav hidden"
+                            style="flex:1; text-align:center; font-size:11px; background:var(--bs-danger); color:white;"
+                            data-id="<%= item._id %>"
+                            data-name="<%= item.name %>">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                    </div>
+                </section>
+            <% }) %>
+        <% } else { %>
+            <div style="text-align:center; padding:60px; width:100%;">
+                <i class="fas fa-archive" style="font-size:48px; color:var(--gray8);"></i>
+                <p class="size16 str400" style="color:var(--black12); margin-top:12px;">No archived items found.</p>
+            </div>
+        <% } %>
     </section>
+
+    <div id="emptyState" class="hidden" style="text-align:center; padding:60px; width:100%;">
+        <i class="fas fa-search" style="font-size:40px; color:var(--gray8);"></i>
+        <p class="size16 str400" style="color:var(--black12); margin-top:12px;">No results found.</p>
+    </div>
 </div>
+
+<style>
+    #modalBackdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; }
+    #modalBackdrop.hidden { display: none; }
+    #restoreCard, #deleteCard { z-index: 100; }
+</style>
+
+<script>
+    const backdrop    = document.getElementById('modalBackdrop');
+    const restoreCard = document.getElementById('restoreCard');
+    const deleteCard  = document.getElementById('deleteCard');
+    const cards       = document.querySelectorAll('#archiveGrid .stCard');
+    const emptyState  = document.getElementById('emptyState');
+
+    function openModal(modal) {
+        [restoreCard, deleteCard].forEach(m => m.classList.add('hidden'));
+        backdrop.classList.remove('hidden');
+        modal.classList.remove('hidden');
+    }
+    function closeAll() {
+        [restoreCard, deleteCard].forEach(m => m.classList.add('hidden'));
+        backdrop.classList.add('hidden');
+    }
+    backdrop.addEventListener('click', closeAll);
+
+    // Restore
+    document.querySelectorAll('.restoreBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('restoreId').value = btn.dataset.id;
+            document.getElementById('restoreItemName').textContent = btn.dataset.name;
+            openModal(restoreCard);
+        });
+    });
+    document.getElementById('cancelRestore').addEventListener('click', closeAll);
+    document.getElementById('confirmRestore').addEventListener('click', () => {
+        const id = document.getElementById('restoreId').value;
+        fetch(`/api/stocks/restore/${id}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => { if (data.success) window.location.reload(); else alert(data.message); })
+            .catch(() => alert('Something went wrong.'));
+    });
+
+    // Delete
+    document.querySelectorAll('.deleteBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('deleteId').value = btn.dataset.id;
+            document.getElementById('deleteItemName').textContent = btn.dataset.name;
+            openModal(deleteCard);
+        });
+    });
+    document.getElementById('cancelDelete').addEventListener('click', closeAll);
+    document.getElementById('confirmDelete').addEventListener('click', () => {
+        const id = document.getElementById('deleteId').value;
+        fetch(`/api/stocks/delete/${id}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => { if (data.success) window.location.reload(); else alert(data.message); })
+            .catch(() => alert('Something went wrong.'));
+    });
+
+    // Search + filter
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    searchInput.addEventListener('input', applyFilters);
+    categoryFilter.addEventListener('change', applyFilters);
+
+    function applyFilters() {
+        const search = searchInput.value.toLowerCase().trim();
+        const cat = categoryFilter.value;
+        let visible = 0;
+        cards.forEach(card => {
+            const matchSearch = !search || card.dataset.name.includes(search);
+            const matchCat = !cat || card.dataset.category === cat;
+            if (matchSearch && matchCat) { card.style.display = ''; visible++; }
+            else card.style.display = 'none';
+        });
+        emptyState.classList.toggle('hidden', visible > 0);
+    }
+</script>

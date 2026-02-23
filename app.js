@@ -66,7 +66,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.json());    
 app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: '0',
   etag: true
@@ -335,12 +335,16 @@ app.get('/r', isRequest, isLogin, async (req, res) => {
     res.render('request',{ title: 'Request', active: 'r'});
 });
 
-app.get('/st', isStocks, isLogin, async (req, res) => {
-    res.render('stocks',{ title: 'Stocks', active: 'st'});
-});
-
-app.get('/sta', isArchiveStock, isLogin, async (req, res) => {
-    res.render('stocksArchive',{ title: 'Archive Stocks', active: 'st'});
+app.get('/st', isLogin, isStocks, async (req, res) => {
+    res.render('stocks', {
+        title: 'Stocks',
+        active: 'st',
+        stocks:      res.locals.stocks      || [],
+        lowStocks:   res.locals.lowStocks   || [],
+        outOfStocks: res.locals.outOfStocks || [],
+        medicines:   res.locals.medicines   || [],
+        supplies:    res.locals.supplies    || []
+    });
 });
 
 app.get('/s', async (req, res) => {
@@ -631,6 +635,148 @@ app.post('/api/verify-otp', async (req, res) => {
 app.get('/success', (req, res) => {
     res.render('successOtp', { title: 'Success', active: 'f' });
 });
+
+// ============================================================
+// STOCKS API ROUTES  — paste these into your app.js
+// (add after your existing routes, before the 404 handler)
+// ============================================================
+
+// ─── GET: Archive Page ──────────────────────────────────────
+app.get('/sta', isArchiveStock, isLogin, async (req, res) => {
+    res.render('stocksArchive', { title: 'Archive Stocks', active: 'st' });
+});
+
+// ─── POST: Add New Stock ────────────────────────────────────
+app.post('/api/stocks/add', isLogin, async (req, res) => {
+    try {
+        const { name, type, unit, remaining, description } = req.body;
+
+        if (!name || !type || !unit || remaining === undefined) {
+            req.session.error = 'Please fill in all required fields.';
+            return req.session.save(() => res.redirect('/st'));
+        }
+
+        const newStock = await Stocks.create({
+            name:        name.trim(),
+            type:        type,           // 'medicine' | 'supply'
+            unit:        unit.trim(),
+            remaining:   Number(remaining),
+            description: description ? description.trim() : '',
+            archive:     false
+        });
+
+        await Logs.create({
+            who:     req.session.user._id,
+            what:    `Added new stock item: ${newStock.name} (${newStock.type}) — ${newStock.remaining} ${newStock.unit}`,
+            archive: false
+        });
+
+        req.session.success = `"${newStock.name}" has been added to stocks.`;
+        req.session.save(() => res.redirect('/st'));
+    } catch (err) {
+        console.error('Add Stock Error:', err.message);
+        req.session.error = 'Failed to add item. Please try again.';
+        req.session.save(() => res.redirect('/st'));
+    }
+});
+
+// ─── POST: Edit/Update Stock ────────────────────────────────
+app.post('/api/stocks/edit/:id', isLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, type, unit, remaining, description } = req.body;
+
+        const updated = await Stocks.findByIdAndUpdate(id, {
+            name:        name.trim(),
+            type:        type,
+            unit:        unit.trim(),
+            remaining:   Number(remaining),
+            description: description ? description.trim() : ''
+        }, { new: true });
+
+        if (!updated) {
+            req.session.error = 'Item not found.';
+            return req.session.save(() => res.redirect('/st'));
+        }
+
+        await Logs.create({
+            who:     req.session.user._id,
+            what:    `Updated stock item: ${updated.name} — now ${updated.remaining} ${updated.unit}`,
+            archive: false
+        });
+
+        req.session.success = `"${updated.name}" has been updated.`;
+        req.session.save(() => res.redirect('/st'));
+    } catch (err) {
+        console.error('Edit Stock Error:', err.message);
+        req.session.error = 'Failed to update item.';
+        req.session.save(() => res.redirect('/st'));
+    }
+});
+
+// ─── POST: Archive Stock (JSON response for fetch()) ────────
+app.post('/api/stocks/archive/:id', isLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const item = await Stocks.findByIdAndUpdate(id, { archive: true }, { new: true });
+
+        if (!item) return res.json({ success: false, message: 'Item not found.' });
+
+        await Logs.create({
+            who:     req.session.user._id,
+            what:    `Archived stock item: ${item.name}`,
+            archive: false
+        });
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Archive Stock Error:', err.message);
+        res.json({ success: false, message: 'Failed to archive item.' });
+    }
+});
+
+// ─── POST: Restore Stock from Archive ───────────────────────
+app.post('/api/stocks/restore/:id', isLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const item = await Stocks.findByIdAndUpdate(id, { archive: false }, { new: true });
+
+        if (!item) return res.json({ success: false, message: 'Item not found.' });
+
+        await Logs.create({
+            who:     req.session.user._id,
+            what:    `Restored stock item from archive: ${item.name}`,
+            archive: false
+        });
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Restore Stock Error:', err.message);
+        res.json({ success: false, message: 'Failed to restore item.' });
+    }
+});
+
+// ─── POST: Permanently Delete Stock ─────────────────────────
+app.post('/api/stocks/delete/:id', isLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const item = await Stocks.findByIdAndDelete(id);
+
+        if (!item) return res.json({ success: false, message: 'Item not found.' });
+
+        await Logs.create({
+            who:     req.session.user._id,
+            what:    `Permanently deleted stock item: ${item.name}`,
+            archive: false
+        });
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Delete Stock Error:', err.message);
+        res.json({ success: false, message: 'Failed to delete item.' });
+    }
+});
+
 
 app.use((req, res) => {
   res.status(404);

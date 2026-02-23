@@ -1,13 +1,9 @@
 const Stocks = require('../model/stocks');
 
-const isStocks = async (req, res, next) => {
+const IsArchiveStock = async (req, res, next) => {
     try {
         // 1. Fetch all stock items that are not archived
-        const allStocks = await Stocks.find({ archive: false }).lean();
-
-        console.log('isStocks found:', allStocks.length); // ← ADD THIS
-
-        const inStocks = allStocks.filter(item => item.remaining > 0);
+        const allStocks = await Stocks.find({ archive: true }).lean();
 
         // 2. Filter based on your specific flow thresholds
         // Low Stock: exactly 10 or fewer (but more than 0)
@@ -23,16 +19,14 @@ const isStocks = async (req, res, next) => {
         // 4. Attach to res.locals
         res.locals.stocks = allStocks;
         res.locals.lowStocks = lowStocks;
-        res.locals.inStocks = inStocks; // ← NEW
         res.locals.outOfStocks = outOfStocks;
         res.locals.medicines = medicines;
         res.locals.supplies = supplies;
 
         next();
     } catch (err) {
-        console.error('Error in isStocks middleware:', err.message);
+        console.error('Error in IsArchiveStock middleware:', err.message);
         res.locals.stocks = [];
-        res.locals.inStocks = [];
         res.locals.lowStocks = [];
         res.locals.outOfStocks = [];
         res.locals.medicines = [];
@@ -41,4 +35,4 @@ const isStocks = async (req, res, next) => {
     }
 };
 
-module.exports = isStocks;
+module.exports = IsArchiveStock;

@@ -1,103 +1,389 @@
 <% layout('layout') %>
+<style>
+    .editBtn:hover{
+        color: white !important;
+    }
+    .summ {
+        flex-direction: column;
+        align-items: start;
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.08);
+        background-color: white !important;
+    }
+    .mainf {
+        display: flex;
+        overflow: hidden;
+    }
+</style>
 
-<form class="width30 absolute shadow2 corner10 translateCenter col index100 bgWhite alignStart gap10 hidden" id="editCard">
-    <p class="size24 str5">Update Item</p>
+<!-- OVERLAY BACKDROP -->
+<div class="modalBackdrop hidden" id="modalBackdrop"></div>
+
+<!-- ADD ITEM MODAL -->
+<form class="width30 absolute shadow2 corner10 translateCenter col index100 bgWhite alignStart gap10 hidden" id="addCard" method="POST" action="/api/stocks/add">
+    <p class="size24 str5">Add New Item</p>
     <div class="field">
-        <label for="">Name</label>
-        <input type="text">
+        <label for="addName">Name</label>
+        <input type="text" id="addName" name="name" placeholder="e.g. Salbutamol" required>
     </div>
     <div class="field">
-        <label for="">Stocks</label>
-        <input type="text">
+        <label for="addType">Category</label>
+        <select id="addType" name="type" class="w100" required>
+            <option value="">Select Category</option>
+            <option value="medicine">Medicine</option>
+            <option value="supply">Supply</option>
+        </select>
     </div>
     <div class="field">
-        <label for="">Description</label>
-        <input type="text">
+        <label for="addUnit">Unit</label>
+        <input type="text" id="addUnit" name="unit" placeholder="e.g. pcs, packs, bottles" required>
+    </div>
+    <div class="field">
+        <label for="addRemaining">Quantity</label>
+        <input type="number" id="addRemaining" name="remaining" min="0" placeholder="0" required>
+    </div>
+    <div class="field">
+        <label for="addDescription">Description</label>
+        <textarea id="addDescription" name="description" placeholder="Short description..." rows="2" style="resize:none; width:100%; padding:6px; border:1px solid var(--gray5); border-radius:6px; font-size:12px;"></textarea>
     </div>
     <div class="height0 gap10">
-        <button class="nav borderPrimary width100">Cancel</button>
-        <button class="nav pnav width100">Update</button>
+        <button type="button" class="nav borderPrimary width100" id="cancelAdd">Cancel</button>
+        <button type="submit" class="nav pnav width100">Add Item</button>
     </div>
 </form>
-<div class="height10 justifyBetween">
-    <div class="width0">
-        <p class="size40 str400">Stock Management</p>
+
+<!-- EDIT ITEM MODAL -->
+<form class="width30 absolute shadow2 corner10 translateCenter col index100 bgWhite alignStart gap10 hidden" id="editCard" method="POST" action="">
+    <input type="hidden" id="editId" name="id">
+    <p class="size24 str5">Update Item</p>
+    <div class="field">
+        <label for="editName">Name</label>
+        <input type="text" id="editName" name="name" required>
     </div>
-    <div class="width0 gap8 ">
-        <a href="/sta" class="nav w100">Archive</a>
-        |
-        <a href="" class="nav ">Inventory History</a>
+    <div class="field">
+        <label for="editType">Category</label>
+        <select id="editType" name="type" class="w100" required>
+            <option value="medicine">Medicine</option>
+            <option value="supply">Supply</option>
+        </select>
+    </div>
+    <div class="field">
+        <label for="editUnit">Unit</label>
+        <input type="text" id="editUnit" name="unit" required>
+    </div>
+    <div class="field">
+        <label for="editRemaining">Quantity</label>
+        <input type="number" id="editRemaining" name="remaining" min="0" required>
+    </div>
+    <div class="field">
+        <label for="editDescription">Description</label>
+        <textarea id="editDescription" name="description" rows="2" style="resize:none; width:100%; padding:6px; border:1px solid var(--gray5); border-radius:6px; font-size:12px;"></textarea>
+    </div>
+    <div class="height0 gap10">
+        <button type="button" class="nav borderPrimary width100" id="cancelEdit">Cancel</button>
+        <button type="submit" class="nav pnav width100">Update</button>
+    </div>
+</form>
+
+<!-- ARCHIVE CONFIRM MODAL -->
+<div class="width30 height0 absolute shadow2 corner10 translateCenter col index100 bgWhite alignStart gap10 hidden" id="archiveCard" style="padding:20px;">
+    <p class="size24 str5">Archive Item?</p>
+    <p class="size14" style="color:var(--black10);">This item will be moved to the archive. You can restore it anytime.</p>
+    <input type="hidden" id="archiveId">
+    <p class="size16 str500" id="archiveItemName" style="color:var(--primary);"></p>
+    <div class="height0 gap10" style="width:100%; margin-top:10px;">
+        <button type="button" class="nav borderPrimary width100" id="cancelArchive">Cancel</button>
+        <button type="button" class="nav width100" id="confirmArchive" style="background:var(--bs-danger); color:white;">Archive</button>
     </div>
 </div>
-<div class="height90 col justifyStart">
+
+<!-- PAGE HEADER -->
+<div class="height10 justifyBetween">
+    <div class="width0">
+        <p class="size36 str400">Stock Management</p>
+    </div>
+    <div class="width0 gap8">
+        <a href="/sta" class="nav w100">Archive</a>
+        |
+        <a href="" class="nav">Inventory History</a>
+    </div>
+</div>
+
+<!-- FLASH MESSAGES -->
+<% if (success) { %>
+<div class="absolute right20 bottom20 width0 height0 size14 padding10 corner10" style="background:#d4edda; color:#155724; border:1px solid #c3e6cb; margin-bottom:8px;">
+    <i class="fas fa-check-circle"></i> <%= success %>
+</div>
+<% } %>
+<% if (error) { %>
+<div class="absolute right20 bottom20 width0 height0 size14 padding10 corner10" style="background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; margin-bottom:8px;">
+    <i class="fas fa-exclamation-circle"></i> <%= error %>
+</div>
+<% } %>
+
+    <div class="height0 gap20 padding10">
+        <div class="summ hidden">
+            <p class="size28 str500" style="color:var(--primary);"><%= stocks.length %></p>
+            <p class="size12" style="color:var(--black10);">Total Items</p>
+        </div>
+        <div class="summ">
+            <p class="size28 str500" style="color:var(--primary);"><%= inStocks.length %></p>
+            <p class="size12 flex gap10" style="color:var(--black10);"> In Stocks</p>
+        </div>
+        <div class="summ">
+            <p class="size28 str500" style="color:var(--bs-warning);"><%= lowStocks.length %></p>
+            <p class="size12" style="color:var(--black10);">Low Stock</p>
+        </div>
+        <div class="summ">
+            <p class="size28 str500" style="color:var(--red500);"><%= outOfStocks.length %></p>
+            <p class="size12" style="color:var(--black10);">Out of Stock</p>
+        </div>
+        <div class="summ">
+            <p class="size28 str500"><%= medicines.length %></p>
+            <p class="size12" style="color:var(--black10);">Medicines</p>
+        </div>
+        <div class="summ">
+            <p class="size28 str500"><%= supplies.length %></p>
+            <p class="size12" style="color:var(--black10);">Supplies</p>
+        </div>
+    </div>
+
+    <!-- FILTERS ROW -->
     <div class="height10 justifyBetween">
         <div class="width0 gap10">
-            <div class="selectBar w60">
-                All
-            </div>
-            <div class="selectBar w80 ">
-                In Stock
-            </div>
-            <div class="selectBar w90">
-                Low Stock
-            </div>
-            <div class="selectBar w100">
-                Out of Stock
-            </div>
-                
+            <div class="cursor pointer selectBar w60 filterTab active" data-filter="all">All</div>
+            <div class="cursor pointer selectBar w80 filterTab" data-filter="in">In Stock</div>
+            <div class="cursor pointer selectBar w90 filterTab" data-filter="low">Low Stock</div>
+            <div class="cursor pointer selectBar w100 filterTab" data-filter="out">Out of Stock</div>
         </div>
-        <div class="width0 gap8 ">
-            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id=""></div>
-            <div class="selectBar w190"><i class="fas fa-filter"></i><select name="" id="">
-                <option value=""></i> Filter By</option>
-                <option value="">Medicines</option>
-                <option value="">Supplies</option>
-            </select>
+        <div class="width0 gap8">
+            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" id="searchInput" placeholder="Search..."></div>
+            <div class="selectBar w190">
+                <i class="fas fa-filter"></i>
+                <select id="categoryFilter">
+                    <option value="">Filter By</option>
+                    <option value="medicine">Medicines</option>
+                    <option value="supply">Supplies</option>
+                </select>
+            </div>
         </div>
-            
-        </div>
-        
-    
     </div>
-    <section class="wrap justifyStart alignStretch gap20">
-        <section class="stCard width20 shadow1 corner10 padding15 relative height0 col alignStart justifyStart">
-            <div class="cnav absolute top15 right15 borderGray"><i class="fas fa-stethoscope"></i></div>
-            <img src="/images/item.png" alt="" class="h100 corner10">
-            <p class="size20 str500">Salbutamol</p>
-            <p class="size14">33 pcs</p>
-            <p class="size12 textWrap">This is the sample description of the item listed above</p>
-            <a href="javascript:void(0)" class="editBtn nav marginTop10"><i class="fas fa-pen"></i> Update Stock</a>
-        </section>
-        <section class="stCard width20 shadow1 corner10 padding15 relative height0 col alignStart justifyStart">
-            <div class="cnav absolute top15 right15 borderGray"><i class="fas fa-stethoscope"></i></div>
-            <img src="/images/item.png" alt="" class="h100 corner10">
-            <p class="size20 str500">Band Aid</p>
-            <p class="size14">33 packs</p>
-            <p class="size12 textWrap">This is the sample description of the item listed above</p>
-            <a href="javascript:void(0)" class="editBtn nav marginTop10"><i class="fas fa-pen"></i> Update Stock</a>
-        </section>
-        <section class="stCard width20 shadow1 corner10 padding15 relative height0 col borderDotted borderGray">
+
+<!-- MAIN CONTENT -->
+<div class="height65 block overflow-y1 col justifyStart">
+    
+
+    <!-- STATS SUMMARY -->
+
+    <!-- CARDS GRID -->
+    <section class="wrap justifyStart alignStretch gap20" id="stockGrid">
+
+        <% if (stocks && stocks.length > 0) { %>
+            <% stocks.forEach(item => { %>
+                <%
+                    let statusLabel = 'In Stock';
+                    let statusColor = 'var(--bs-success)';
+                    let filterTag = 'in';
+                    if (item.remaining === 0) {
+                        statusLabel = 'Out of Stock';
+                        statusColor = 'var(--bs-danger)';
+                        filterTag = 'out';
+                    } else if (item.remaining <= 10) {
+                        statusLabel = 'Low Stock';
+                        statusColor = 'var(--bs-warning)';
+                        filterTag = 'low';
+                    }
+                    const typeIcon = item.type === 'medicine' ? 'fa-stethoscope' : 'fa-box-open';
+                %>
+                <section class="stCard width20 shadow1 corner10 padding15 relative height0 col alignStart justifyStart"
+                    data-filter="<%= filterTag %>"
+                    data-category="<%= item.type %>"
+                    data-name="<%= item.name.toLowerCase() %>">
+
+                    <!-- Type Badge -->
+                    <div class="cnav absolute top15 right15 borderGray" title="<%= item.type %>">
+                        <i class="fas <%= typeIcon %>"></i>
+                    </div>
+
+                    <!-- Status dot -->
+                    <div class="absolute hidden" style="top:12px; left:12px; width:8px; height:8px; border-radius:10px; background:<%= statusColor %>;" title="<%= statusLabel %>"></div>
+
+                    <img src="/images/item.png" alt="<%= item.name %>" class="h100 corner10">
+
+                    <p class="size20 str500"><%= item.name %></p>
+                    <p class="size14" style="color:<%= statusColor %>; font-weight:600;">
+                        <%= item.remaining %> <%= item.unit %>
+                        <span class="size11" style="color:<%= statusColor %>; font-weight:400; margin-left:4px;">(<%= statusLabel %>)</span>
+                    </p>
+                    <p class="size11" style="color:var(--black12); text-transform:uppercase; letter-spacing:0.5px; margin:2px 0;"><%= item.type %></p>
+                    <p class="size12 textWrap" style="color:var(--black10);"><%= item.description || 'No description provided.' %></p>
+
+                    <div class="height0 gap8" style="width:100%; margin-top:auto; padding-top:10px;">
+                        <a href="javascript:void(0)"
+                            class="archiveBtn nav"
+                            style="flex:1; text-align:center; font-size:11px;"
+                            data-id="<%= item._id %>"
+                            data-name="<%= item.name %>">
+                            <i class="fas fa-archive"></i> Archive
+                        </a>
+                        <a href="javascript:void(0)"
+                            class="editBtn nav pnav"
+                            style="flex:1; text-align:center; font-size:11px;"
+                            data-id="<%= item._id %>"
+                            data-name="<%= item.name %>"
+                            data-type="<%= item.type %>"
+                            data-unit="<%= item.unit %>"
+                            data-remaining="<%= item.remaining %>"
+                            data-description="<%= item.description || '' %>">
+                            <i class="fas fa-pen"></i> Edit
+                        </a>
+                    </div>
+                </section>
+            <% }) %>
+        <% } %>
+
+        <!-- ADD NEW CARD -->
+        <section class="stCard width20 shadow1 corner10 padding15 relative height0 col borderDotted borderGray" id="addCardTrigger" style="cursor:pointer; justify-content:center; align-items:center;">
             <div class="cnavLG border0">
                 <i class="fas fa-plus"></i>
             </div>
+            <p class="size13" style="color:var(--black12); margin-top:8px;">Add New Item</p>
         </section>
+        
+    <div id="emptyState" class="hidden height0" style="text-align:center; padding:40px; width:100%;">
+        <i class="fas fa-box-open" style="font-size:48px; color:var(--gray8);"></i>
+        <p class="size16 str400" style="color:var(--black12); margin-top:12px;">No items found.</p>
+    </div>
+
     </section>
+
+    <!-- EMPTY STATE -->
+
 </div>
 
-<script>
-    const editCard = document.getElementById('editCard');
-    const editBtns = document.querySelectorAll('.editBtn');
-    const closeBtn = document.querySelector('.closeBtn');
+<style>
+    .filterTab.active {
+        background: var(--primary) !important;
+        color: white !important;
+        border-color: var(--primary) !important;
+    }
+    #modalBackdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 99;
+    }
+    #modalBackdrop.hidden { display: none; }
+    #addCard, #editCard, #archiveCard { z-index: 100; padding: 24px; }
+    .field { width: 100%; display: flex; flex-direction: column; gap: 4px; }
+    .field input, .field select, .field textarea { width: 100%; }
+</style>
 
-    // Show edit card when ANY edit button is clicked
+<script>
+    // ─── Elements ───────────────────────────────────────────
+    const backdrop     = document.getElementById('modalBackdrop');
+    const addCard      = document.getElementById('addCard');
+    const editCard     = document.getElementById('editCard');
+    const archiveCard  = document.getElementById('archiveCard');
+    const addTrigger   = document.getElementById('addCardTrigger');
+    const editBtns     = document.querySelectorAll('.editBtn');
+    const archiveBtns  = document.querySelectorAll('.archiveBtn');
+    const filterTabs   = document.querySelectorAll('.filterTab');
+    const searchInput  = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const stockGrid    = document.getElementById('stockGrid');
+    const cards        = document.querySelectorAll('.stCard[data-filter]');
+    const emptyState   = document.getElementById('emptyState');
+
+    let activeFilter = 'all';
+
+    // ─── Open/Close Helpers ──────────────────────────────────
+    function openModal(modal) {
+        [addCard, editCard, archiveCard].forEach(m => m.classList.add('hidden'));
+        backdrop.classList.remove('hidden');
+        modal.classList.remove('hidden');
+    }
+    function closeAll() {
+        [addCard, editCard, archiveCard].forEach(m => m.classList.add('hidden'));
+        backdrop.classList.add('hidden');
+    }
+
+    // ─── Add Modal ───────────────────────────────────────────
+    addTrigger.addEventListener('click', () => openModal(addCard));
+    document.getElementById('cancelAdd').addEventListener('click', closeAll);
+
+    // ─── Edit Modal ──────────────────────────────────────────
     editBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            editCard.classList.remove('hidden');
+            const id = btn.dataset.id;
+            document.getElementById('editId').value = id;
+            document.getElementById('editName').value = btn.dataset.name;
+            document.getElementById('editType').value = btn.dataset.type;
+            document.getElementById('editUnit').value = btn.dataset.unit;
+            document.getElementById('editRemaining').value = btn.dataset.remaining;
+            document.getElementById('editDescription').value = btn.dataset.description;
+            editCard.action = `/api/stocks/edit/${id}`;
+            openModal(editCard);
+        });
+    });
+    document.getElementById('cancelEdit').addEventListener('click', closeAll);
+
+    // ─── Archive Modal ───────────────────────────────────────
+    archiveBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('archiveId').value = btn.dataset.id;
+            document.getElementById('archiveItemName').textContent = btn.dataset.name;
+            openModal(archiveCard);
+        });
+    });
+    document.getElementById('cancelArchive').addEventListener('click', closeAll);
+    document.getElementById('confirmArchive').addEventListener('click', () => {
+        const id = document.getElementById('archiveId').value;
+        fetch(`/api/stocks/archive/${id}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) window.location.reload();
+                else alert(data.message || 'Archive failed.');
+            })
+            .catch(() => alert('Something went wrong.'));
+    });
+
+    // ─── Close on backdrop ───────────────────────────────────
+    backdrop.addEventListener('click', closeAll);
+
+    // ─── Filter Tabs ─────────────────────────────────────────
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            filterTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            activeFilter = tab.dataset.filter;
+            applyFilters();
         });
     });
 
-    // Hide edit card when close button is clicked
-    closeBtn.addEventListener('click', () => {
-        editCard.classList.add('hidden');
-    });
+    // ─── Search + Category Filter ────────────────────────────
+    searchInput.addEventListener('input', applyFilters);
+    categoryFilter.addEventListener('change', applyFilters);
+
+    function applyFilters() {
+        const search = searchInput.value.toLowerCase().trim();
+        const cat = categoryFilter.value;
+        let visible = 0;
+
+        cards.forEach(card => {
+            const matchFilter = activeFilter === 'all' || card.dataset.filter === activeFilter;
+            const matchSearch = !search || card.dataset.name.includes(search);
+            const matchCat = !cat || card.dataset.category === cat;
+
+            if (matchFilter && matchSearch && matchCat) {
+                card.style.display = '';
+                visible++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        emptyState.classList.toggle('hidden', visible > 0);
+    }
 </script>
