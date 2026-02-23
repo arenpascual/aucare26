@@ -15,6 +15,9 @@
         display: flex;
         overflow: hidden;
     }
+    .stCard {
+    flex: 1 1 calc(24% - 10px);
+    }
 </style>
 
 <!-- OVERLAY BACKDROP -->
@@ -106,7 +109,7 @@
     <div class="width0 gap8">
         <a href="/sta" class="nav w100">Archive</a>
         |
-        <a href="" class="nav">Inventory History</a>
+        <a href="/ih" class="nav">Inventory History</a>
     </div>
 </div>
 
@@ -196,7 +199,7 @@
                     }
                     const typeIcon = item.type === 'medicine' ? 'fa-stethoscope' : 'fa-box-open';
                 %>
-                <section class="stCard width20 shadow1 corner10 padding15 relative height0 col alignStart justifyStart"
+                <section class="stCard width20 gap5 shadow1 corner10 padding15 relative height0 col alignStart justifyStart"
                     data-filter="<%= filterTag %>"
                     data-category="<%= item.type %>"
                     data-name="<%= item.name.toLowerCase() %>">

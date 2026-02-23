@@ -427,6 +427,9 @@ app.get('/otp', async (req, res) => {
     res.render('otp',{ title: 'Otp', active: 'otp'});
 });
 
+app.get('/ih', async (req, res) => {
+    res.render('Inventoryhistory',{ title: 'Inventoryhistory', active: 'ih'});
+});
 
 
 
