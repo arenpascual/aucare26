@@ -1,5 +1,7 @@
 <% layout('template') %>
 
+
+
 <p class="noteBlue absolute bottom20 right20 size16"><i class="fas fa-bell"></i> Sample notification message</p>
 
 <div class="col padding10 width35 justifyStart">
@@ -8,7 +10,7 @@
         <p class="size40" style="margin-top: -24px !important;">AREN PASCUAL!</p>
         <br>
         <p class="size20" style="margin-top: -15px !important;">Need Care?</p>
-        <a href="" class="nav pnav absolute bottom20 right20">Visit Now</a>
+        <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20">Visit Now</a>
     </div>
     <div class="height0 corner15 col alignStart bgWhite padding20">
         <p class="size20">Services</p>
@@ -50,3 +52,129 @@
     </div>
 
 </div>
+
+<form class="absolute translateCenter shadow3 width30 padding30 gap10 index500 height0 hidden" id="Consultationform">
+    <p class="size24">Consultation Request Form:</p>
+    <div class="field">
+        <label for="">Concern</label>
+        <div class="selectBar">
+            <select name="" id="concernSelect">
+                <option value="" title="Hello">Select Concern</option>
+                <option value="rest" title="Hello">Rest/Observation</option>
+                <option value="medicine" title="Hello">Health Concern / Request Medicines</option>
+                <option value="consultation" title="Hello">Health Consultation</option>
+            </select>
+        </div>
+    </div>
+    <section class="gap10 hidden" id="medicineField">
+    <div class="field" id="medicineField">
+        <label for="">Type of Medicines <span class="gray inherit">( Optional )</span></label>
+        <div class="selectBar">
+            <select name="" id=""><option value="" title="Hello">--Select--</option>
+                <option value="" title="Hello">Carbocisteine (SOLMUX)</option>
+                <option value="" title="Hello">Cetirizine</option>
+                <option value="" title="Hello">Cinnarizine</option>
+                <option value="" title="Hello">Dicycloverine</option>
+                <option value="" title="Hello">Health Concern / Request Medicines</option>
+                <option value="" title="Hello">Health Consultation</option>
+                <option value="" title="Hello">Hyoscine (BUSCOPAN)</option>
+                <option value="" title="Hello">Kremil-S</option>
+                <option value="" title="Hello">Loperamide (DIATABS)</option>
+                <option value="" title="Hello">Mefenamic Acid</option>
+                <option value="" title="Hello">Neozep</option>
+                <option value="" title="Hello">Paracetamol (BIOGESIC)</option>
+                <option value="" title="Hello">Salbutamol Neb</option>
+            </select>
+        </div>
+    </div>
+    <div class="field">
+        <label for="">Quantity</label>
+        <div class="selectBar">
+            <select name="" id="">
+                <option value="" title="Hello">--Select--</option>
+                <option value="" title="Hello">1</option>
+                <option value="" title="Hello">2</option>
+                <option value="" title="Hello">3</option>
+            </select>
+        </div>
+    </div>
+
+    </section>
+    
+    <div class="field">
+        <label for="">Complaint <span class="gray inherit">( Optional )</span></label>
+        <div class="selectBar">
+            <select name="" id=""><option value="">Select Complaint</option>
+                <option value="allergy">Allergy</option>
+                <option value="body_muscle_pain">Body/Muscle pain</option>
+                <option value="colds">Colds</option>
+                <option value="cough">Cough</option>
+                <option value="difficulty_of_breathing">Difficulty of Breathing</option>
+                <option value="dizziness">Dizziness</option>
+                <option value="dysmenorrhea_menstrual_cramps">Dysmenorrhea/Menstrual cramps</option>
+                <option value="fever">Fever</option>
+                <option value="headache">Headache</option>
+                <option value="hyperacidity">Hyperacidity</option>
+                <option value="lbm">LBM</option>
+                <option value="toothache">Toothache</option>
+                <option value="abdominal_pain_cramps">Abdominal pain/cramps</option>
+            </select>
+        </div>
+    </div>
+    <div class="noteBlue">
+        <p class="size12">
+        <i class="fas fa-info-circle"></i> &nbsp; After submitting, your request will be reviewed by the clinic admin or nurse.
+    Please wait for approval before proceeding.</p>
+    </div>
+<section class="justifyBetween gap70 padding0">
+    <div class="nav width100" id="closeForm">Cancel</div>
+    <div class="nav pnav width100">Submit</div>
+</section>
+</form>
+
+<section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="notificationBox">
+    <img class="h100 w100" src="/images/like.png" alt="">
+    <section class="padding0 col alignCenter">
+        <p class="size23 str500">Request Submitted</p>
+        <p class="size17">Wait for the approval notification.</p>
+    </section>
+    <a class="nav w120 size15" href="javascript:void(0)" id="gotItBtn">Got It!</a>
+</section>
+
+
+<script>
+const concern = document.getElementById("concernSelect");
+const medicineField = document.getElementById("medicineField");
+
+concern.addEventListener("change", function() {
+
+    if (this.value === "medicine") {
+        medicineField.classList.remove("hidden");
+    } else {
+        medicineField.classList.add("hidden");
+    }
+
+});
+</script>
+<script>
+const formBtn = document.getElementById("formBtn");
+const consultationForm = document.getElementById("Consultationform");
+const closeForm = document.getElementById("closeForm");
+
+formBtn.addEventListener("click", function(){
+    consultationForm.classList.remove("hidden");
+});
+
+closeForm.addEventListener("click", function(){
+    consultationForm.classList.add("hidden");
+});
+</script>
+
+<script>
+const gotItBtn = document.getElementById("gotItBtn");
+const notification = document.getElementById("notificationBox");
+
+gotItBtn.addEventListener("click", function(){
+    notification.classList.add("hidden");
+});
+</script>
