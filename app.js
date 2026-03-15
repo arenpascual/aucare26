@@ -435,6 +435,9 @@ app.get('/ih', async (req, res) => {
     res.render('Inventoryhistory',{ title: 'Inventoryhistory', active: 'ih'});
 });
 
+app.get('/pd', async (req, res) => {
+    res.render('pending',{ title: 'pending', active: 'pd'});
+});
 
 
 

@@ -7,10 +7,72 @@
         clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 0% 100%);
     }
 </style>
-<div class="polaroid">
 
-    <a href="javascript:void(0)" id="exportCard" class="nav pnav absolute left20 top20">Export Health Card</a>
-    
+<div class=" gap15 polaroid">
+    <div class="padding10 width20">
+        <div class="glass justifyStart col">
+            <section class="col">
+                <img class="h80 w80" src="/images/logo.png" alt="">
+                <p class="size23 colorPrimary">Arenvie Pascual</p>
+                <p class="size12 blue">01-2223-037426</p>
+                <p class="size12 gray">arenpascual@gmail.com</p>
+            </section>
+            <section class="col gap5">
+                <a href="" class="nav pnav width100">Approve</a>
+                <a href="" class="nav pnav width100">Consultation Record</a>
+                <a href="javascript:void(0)" id="exportCard" class="nav pnav width100">Export Health Card</a>
+            </section>
+        </div>
+    </div>
+    <div class="width80 col justifyStart padding15 gap10">
+        <div class="height10 justifyStart gap10 padding20">
+        <a href="" class="nav"><i class="fas fa-chevron-left"></i> Return</a> 
+        <p class="size40 str400 blue ">Account Information</p>
+        </div>
+        <br>
+        <div class="height25 justifyStart gap10 padding0">
+            <div class="left width50 bgWhite corner14 col alignStart padding15 borderGray relative">
+                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                <p class="size28 str400">Personal Details</p>
+                <p class="size14 gray">Gender:</p>
+                <p class="size14 gray">Address:</p>
+                <p class="size14 gray">Date of Birth:</p>
+            </div>
+            <div class="left width48 bgWhite corner14 col alignStart padding15 borderGray relative">
+                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                <p class="size28 str400">School Information</p>
+                <p class="size14 gray">School ID:</p>
+                <p class="size14 gray">Year Level:</p>
+                <p class="size14 gray">Course:</p>
+            </div>
+        </div>
+        
+            <section class="left width99 bgWhite corner14 col alignStart gap5 padding15 borderGray relative">
+                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                <p class="size28 str400">Medical Information</p>
+                <p class="size14 gray">Food Allergies:</p>
+                <p class="size14 gray">Medicine Allergies:</p>
+            </section>
+
+            <section class="left width99 bgWhite corner14 col alignStart gap5 padding15 borderGray relative">
+                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                <p class="size28 str400">Emergency Contact</p>
+                <p class="size14 gray">Name:</p>
+                <p class="size14 gray">Contact:</p>
+                <p class="size14 gray">Address:</p>
+            </section>
+    </div>
+</div>
+
+
+
+
+
+
+
+<div class="bgWhite corner200 hidden">
+
+
     <div class="bgWhite shadow1 absolute left20 top70 width40 height0 justifyStart col hidden" id="healthCard">
         <section class="justifyBetween padding0 relative">
             <section class="bgIndigo950 justifyStart width60 gap5" style="border-bottom-right-radius: 40px;">
