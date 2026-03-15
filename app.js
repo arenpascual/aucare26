@@ -781,6 +781,56 @@ app.post('/api/stocks/delete/:id', isLogin, async (req, res) => {
     }
 });
 
+app.post('/visitnow', async (req, res) => {
+    try {
+        const userId = req.session.user._id; 
+        const { complaint, item, qty } = req.body;
+
+        // 1. I-save ang Visit (Mother Record)
+        // Gumamit tayo ng default string kung sakaling walang complaint para hindi mag-error ang model validation
+        const newVisit = new Visits({
+            patient: userId,
+            complaint: complaint || "No specific complaint",
+            status: 'Pending',
+            archive: false
+        });
+        const savedVisit = await newVisit.save();
+
+        // 2. I-save ang Complaint sa sariling collection (kung may input ang user)
+        if (complaint && complaint.trim() !== "") {
+            const newComplaint = new Complaint({
+                visitId: savedVisit._id,
+                type: complaint
+            });
+            await newComplaint.save();
+        }
+
+        // 3. I-save sa Dispense collection kung may piniling gamot at quantity
+        // Ginamit ang trim() para masigurong hindi lang spaces ang laman
+        if (item && qty && item.trim() !== "") {
+            const newDispense = new Dispense({
+                visitId: savedVisit._id,
+                who: userId,
+                type: 'medicine',
+                item: item,
+                qty: Number(qty),
+                unit: 'pcs'
+            });
+            await newDispense.save();
+        }
+
+        // 4. Set success message sa session
+        // Lalabas na ito sa <%= success %> dahil dadaan ang code dito kahit walang gamot
+        req.session.success = "Request Submitted Successfully!";
+        res.redirect('/h'); 
+
+    } catch (err) {
+        console.error('Submission Error:', err.message);
+        req.session.error = "An error occurred while submitting.";
+        res.redirect('/h');
+    }
+});
+
 
 app.use((req, res) => {
   res.status(404);

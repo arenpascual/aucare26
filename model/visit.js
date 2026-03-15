@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const visitSchema = new mongoose.Schema({
  archive: { type: Boolean, default: false },
 
-status: { type: String, enum: ['pending', 'ongoing', 'completed', 'cancelled'], default: 'pending' },
+status: { type: String, enum: ['Pending', 'Attended', 'Not Attended', 'Proceed'], default: 'Pending' },
 complaint: { type: String, required: true, trim: true },
 treatment: { type: String, trim: true },
 patient: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
