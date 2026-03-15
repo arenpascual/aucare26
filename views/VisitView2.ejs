@@ -8,70 +8,84 @@
     <a href="/v2" class="nav cnav absolute left20 top20"><i class="fas fa-chevron-left"></i></a>
     <div class="col justifyStart padding10 gap10 width45">
         <section class="justifyBetween gap10 padding0 paddingInline10">
-            <p class="size16 str500">Aug 23, 2025 9:20am</p>
+            <p class="size16 str500"><%= v.createdAt ? 
+        new Date(v.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + 
+        new Date(v.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase().replace(' ', '') 
+        : 'No Date' 
+    %>
+            </p>
             <section class="width0 gap5">
              <p class="size16">Status: </p>
-             <p class="size16 str500"> <i class="fas fa-check-square green"></i> Attended</p>
+             <p class="size16 str500"> <i class="fas fa-check-square green"></i> <%= v.status %></p>
             </section>
         </section>
         <section class="glass bgWhite col alignStart colorPrimary padding20 borderWhite">
-            <p class="size16"><i class="fas fa-user w20"></i> Arenvie Pascual</p>
-            <p class="size16"><i class="fas fa-check-circle w20"></i> Student</p>
-            <p class="size16"><i class="fas fa-address-book w20"></i> 01-2223-037426</p>
-            <p class="size16 textWrap"><i class="fas fa-layer-group w20"></i> 4th Year &bull; Bachelor of Science in Information Technology</p>
-            <p class="size16"><i class="fas fa-phone w20"></i> 0991-038-6745</p>
-            <p class="size16"><i class="fas fa-envelope w20"></i> arbo.pascual.au@phinmaed.com</p>
+            <p class="size16">
+                <i class="fas fa-user w20"></i> 
+                <%= v.patient ? v.patient.fName + ' ' + v.patient.lName : 'Unknown Patient' %>
+            </p>
+
+            <p class="size16">
+                <i class="fas fa-check-circle w20"></i> 
+                <%= v.patient ? v.patient.role : 'N/A' %>
+            </p>
+
+            <p class="size16">
+                <i class="fas fa-address-book w20"></i> 
+                <%= v.patient ? v.patient.schoolId : 'No ID' %>
+            </p>
+
+            <p class="size16 textWrap">
+                <i class="fas fa-layer-group w20"></i> 
+                <%= v.patient ? v.patient.yearLevel : 'N/A' %> &bull; <%= v.patient ? v.patient.course : 'N/A' %>
+            </p>
+
+            <p class="size16">
+                <i class="fas fa-phone w20"></i> 
+                <%= v.patient && v.patient.contact ? v.patient.contact : 'No Contact' %>
+            </p>
+
+            <p class="size16">
+                <i class="fas fa-envelope w20"></i> 
+                <%= v.patient ? v.patient.email : 'No Email' %>
+            </p>
         </section>
         <section class="col alignStart colorPrimary padding10">
             <section class="padding0 justifyBetween">
-                <p class="size24 str500">Vital Sign</p>
+                <p class="size18 str500">Vital Sign</p>
                 <a href="" class="nav cnav glass shadowNone"><i class="fas fa-pen"></i></a>
             </section>
             <section class="gap30 justifyStart">
                 <div class="col width0">
-                    <img src="/images/bp.png" alt="" class="corner500 bgWhite h80 w80">
+                    <img src="/images/bp.png" alt="" class="corner500 bgWhite h60 w60">
                     <p class="size18 str500">120 / 80</p>
                     <p class="size12">Blood Pressure</p>
                 </div>
-                <div class="col width0">
-                    <img src="/images/hb.png" alt="" class="corner500 bgWhite h80 w80">
-                    <p class="size18 str500">60 per min</p>
-                    <p class="size12">Heart Rate</p>
-                </div>
-                <div class="col width0">
-                    <img src="/images/10.png" alt="" class="corner500 bgWhite h80 w80">
-                    <p class="size18 str500">36 &deg; </p>
-                    <p class="size12">Temperature</p>
-                </div>
             </section>
         </section>
-        <section class="glass col alignStart colorPrimary padding20 borderWhite">
+        <section class="bgWhite corner10 justifyBetween gap10 padding0 paddingInline10">
+            <section class="gap5 justifyBetween">
+             <p class="size18 str500">Concern:</p>
+             <p class="size18 str500 navy"><%= v.concern %></p>
+            </section>
+        </section>
+        <section class="glass col alignStart colorPrimary padding20 borderWhite"> 
             <section class="padding0 justifyBetween">
-                <p class="size24 str500">Chief Complain</p>
+                <p class="size18 str500">Complaint</p>
                 <a href="" class="nav cnav glass shadowNone"><i class="fas fa-pen"></i></a>
             </section>
             <section class="gap30 justifyStart">
-                <div class="col width0 relative">
-                    <img src="/images/9.png" alt="" class="corner500 bgWhite h80 w80">
-                    <p class="size18 str500">Dizziness</p>
-                    <a href="" class="nav absolute right0 top0 h25 w25 glass padding0 size12 shadowNone"><i class="fa-solid fa-circle-minus red"></i></a>
-                </div>
-                <div class="col width0 relative">
-                    <img src="/images/hd.png" alt="" class="corner500 bgWhite h80 w80">
-                    <p class="size18 str500">Headache</p>
-                    <a href="" class="nav absolute right0 top0 h25 w25 glass padding0 size12 shadowNone"><i class="fa-solid fa-circle-minus red"></i></a>
-                </div>
-                <div class="col width0 relative">
-                    <img src="/images/5.png" alt="" class="corner500 bgWhite h80 w80">
-                    <p class="size18 str500">Toothache</p>
-                    <a href="" class="nav absolute right0 top0 h25 w25 glass padding0 size12 shadowNone"><i class="fa-solid fa-circle-minus red"></i></a>
-                </div>
-                <div class="col width0">
-                    <div class="corner500 borderWhite borderDotted h80 w80">
-                        <i class="fas fa-plus size30 white"></i>
-                    </div>
-                    <p class="size18 str500 opacity0">Fever</p>
-                </div>
+                <% if (v.complaints && v.complaints.length > 0) { %>
+                    <% v.complaints.forEach(item => { %>
+                        <div class="col width0 relative">
+                            <img src="/images/<%= item.type %>.png" onerror="this.src='/images/item.png'" alt="" class="corner500 bgWhite h60 w60">
+                            <p class="size18 str500"><%= item.type %></p>
+                            <a href="" class="nav absolute right0 top0 h25 w25 glass padding0 size12 shadowNone hidden"><i class="fa-solid fa-circle-minus red"></i></a>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p class="size16 opacity50">No complaints recorded.</p>
+                <% } %>
             </section>
         </section>
     </div>

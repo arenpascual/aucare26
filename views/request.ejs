@@ -31,33 +31,7 @@
         </div>
     </div>
 
-    <section class="height90 bgGray200 corner12 col gap10 block overflow-y1">
-        <div class="height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10">
-                <p class="size14 absolute right15 top15">August 20, 2025</p>
-                <p class="size18 str500">Arenvie Pascual <span class="size12 border0 bgGreen100">Pending</span></p>
-                <p class="size14">01-2223-037426</p>
-                <p class="size14">4th Year &bull; Bachelor of Science in Information Technology</p>
-                <p class="size14">arbo.pascual.au@phinmaed.com</p>
-                <p class="size14 str500">Complaint: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">Headache</span></p>
-                <p class="size14 str500">Medicines: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">Paracetamol</span></p>
-                <div class="area0 absolute bottom15 right15 width0 height0 gap10">
-                <button href="javascript:void(0)" class="appBtn nav pnav w150">Proceed</button>
-                </div>
-        </div>
-        
-        <div class="height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10">
-                <p class="size14 absolute right15 top15">August 20, 2025</p>
-                <p class="size18 str500">Arenvie Pascual <span class="size12 border0 bgGreen100">Pending</span></p>
-                <p class="size14">01-2223-037426</p>
-                <p class="size14">4th Year &bull; Bachelor of Science in Information Technology</p>
-                <p class="size14">arbo.pascual.au@phinmaed.com</p>
-                <p class="size14 str500">Complaint: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">Headache</span></p>
-                <p class="size14 str500">Medicines: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">Paracetamol</span></p>
-                <div class="area0 absolute bottom15 right15 width0 height0 gap10">
-                <button href="javascript:void(0)" class="appBtn nav pnav w150">Proceed</button>
-                </div>
-        </div>
-
+    <section class="height90 bgGray200 corner12 col gap10 block overflow-y1 hidden">
         <div class="height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10">
                 <p class="size14 absolute right15 top15">August 20, 2025</p>
                 <p class="size18 str500">Arenvie Pascual <span class="size12 border0 bgGreen100">Pending</span></p>
@@ -71,6 +45,73 @@
                 </div>
         </div>
     </section>
+
+<section class="height90 bgGray200 corner12 col gap10 block overflow-y1">
+    <% if (allRequest && allRequest.length > 0) { %>
+        <% 
+           const pendingRequests = allRequest.filter(r => r.status.toLowerCase() === 'pending'); 
+        %>
+
+        <% if (pendingRequests.length > 0) { %>
+            <% pendingRequests.forEach(request => { %>
+                <div class="height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10">
+                    
+                    <p class="size14 absolute right15 top15">
+                        <%= request.createdAt ? new Date(request.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'No Date' %>
+                    </p>
+
+                    <p class="size18 str500">
+                        <%= request.patient.fName %> <%= request.patient.lName %> 
+                        <span class="size12 border0 bgGreen100" style="padding: 2px 8px; border-radius: 4px; margin-left: 10px;">
+                            <%= request.status %>
+                        </span>
+                    </p>
+                     <p class="size14">
+                        <%= request.patient.email %> &bull; <%= request.patient.phone %>
+                    </p>
+
+                    <p class="size14">
+                        <%= request.patient.phone %>
+                    </p>
+
+                    <p class="size14"><%= request.patient.schoolId %></p>
+                    <p class="size14">
+                        <%= request.patient.yearLevel %> &bull; <%= request.patient.course %>
+                    </p>
+
+                    <p class="size14 str500" style="margin-top: 10px;">Complaint: 
+                        <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">
+                            <%= request.complaints && request.complaints.length > 0 
+                                ? request.complaints.map(c => c.type).join(', ') 
+                                : request.complaint %> </span>
+                    </p>
+
+                    <p class="size14 str500" style="margin-top: 10px;">Concern: 
+                        <span class="sizeInherit str500" style="color: rgb(6, 74, 210);"><%= request.concern %></span>
+                    </p>
+                    <% if (request.dispensed && request.dispensed.length > 0) { %>
+                        <p class="size14 str500">Medicines: 
+                            <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">
+                                <%= request.dispensed.map(d => `${d.item} (${d.qty} ${d.unit})`).join(', ') %>
+                            </span>
+                        </p>
+                    <% } %>
+                    <div class="area0 absolute bottom15 right15 width0 height0 gap10">
+                        <a href="/proceed-request/<%= request._id %>" class="appBtn nav pnav w150 textCenter height0">
+                            Proceed
+                        </a>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <div class="padding20 textCenter size16 colorPrimary">No Pending requests at the moment.</div>
+        <% } %>
+
+    <% } else { %>
+        <div class="padding20 textCenter size16 colorPrimary">No requests found.</div>
+    <% } %>
+</section>
+
 </div>
 
 

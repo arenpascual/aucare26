@@ -65,13 +65,24 @@
         </div>
         <div class="height74 menu">
             <hr class="marginTop10">
+            
+            <% if (user.role === 'Super Admin' || user.role === 'Admin' ) { %>
             <a href="/d" class="nav mnav <% if ( active === 'd' ) { %> active <% } %>"><i class="bi bi-grid-fill"></i>Dashboard</a>
+            <% } %>
+
             <a href="/r" class="nav mnav <% if ( active === 'r' ) { %> active <% } %>"><i class="fa-solid fa-file"></i>Requests</a>
             <a href="/v2" class="nav mnav <% if ( active === 'v2' ) { %> active <% } %>"><i class="fa-solid fa-stethoscope"></i>Visits</a>
+
+
+            <% if (user.role === 'Super Admin' || user.role === 'Admin' ) { %>
             <a href="/st" class="nav mnav <% if ( active === 'st' ) { %> active <% } %>"><i class="fa-solid fa-boxes-stacked"></i>Stocks</a>
             <a href="/e" class="nav mnav <% if ( active === 'e' ) { %> active <% } %>"><i class="fa-solid fa-user-tie"></i>Admin</a>
             <a href="/um" class="nav mnav <% if ( active === 'um' ) { %> active <% } %>"><i class="fa-solid fa-user-friends"></i>Patients</a>
+            <% } %>
+
+            <% if (user.role === 'Super Admin') { %>
             <a href="/l" class="nav mnav <% if ( active === 'l' ) { %> active <% } %>"><i class="fa-solid fa-cog"></i>Activity Logs</a>
+            <% } %>
         </div>
         <div class="height10 justifyStart corner15 bgTint12 padding10 gap10">
             <div class="width0">

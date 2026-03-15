@@ -33,6 +33,7 @@ const isStocks = require('./middleware/isStocks');
 const isLogs = require('./middleware/isLogs');
 const isVisit = require('./middleware/isVisit');
 const isRequest = require('./middleware/isRequest');
+const itsVisit = require('./middleware/itsVisit');
 
 // Archive Middlewares (For your archive/history pages)
 const isArchiveAdmin = require('./middleware/isArchiveAdmin');
@@ -308,8 +309,11 @@ app.post('/login', async (req, res) => {
 
         // 8. Success Redirect
         req.session.save(() => {
-            if (['Super Admin', 'Admin', 'Sub-Admin'].includes(user.role)) {
+            if (['Super Admin', 'Admin',].includes(user.role)) {
                 return res.redirect('/d');
+             } else if (['Sub Admin'].includes(user.role)) {
+                return res.redirect('/r');
+
             } else {
                 return res.redirect('/h');
             }
@@ -379,8 +383,8 @@ app.get('/v2', isVisit, isLogin, async (req, res) => {
     res.render('visit2',{ title: 'Visit2', active: 'v2'});
 });
 
-app.get('/vv2', isVisit, isLogin, async (req, res) => {
-    res.render('VisitView2',{ title: 'Visit View2', active: 'v2'});
+app.get('/vv2/:id', isLogin, itsVisit, async (req, res) => {
+    res.render('VisitView2', { title: 'Visit Details', active: 'v2' });
 });
 
 app.get('/nv', isLogin, async (req, res) => {
@@ -784,15 +788,17 @@ app.post('/api/stocks/delete/:id', isLogin, async (req, res) => {
 app.post('/visitnow', async (req, res) => {
     try {
         const userId = req.session.user._id; 
-        const { complaint, item, qty } = req.body;
+        const { concern, complaint, item, qty } = req.body;
 
         // 1. I-save ang Visit (Mother Record)
         // Gumamit tayo ng default string kung sakaling walang complaint para hindi mag-error ang model validation
         const newVisit = new Visits({
             patient: userId,
+            concern: concern || "Health Consultation",
             complaint: complaint || "No specific complaint",
             status: 'Pending',
-            archive: false
+            archive: false,
+            verify: true
         });
         const savedVisit = await newVisit.save();
 
@@ -828,6 +834,25 @@ app.post('/visitnow', async (req, res) => {
         console.error('Submission Error:', err.message);
         req.session.error = "An error occurred while submitting.";
         res.redirect('/h');
+    }
+});
+
+// Route para i-update ang status at i-set ang verify sa false
+app.get('/proceed-request/:id', async (req, res) => {
+    try {
+        const requestId = req.params.id;
+
+        // Hanapin ang Visit at i-update ang status at verify fields
+        await Visits.findByIdAndUpdate(requestId, { 
+            status: 'Proceed', 
+            verify: false 
+        });
+
+        // Ibalik ang user sa listahan ng requests (/r)
+        res.redirect('/r'); 
+    } catch (err) {
+        console.error("Error updating status and verify:", err);
+        res.status(500).send("Nagkaroon ng error sa pag-update.");
     }
 });
 

@@ -2,11 +2,13 @@ const mongoose = require('mongoose');
 
 const visitSchema = new mongoose.Schema({
  archive: { type: Boolean, default: false },
+ verify: { type: Boolean, default: true },
 
 status: { type: String, enum: ['Pending', 'Attended', 'Not Attended', 'Proceed'], default: 'Pending' },
 complaint: { type: String, required: true, trim: true },
+concern: { type: String, required: true },
 treatment: { type: String, trim: true },
-patient: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+patient: {type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
 
 bloodPressure: {
  systolic: { type: Number, min: 50, max: 250 },
@@ -15,5 +17,8 @@ bloodPressure: {
 
 hBeat:{ type: Number, min: 30, max: 220}
 
+}
+, {
+  timestamps: true
 });
 module.exports = mongoose.model('visit', visitSchema);
