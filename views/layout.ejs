@@ -91,10 +91,10 @@
             <div class="width0 col alignStart">
                 <% if ( active === 'p') { %>
                 <p class="size14 str500">Profile Page</p>
-                <p class="opacity0">Admin</p>
+                <p class="opacity0"><%= user.role %></p>
                 <% } else { %>
                 <p class="size14 str500" >Hi, <%= user.fName %></p>
-                <p>Admin</p>
+                <p><%= user.role %></p>
                 <% } %>
             </div>
         </div>
