@@ -858,7 +858,88 @@ app.get('/proceed-request/:id', async (req, res) => {
         res.status(500).send("Nagkaroon ng error sa pag-update.");
     }
 });
+// --- 1. VITALS (Update & Clear) ---
+// 1. UPDATE VITALS (including Temperature)
+app.post('/visit/vitals/:id', async (req, res) => {
+    try {
+        const { systolic, diastolic, hBeat, temperature } = req.body;
+        await Visits.findByIdAndUpdate(req.params.id, {
+            $set: {
+                'bloodPressure.systolic': systolic,
+                'bloodPressure.diastolic': diastolic,
+                'hBeat': hBeat,
+                'temperature': temperature // Save temperature here
+            }
+        });
+        res.redirect(`/vv2/${req.params.id}`);
+    } catch (err) {
+        console.error(err);
+        res.redirect('back');
+    }
+});
 
+// 2. DELETE/CLEAR VITALS
+app.post('/visit/vitals/delete/:id', async (req, res) => {
+    try {
+        await Visits.findByIdAndUpdate(req.params.id, {
+            $set: { 
+                bloodPressure: { systolic: null, diastolic: null },
+                hBeat: null,
+                temperature: '' // Clear temperature
+            }
+        });
+        res.redirect(`/vv2/${req.params.id}`);
+    } catch (err) {
+        res.redirect('back');
+    }
+});
+
+// --- 2. TREATMENT (Update & Clear) ---
+app.post('/visit/update-treatment/:id', async (req, res) => {
+    try {
+        await Visits.findByIdAndUpdate(req.params.id, { treatment: req.body.treatment, status: 'Attended' });
+        res.redirect(`/vv2/${req.params.id}`);
+    } catch (err) { res.redirect('back'); }
+});
+
+app.post('/visit/treatment/delete/:id', async (req, res) => {
+    try {
+        await Visits.findByIdAndUpdate(req.params.id, { treatment: '', status: 'Proceed' });
+        res.redirect(`/vv2/${req.params.id}`);
+    } catch (err) { res.redirect('back'); }
+});
+
+// --- 3. MEDICINE (Add & Delete) ---
+app.post('/visit/add-medicine/:id', async (req, res) => {
+    try {
+        const { item, qty, unit, remarks } = req.body;
+        const visit = await Visits.findById(req.params.id);
+        await Dispense.create({ visitId: req.params.id, who: visit.patient, type: 'medicine', item, qty, unit, remarks });
+        res.redirect(`/vv2/${req.params.id}`);
+    } catch (err) { res.redirect('back'); }
+});
+
+app.post('/visit/medicine/delete/:id', async (req, res) => {
+    try {
+        const item = await Dispense.findByIdAndDelete(req.params.id);
+        res.redirect(`/vv2/${item.visitId}`);
+    } catch (err) { res.redirect('back'); }
+});
+
+// --- 4. COMPLAINTS (Add & Delete) ---
+app.post('/visit/complaint/add/:id', async (req, res) => {
+    try {
+        await Complaint.create({ visitId: req.params.id, type: req.body.type });
+        res.redirect(`/vv2/${req.params.id}`);
+    } catch (err) { res.redirect('back'); }
+});
+
+app.post('/visit/complaint/delete/:id', async (req, res) => {
+    try {
+        const item = await Complaint.findByIdAndDelete(req.params.id);
+        res.redirect(`/vv2/${item.visitId}`);
+    } catch (err) { res.redirect('back'); }
+});
 
 app.use((req, res) => {
   res.status(404);

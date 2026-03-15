@@ -15,7 +15,9 @@ bloodPressure: {
  diastolic: { type: Number, min: 30, max: 150 },
 },
 
-hBeat:{ type: Number, min: 30, max: 220}
+hBeat:{ type: Number, min: 30, max: 220},
+
+temperature: { type: String, trim: true },
 
 }
 , {
