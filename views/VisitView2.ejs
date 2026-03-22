@@ -114,7 +114,7 @@
             <p class="size16">Add Details:</p>
             <section class="padding0 width0 gap10">
                 <% if (!v.treatment || v.treatment.length === 0) { %>
-                    <button id="openTreatment1" class="nav pointer"><i class="fas fa-plus"></i> Treatment</button>
+                    <button id="openTreatment1" class="nav pointer"><i class="fas fa-plus"></i> Treatment/Save</button>
                 <% } %>
                 <button id="openMedicine1" class="nav pointer"><i class="fas fa-plus"></i> Medicine</button>
             </section>
@@ -197,8 +197,8 @@
                     <input type="text" name="temperature" placeholder="36.5" class="input widthFull" value="<%= v.temperature %>" required>
                 </div>
             </div>
-
-            <button type="submit" class="nav widthFull colorPrimary pointer borderNone marginT10">Update Vitals</button>
+            <br>
+            <button type="submit" class="nav widthFull colorPrimary pointer borderNone marginT10 width60 marginLeft80">Update Vitals</button>
         </form>
     </div>
 </div>
@@ -215,6 +215,7 @@
         </section>
         <form action="/visit/update-treatment/<%= v._id %>" method="POST" class="col gap10 widthFull">
             <textarea name="treatment" class="input widthFull" rows="5" placeholder="Enter treatment..."><%= v.treatment %></textarea>
+            <br>
             <button type="submit" class="nav widthFull colorPrimary pointer borderNone width60 "> Save Treatment</button>
         </form>
     </div>
@@ -230,6 +231,7 @@
                 <input type="text" name="unit" placeholder="Unit" class="input width50" required>
             </div>
             <textarea name="remarks" class="input widthFull" placeholder="Instructions (e.g. 1 tab after meal)"></textarea>
+            <br>
             <button type="submit" class="nav  colorPrimary pointer borderNone width60 marginLeft80">Add Medicines</button>
         </form>
     </div>
@@ -237,10 +239,11 @@
 
 <div id="complaintModal" class="modal-overlay">
     <div class="modal-content glass bgWhite padding20 corner16 col gap15">
-        <p class="size20 str600 colorPrimary">Add Complaint</p>
+        <p class="size20 str600 colorPrimary ">Add Complaint</p>
         <form action="/visit/complaint/add/<%= v._id %>" method="POST" class="col gap10 alignStart widthFull">
             <input type="text" name="type" placeholder="e.g. Fever, Headache, Cough" class="input widthFull" required>
-            <button type="submit" class="nav widthFull colorPrimary pointer borderNone">Add Complaint</button>
+            <br>
+            <button type="submit" class="nav widthFull colorPrimary pointer borderNone width60 marginLeft75">Add Complaint</button>
         </form>
     </div>
 </div>
