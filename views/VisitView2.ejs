@@ -213,9 +213,9 @@
                 </form>
             <% } %>
         </section>
-        <form action="/visit/update-treatment/<%= v._id %>" method="POST" class="col gap10 alignStart widthFull">
+        <form action="/visit/update-treatment/<%= v._id %>" method="POST" class="col gap10 widthFull">
             <textarea name="treatment" class="input widthFull" rows="5" placeholder="Enter treatment..."><%= v.treatment %></textarea>
-            <button type="submit" class="nav widthFull colorPrimary pointer borderNone">Save Treatment</button>
+            <button type="submit" class="nav widthFull colorPrimary pointer borderNone width60 "> Save Treatment</button>
         </form>
     </div>
 </div>
@@ -230,7 +230,7 @@
                 <input type="text" name="unit" placeholder="Unit" class="input width50" required>
             </div>
             <textarea name="remarks" class="input widthFull" placeholder="Instructions (e.g. 1 tab after meal)"></textarea>
-            <button type="submit" class="nav widthFull colorPrimary pointer borderNone">Add to Visit</button>
+            <button type="submit" class="nav  colorPrimary pointer borderNone width60 marginLeft80">Add Medicines</button>
         </form>
     </div>
 </div>
