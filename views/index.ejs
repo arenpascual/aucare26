@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="/style.css">
     <style>
         #tnc {
-    transition: all 0.3s ease;
-            }
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
 <body class="polaroid">
@@ -16,7 +16,7 @@
 
     <div class="left width60 col">
         <div class="top relative">
-            <i class="fas fa-stethoscope absolute opacity1  top38 size90 h160 w160 padding20 corner500 porcelain" style="left: 120px;"></i>
+            <i class="fas fa-stethoscope absolute opacity1 top38 size90 h160 w160 padding20 corner500 porcelain" style="left: 120px;"></i>
             <div class="height0 width0 index50">
                 <img src="/images/logo.png" alt="" class="corner500 h140">
             </div>
@@ -26,12 +26,13 @@
             </div>
         </div>
         <div class="bottom justifyStart paddingInline75 paddingBottom70 paddingTop20">
-            <section class=" h300 corner15 padding20 glass col alignStart gap15">
+            <section class="h300 corner15 padding20 glass col alignStart gap15">
                 <p class="size18 str500 marginLeft10 colorPrimary">Need Help? <a href="" class="inline sizeInherit underline">Learn More </a></p>
                 <video class="abstractBG2 width100 height100 corner15" src="/image/video.mp4"></video>
             </section>
         </div>
     </div>
+
     <div class="right width40 col relative">
         <section class="down">
             <section class="bgWhite shadow1 width80 col padding20 gap10 corner15">
@@ -39,110 +40,112 @@
                 <a href="#" id="getStartedBtn" class="nav snav width100">Get Started Here!</a>
             </section>
         </section>
+
         <div class="up height0 padding20">
             <form class="bgWhite shadow1 height0 gap10 padding30 width80" action="/login" method="POST">
                 <p class="size20 str500">Already have an account?</p>
-                  <% if (error) { %>
-                  <section class="noteRed"><%= error %></section>
-                  <% } %>
+
+                <% if (error) { %>
+                <section class="noteRed"><%= error %></section>
+                <% } %>
+
                 <div class="field">
-                    <label class="str500" for="username"> Username</label> 
+                    <label class="str500">Username</label>
                     <input type="text" name="username" placeholder="Enter your email" required>
                 </div>
+
                 <div class="field">
-                    <label for="" class="str500"> Password </label>
+                    <label class="str500">Password</label>
                     <section class="padding0 relative">
-                        <input type="password" name="password" placeholder="Enter your password" required>
+                        <input type="password" name="password" required>
                         <button type="button" class="absolute right10" style="top: 50%; transform: translateY(-50%);">
-                           <i class="fas fa-eye"></i>
-                    </button>
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </section>
                 </div>
-    
+
                 <div class="row">
-                    <input type="text" id="num1" class="width20 textCenter" value="" readonly> 
+                    <input type="text" id="num1" class="width20 textCenter" readonly>
                     <div class="nav cnav border0"><i class="fas fa-plus"></i></div>
-                    <input type="text" id="num2" class="width20 textCenter" value="" readonly> 
+                    <input type="text" id="num2" class="width20 textCenter" readonly>
                     <div class="nav cnav border0"><i class="fas fa-equals"></i></div>
-                    <input type="number" name="captcha_input" id="captcha_input" class="width20 textCenter" placeholder="" required> 
+                    <input type="number" name="captcha_input" id="captcha_input" class="width20 textCenter" required>
                     <input type="hidden" name="captcha_expected" id="captcha_expected">
-                                    
                     <a id="refreshCaptcha" class="nav cnav marginLeft10">
                         <i class="fas fa-rotate"></i>
                     </a>
                 </div>
-                
-                <div class="field">
-                    <button type="submit" class="nav pnav  width100 ">Log In</button>
-                </div>
+
+                <button type="submit" class="nav pnav width100">Log In</button>
                 <a href="/f">Forgot Password</a>
             </form>
         </div>
-        
     </div>
-                <section class="shadow1 col absolute bgWhite gap15 corner10 padding15 index100 height0 width35 alignStart hidden" id="tnc">
-                    <p class="size18 colorPrimary str600"> Magandang AraU Students!</p>
-                    <p class="size15 str500">At PHINMA Araullo University, we are committed to protecting your personal and health information in compliance with the Data Privacy Act of 2012 (RA 10173). By registering an account with AU Care, you agree to the following terms:</p>
-                    <p class="size13 ">Purpose of Data Collection: Your personal details and medical history are collected solely for the purpose of creating your digital health profile, managing clinic visits, and ensuring accurate medicine dispensing at the AU South Campus Clinic.</p>
-                    <p class="size13 ">Data Security: We implement robust technical and organizational security measures to safeguard your sensitive health information from unauthorized access, use, or disclosure.</p>
-                    <p class="size13 str500">Access and Rights: You have the right to access your health records and request corrections to any inaccuracies. For assistance, please visit the School Clinic Office.</p>
-                    <p class="size13 str500">Confidentiality: All provided information will be treated with the utmost confidentiality and shared only with authorized clinic personnel and school officials involved in health and safety operations.</p>
-                    <p class="size13">Thank you for your cooperation in making our campus safer and healthier.</p>
-                    <a id="agreeBtn" class="nav pnav left0" href="#" style="margin-left: 73%; width: 25%;">Agree</a>
-                </section>
-<script>
-    function generateCaptcha() {
-      // 1. Pick a random target sum between 50 and 100
-        const total = Math.floor(Math.random() * 51) + 50; 
-        
-        // 2. Pick n1 to be anything less than the total (at least 1)
-        const n1 = Math.floor(Math.random() * (total - 1)) + 1;
-        
-        // 3. n2 is simply the remainder
-        const n2 = total - n1;
-        
-        document.getElementById('num1').value = n1;
-        document.getElementById('num2').value = n2;
-        document.getElementById('captcha_expected').value = n1 + n2;
-        document.getElementById('captcha_input').value = ""; 
-        // Reset color when generating new
-        document.getElementById('captcha_input').style.color = "";
-    }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    <!-- TERMS AND CONDITIONS -->
+    <section class="shadow1 col absolute bgWhite gap15 corner10 padding25 index100 height0 width45 alignStart hidden" id="tnc">
+        <a href="" id="lgBtn" class="nav cnav absolute right20 top20"><i class="fas fa-times"></i></a>
+        <p class="size25 colorPrimary str600" style="font-style: italic;">Magandang AraU Students!</p>
+        <p class="size13 black ">At PHINMA Araullo University, we are committed to protecting your personal and health information in compliance with the Data Privacy Act of 2012 (RA 10173). By registering an account with AU Care, you agree to the following terms:</p>
+        <p class="size13 black ">Purpose of Data Collection: Your personal details and medical history are collected solely for the purpose of creating your digital health profile, managing clinic visits, and ensuring accurate medicine dispensing at the AU South Campus Clinic.</p>
+        <p class="size13 black ">Data Security: We implement robust technical and organizational security measures to safeguard your sensitive health information from unauthorized access, use, or disclosure.</p>
+        <p class="size13 black ">Access and Rights: You have the right to access your health records and request corrections to any inaccuracies. For assistance, please visit the School Clinic Office.</p>
+        <p class="size13 black ">Confidentiality: All provided information will be treated with the utmost confidentiality and shared only with authorized clinic personnel and school officials involved in health and safety operations.</p>
+        <p class="size13 black">Thank you for your cooperation in making our campus safer and healthier.</p>
+        <!-- ✅ CHECKBOX -->
+        <div class="row gap10 alignCenter">
+            <input type="checkbox" id="agreeCheck">
+            <label for="agreeCheck" class="size13 " style="margin-right: 58%;">
+                I agree to the Terms and Conditions
+            </label>
+        </div>
+
+        <!-- ✅ BUTTON -->
+        <a id="agreeBtn" class="nav pnav" href="#"
+           style="margin-left: 73%; width: 25%; opacity: 0.5; pointer-events: none;">
+           Proceed
+        </a>
+    </section>
+
+<script>
+function generateCaptcha() {
+    const total = Math.floor(Math.random() * 51) + 50;
+    const n1 = Math.floor(Math.random() * (total - 1)) + 1;
+    const n2 = total - n1;
+
+    document.getElementById('num1').value = n1;
+    document.getElementById('num2').value = n2;
+    document.getElementById('captcha_expected').value = n1 + n2;
+    document.getElementById('captcha_input').value = "";
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    generateCaptcha();
+
+    document.getElementById('refreshCaptcha').addEventListener('click', function(e) {
+        e.preventDefault();
         generateCaptcha();
-
-        const refreshBtn = document.getElementById('refreshCaptcha');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                generateCaptcha();
-            });
-        }
-
-        // --- NEW LOGIC FOR COLOR FEEDBACK ---
-        const captchaInput = document.getElementById('captcha_input');
-        const captchaExpected = document.getElementById('captcha_expected');
-
-        captchaInput.addEventListener('input', function() {
-            const val = parseInt(this.value);
-            const expected = parseInt(captchaExpected.value);
-
-            if (this.value === "") {
-                this.style.color = ""; // Neutral if empty
-            } else if (val === expected) {
-                this.style.color = "green"; // Correct
-            } else {
-                this.style.color = "red"; // Incorrect
-            }
-        });
     });
-</script>
-<script>
+
+    const captchaInput = document.getElementById('captcha_input');
+    const captchaExpected = document.getElementById('captcha_expected');
+
+    captchaInput.addEventListener('input', function() {
+        const val = parseInt(this.value);
+        const expected = parseInt(captchaExpected.value);
+
+        if (this.value === "") this.style.color = "";
+        else if (val === expected) this.style.color = "green";
+        else this.style.color = "red";
+    });
+
+    // 👁️ show password
     document.querySelector('.fa-eye').parentElement.addEventListener('click', function(e) {
         e.preventDefault();
         const input = this.previousElementSibling;
         const icon = this.querySelector('i');
+
         if (input.type === 'password') {
             input.type = 'text';
             icon.classList.replace('fa-eye', 'fa-eye-slash');
@@ -151,30 +154,37 @@
             icon.classList.replace('fa-eye-slash', 'fa-eye');
         }
     });
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function(){
 
+    // TNC logic
     const getStartedBtn = document.getElementById("getStartedBtn");
     const tnc = document.getElementById("tnc");
     const agreeBtn = document.getElementById("agreeBtn");
+    const agreeCheck = document.getElementById("agreeCheck");
 
-    // Show TNC
     getStartedBtn.addEventListener("click", function(e){
         e.preventDefault();
         tnc.classList.remove("hidden");
     });
 
-    // Agree → hide TNC → redirect
+    // ✅ enable button pag checked
+    agreeCheck.addEventListener("change", function(){
+        if(this.checked){
+            agreeBtn.style.pointerEvents = "auto";
+            agreeBtn.style.opacity = "1";
+        } else {
+            agreeBtn.style.pointerEvents = "none";
+            agreeBtn.style.opacity = "0.5";
+        }
+    });
+
+    // proceed
     agreeBtn.addEventListener("click", function(e){
         e.preventDefault();
-        tnc.classList.add("hidden");
-
-        // redirect after agree
         window.location.href = "/s";
     });
 
 });
 </script>
+
 </body>
 </html>
