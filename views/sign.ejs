@@ -1,149 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/style.css">
-    <title>Registration</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/style.css">
+<title>Registration</title>
+<style>
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+    .pagination-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
+    .pagination-buttons button { padding: 8px 16px; }
+</style>
 </head>
 <body class="polaroid">
-    <a href="/h" class="hidden">home</a>
+<a href="/h" class="hidden">home</a>
 
-    <div class="left width60 col">
-        <div class="top relative">
-            <i class="fas fa-stethoscope absolute opacity2  top40 size90 h160 w160 padding20 corner500 porcelain" style="left: 120px;"></i>
-            <div class="height0 width0 index50">
-                <img src="/images/logo.png" alt="" class="corner500 h140">
-            </div>
-            <div class="col width0 alignStart colorPrimary index50">
-                <p class="size90 str500">AuCare</p>
-                <p class="size30 textWrap" style="margin-top:-25px !important;">PHINMA Araullo University South Campus</p>
-            </div>
+<!-- LEFT SIDE -->
+<div class="left width60 col">
+    <div class="top relative">
+        <i class="fas fa-stethoscope absolute opacity2 top40 size90 h160 w160 padding20 corner500 porcelain" style="left: 120px;"></i>
+        <div class="height0 width0 index50">
+            <img src="/images/logo.png" alt="" class="corner500 h140">
         </div>
-        <div class="bottom justifyStart paddingInline75 paddingBottom70 paddingTop20">
-            <section class=" h300 corner15 padding20 glass col alignStart gap15">
-                <p class="size18 str500 marginLeft10 colorPrimary">Need Help? <a href="" class="inline sizeInherit underline">Learn More </a></p>
-                <video class="abstractBG2 width100 height100 corner15" src="/image/video.mp4"></video>
-            </section>
+        <div class="col width0 alignStart colorPrimary index50">
+            <p class="size90 str500">AuCare</p>
+            <p class="size30 textWrap" style="margin-top:-25px !important;">PHINMA Araullo University South Campus</p>
         </div>
     </div>
-    <div class="right width40 col alignEnd">
-        <div class="up height0 padding20 block overflow-y1 width90">
-            <a href="/" class="nav"><i class="fas fa-chevron-left"></i> Return</a>
-            <br>
-            <form class="bgWhite shadow1 height0 gap10 padding30 width100 justifyStart" action="">
-                <p class="size20 str500">Sign Up</p>
+    <div class="bottom justifyStart paddingInline75 paddingBottom70 paddingTop20">
+        <section class="h300 corner15 padding20 glass col alignStart gap15">
+            <p class="size18 str500 marginLeft10 colorPrimary">Need Help? <a href="" class="inline sizeInherit underline">Learn More </a></p>
+            <video class="abstractBG2 width100 height100 corner15" src="/image/video.mp4"></video>
+        </section>
+    </div>
+</div>
+
+<!-- RIGHT SIDE -->
+<div class="right width40 col alignStart">
+    <div class="up height0 padding20 block width90">
+        <a href="/" class="nav"><i class="fas fa-chevron-left"></i> Return</a>
+        <br>
+        <form id="registrationForm" class="bgWhite shadow1 height0 gap10 padding30 width100 justifyStart">
+            <p class="size20 str500">Sign Up</p>
+
+            <!-- PERSONAL INFO -->
+            <div class="form-section active" id="personal-info">
                 <div class="field">
-                    <label for="">Role</label>
+                    <label>Role</label>
                     <div class="selectBar">
-                        <select name="" id="">
+                        <select>
                             <option value="" selected disabled>--Select--</option>
-                            <option value="Yes">Student</option>
-                            <option value="No">Staff</option>
+                            <option value="Student">Student</option>
+                            <option value="Staff">Staff</option>
                         </select>
                     </div>
                 </div>
+                <div class="field"><label>First Name</label><input type="text"></div>
+                <div class="field"><label>Middle Name</label><input type="text"></div>
+                <div class="field"><label>Last Name</label><input type="text"></div>
+                <div class="field"><label>Extension Name</label><input type="text"></div>
+                <div class="field"><label>Birthday</label><input type="text"></div>
                 <div class="field">
-                    <label for="">First Name</label>
-                    <input type="text">
-                </div>
-                <div class="field">
-                    <label for="">Middle Name</label>
-                    <input type="text">
-                </div>
-                <div class="field">
-                    <label for="">Last Name</label>
-                    <input type="text">
-                </div>
-                <div class="field">
-                    <label for="">Extension Name</label>
-                    <input type="text">
-                </div>
-                <div class="field">
-                    <label for="">Birthday</label>
-                    <input type="text">
-                </div>
-                <div class="field">
-                    <label for="">Gender</label>
+                    <label>Gender</label>
                     <div class="selectBar">
-                        <select name="" id="">
+                        <select>
                             <option value="" selected disabled>--Select--</option>
-                            <option value="Yes">Male</option>
-                            <option value="No">Female</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
                         </select>
                     </div>
                 </div>
-                <div class="field">
-                    <label for="">Contact Number</label>
-                    <input type="text">
+                <div class="pagination-buttons" style="justify-content:flex-end;">
+                    <button type="button" id="next1" class="nav pnav">Next</button>
                 </div>
+            </div>
+
+            <!-- SCHOOL INFO -->
+            <div class="form-section" id="school-info">
+                <div class="field"><label>Contact Number</label><input type="text"></div>
+                <div class="field"><label>Address</label><input type="text"></div>
+                <div class="field"><label>Email</label><input type="text"></div>
+                <div class="field"><label>School ID</label><input type="text"></div>
                 <div class="field">
-                    <label for="">Address</label>
-                    <input type="text">
-                </div>
-                <div class="field">
-                    <label for="">Email</label>
-                    <input type="text">
-                </div>
-                <div class="field">
-                    <label for="">School ID</label>
-                    <input type="text"></div>
-                <div class="field">
-                    <label for="">Year Level</label>
+                    <label>Year Level</label>
                     <div class="selectBar">
-                        <select name="" id="">
+                        <select>
                             <option value="" selected disabled>--Select--</option>
-                            <option value="Yes">4th Year</option>
-                            <option value="No">3rd Year</option>
-                            <option value="No">2nd Year</option>
-                            <option value="No">1st Year</option>
+                            <option value="4th Year">4th Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="1st Year">1st Year</option>
                         </select>
                     </div>
                 </div>
+                <div class="field"><label>Course</label><input type="text"></div>
+                <div class="field"><label>Section</label><input type="text"></div>
                 <div class="field">
-                    <label for="">Course</label>
-                    <input type="text">
-                </div>
-                <div class="field">
-                    <label for="">Section</label>
-                    <input type="text">
-                </div>
-                <div class="field">
-                    <label for="">Department</label>
+                    <label>Department</label>
                     <div class="selectBar">
-                        <select name="" id="">
+                        <select>
                             <option value="" selected disabled>--Select--</option>
-                            <option value="Yes">BSIT</option>
-                            <option value="No">Criminology</option>
+                            <option value="BSIT">BSIT</option>
+                            <option value="Criminology">Criminology</option>
                         </select>
                     </div>
                 </div>
-                <div class="field ">
-                    <label for="">Any Allergies to Medicines?</label>
+                <div class="pagination-buttons">
+                    <button type="button" id="prev2" class="nav pnav">Previous</button>
+                    <button type="button" id="next2" class="nav pnav">Next</button>
+                </div>
+            </div>
+
+            <!-- ALLERGIES -->
+            <div class="form-section" id="allergies-info">
+                <div class="field">
+                    <label>Any Allergies to Medicines?</label>
                     <div class="selectBar">
-                        <select name="" id="">
+                        <select>
                             <option value="" selected disabled>--Select--</option>
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
                         </select>
                     </div>
                 </div>
-                <div class="field ">
-                    <label for="">Any Food Allergies?</label>
+                <div class="field">
+                    <label>Any Food Allergies?</label>
                     <div class="selectBar">
-                        <select name="" id="">
+                        <select>
                             <option value="" selected disabled>--Select--</option>
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
                         </select>
                     </div>
                 </div>
-                <div class="justifyEnd height0">
-                    <button class="nav pnav ">Submit</button>
+                <div class="pagination-buttons">
+                    <button type="button" id="prev3" class="nav pnav">Previous</button>
+                    <button type="submit" class="nav pnav">Submit</button>
                 </div>
-            </form>
-        </div>
-        
+            </div>
+
+        </form>
     </div>
+</div>
+
+<script>
+    const personal = document.getElementById('personal-info');
+    const school = document.getElementById('school-info');
+    const allergies = document.getElementById('allergies-info');
+
+    document.getElementById('next1').onclick = () => {
+        personal.classList.remove('active');
+        school.classList.add('active');
+    };
+    document.getElementById('next2').onclick = () => {
+        school.classList.remove('active');
+        allergies.classList.add('active');
+    };
+    document.getElementById('prev2').onclick = () => {
+        school.classList.remove('active');
+        personal.classList.add('active');
+    };
+    document.getElementById('prev3').onclick = () => {
+        allergies.classList.remove('active');
+        school.classList.add('active');
+    };
+</script>
+
+<style>
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+</style>
 </body>
 </html>
