@@ -1,36 +1,46 @@
 <% layout('template') %>
-
 <style>
-.popup {
+/* TOOLTIP STYLE */
+.tooltipBox{
     position: absolute;
-    top: -50px;
-    left: 0;
-    background: #e5e5e5;
-    color: #333;
-    padding: 8px 12px;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    width: 260px;
+    background: #1f2937;
+    color: #fff;
+    padding: 10px;
     border-radius: 10px;
     font-size: 12px;
-    width: 250px;
-
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-
     opacity: 0;
     visibility: hidden;
     transition: 0.3s ease;
+    z-index: 999;
 }
 
-/* show */
-.field.show-popup .popup {
+/* ARROW */
+.tooltipBox::after{
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1f2937 transparent transparent transparent;
+}
+
+/* HOVER TRIGGER */
+.group:hover .tooltipBox{
     opacity: 1;
     visibility: visible;
+    transform: translateX(-50%) translateY(0);
 }
-    
-.popup:hover{
-        visibility:visible;
-    }
 </style>
 
-<p class="noteBlue absolute bottom20 right20 size16"><i class="fas fa-bell"></i> Sample notification message</p>
+<p class="noteBlue absolute bottom20 right20 size16">
+<i class="fas fa-bell"></i> Sample notification message
+</p>
 
 <div class="col padding10 width35 justifyStart relative">
     <div class="height0 corner15 col alignStart padding20 relative">
@@ -40,6 +50,7 @@
         <p class="size20" style="margin-top: -15px !important;">Need Care?</p>
         <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20 width25">Visit Now</a>
     </div>
+
     <div class="height0 corner15 col alignStart bgWhite padding20">
         <p class="size20">Services</p>
         <p class="size20"><i class="fas fa-check-circle"></i> Free Basic Medication</p>
@@ -49,71 +60,45 @@
         <p class="size20"><i class="fas fa-check-circle"></i> Free Medicine</p>
     </div>
 </div>
-    <!-- TERMS AND CONDITIONS -->
-    <section class="shadow1 col absolute bgWhite gap15 corner10 padding20 index100 height0 width45 alignStart hidden" id="tnc">
-        <a href="" id="lgBtn" class="nav cnav absolute right20 top20"><i class="fas fa-times"></i></a>
-        <p class="size20 colorPrimary str600">Magandang AraU Students!</p>
-        <p class="size12 red">In accordance with RA 10173 (Data Privacy Act of 2012), all information collected by AU Care will be used exclusively for PHINMA AU South Campus clinic records and inventory purposes. Your data is strictly confidential and protected.</p>
-        <p class="size12">Important: Please Review Your Request Before submitting, please ensure you have selected the correct Concern and Complaint so our clinic team can assist you effectively:</p>
-        <p class="size12 str600">Concern Selection:</p>
-        <p class="size12">Select: <span class="str600">Rest/Observation</span> if you need to use a clinic bed or require a quiet space to rest.</p>
-        <p class="size12">Select: <span class="str600">Health Concern/Request Medicine or Supply</span>  if you are seeking specific medication or basic first aid.</p>
-        <p class="size12">Select: <span class="str600">Health Consultation</span>  if you need to speak directly with a health professional for advice.</p>
-        <p class="size12 str600">Complaint Details:</p>
-        <p class="size12">Please use the Complaint dropdown to accurately describe your current symptoms or the reason for your visit.</p>
-        <p class="size12 noteBlue"> <span class="str600">Note:</span> This form is for non-emergency clinic requests. If you are experiencing a medical emergency, please seek immediate assistance from the nearest staff member.</p>
-        <p class="size12">Do you wish to proceed with this form?</p>
-        <!-- ✅ CHECKBOX -->
-        <div class="row gap10 alignCenter">
-            <input type="checkbox" id="agreeCheck">
-            <label for="agreeCheck" class="size13 " style="margin-right: 58%;">
-                I agree to the Terms and Conditions
-            </label>
-        </div>
 
-        <!-- ✅ BUTTON -->
-        <a id="agreeBtn" class="nav pnav" href="#"
-        style="margin-left: 73%; width: 25%; opacity: 0.5; pointer-events: none;">
-        Proceed
-        </a>
-    </section>
+<!-- TERMS -->
+<section class="shadow1 col absolute bgWhite gap15 corner10 padding20 index100 height0 width45 alignStart hidden" id="tnc">
+    <a href="" id="lgBtn" class="nav cnav absolute right20 top20">
+        <i class="fas fa-times"></i>
+    </a>
 
-<div class="col padding10 width35 justifyStart relative">
-    <div class="height0 corner15 col alignStart porcelain padding20 gap10">
-        <section class="padding0 justifyBetween">
-            <p class="size20">Recents</p>
-            <a href="" class="size18">See All</a>
-        </section>
-        <a href="/vv1" class="width100 gap5 bgWhite corner10 shadow1 alignStart col relative padding10">
-            <p class="size16 str5">Headache</p>
-            <p class="size12 str4 noteBlue">Pending</p>
-            <p class="size12 gray absolute right10 top10">Nov 23, 2025</p>
-        </a>
-        <section class="gap5 bgWhite corner10 shadow1 alignStart col relative">
-            <p class="size16 str5">Headache</p>
-            <p class="size12 str4 noteGreen">Attended</p>
-            <p class="size12 gray absolute right10 top10">Nov 23, 2025</p>
-        </section>
-        <section class="gap5 bgWhite corner10 shadow1 alignStart col relative">
-            <p class="size16 str5">Fever</p>
-            <p class="size12 str4 noteGreen">Attended</p>
-            <p class="size12 gray absolute right10 top10">Nov 23, 2025</p>
-        </section>
-    </div>
-    <div class="height0 corner15 col alignStart padding20">
-        <p class="size40">About Us</p>
-        <br>
-        <p class="size20" style="margin-top: -5px !important;">AuCare | CSDL</p>
-        <p class="size20" style="margin-top: -5px !important;">Phinma Araullo University South Campus</p>
-        <p class="size20" style="margin-top: -5px !important;">Need Help? <a href="" class="sizeInherit inline navy">Learn More</a></p>
+    <p class="size29 colorPrimary str600">Magandang AraU Students!</p>
+    <p class="size12 red" style="font-style: italic;">
+        In accordance with RA 10173 (Data Privacy Act of 2012)...
+    </p>
+
+    <p class="size12">Do you wish to proceed with this form?</p>
+
+    <div class="row gap10 alignCenter">
+        <input type="checkbox" id="agreeCheck">
+        <label for="agreeCheck" class="size13 str500">
+            I agree to the Terms and Conditions
+        </label>
     </div>
 
-</div>
+    <a id="agreeBtn" class="nav pnav"
+    style="margin-left: 73%; width: 25%; opacity: 0.5; pointer-events: none;">
+    Proceed
+    </a>
+</section>
 
-<form action="/visitnow" method="POST" class="absolute translateCenter shadow3 width30 padding30 gap10 index500 height0 hidden" id="Consultationform">
-    <p class="size24">Consultation Request Form:</p>
-    <div class="field">
-    <label for="">Concern</label>
+<!-- FORM -->
+<form action="/visitnow" method="POST"
+class="absolute translateCenter shadow3 width30 padding30 gap10 index500 height0 hidden"
+id="Consultationform">
+
+<p class="size24">Consultation Request Form:</p>
+
+<div class="field">
+<label>Concern</label>
+
+<div class="relative inline-block group width100">
+
     <div class="selectBar">
         <select name="concern" id="concernSelect" required>
             <option value="" disabled selected>Select Concern</option>
@@ -121,104 +106,48 @@
             <option value="Health Concern / Request Medicines">Health Concern / Request Medicines</option>
             <option value="Health Consultation">Health Consultation</option>
         </select>
-        <div class="popup" id="pop">
-            If you need to use a clinic bed or require a quiet space to rest.
-        </div>
-    </div>
-</div>
-    <section class="gap10 hidden" id="medicineField">
-    <div class="field">
-        <label for="">Type of Medicines <span class="gray inherit">( Optional )</span></label>
-        <div class="selectBar">
-            <select name="item" id="">
-                <option value="" title="Hello" disabled selected >--Select--</option>
-                <option value="Carbocisteine" title="Hello">Carbocisteine (SOLMUX)</option>
-                <option value="Cetirizine" title="Hello">Cetirizine</option>
-                <option value="Cinnarizine" title="Hello">Cinnarizine</option>
-                <option value="Dicycloverine" title="Hello">Dicycloverine</option>
-                <option value="Hyoscine" title="Hello">Hyoscine (BUSCOPAN)</option>
-                <option value="Kremil-S" title="Hello">Kremil-S</option>
-                <option value="Loperamide" title="Hello">Loperamide (DIATABS)</option>
-                <option value="Mefenamic" title="Hello">Mefenamic Acid</option>
-                <option value="Neozep" title="Hello">Neozep</option>
-                <option value="Paracetamol" title="Hello">Paracetamol (BIOGESIC)</option>
-                <option value="Salbutamol Neb" title="Hello">Salbutamol Neb</option>
-            </select>
-        </div>
-    </div>
-    <div class="field">
-        <label for="">Quantity</label>
-        <div class="selectBar">
-            <select name="qty" id="">
-                <option value="" title="Hello">--Select--</option>
-                <option value="1" title="Hello">1</option>
-                <option value="2" title="Hello">2</option>
-            </select>
-        </div>
     </div>
 
-    </section>
-    
-    <div class="field">
-        <label for="">Complaint <span class="gray inherit">( Optional )</span></label>
-        <div class="selectBar">
-            <select name="complaint" id="">
-                <option value="" disabled selected >Select Complaint</option>
-                <option value="Allergy">Allergy</option>
-                <option value="Body Muscle Pain">Body/Muscle pain</option>
-                <option value="Colds">Colds</option>
-                <option value="Cough">Cough</option>
-                <option value="Difficulty of Breathing">Difficulty of Breathing</option>
-                <option value="Dizziness">Dizziness</option>
-                <option value="Dysmenorrhea Menstrual Cramps">Dysmenorrhea/Menstrual cramps</option>
-                <option value="Fever">Fever</option>
-                <option value="Headache">Headache</option>
-                <option value="Hyperacidity">Hyperacidity</option>
-                <option value="Lbm">LBM</option>
-                <option value="Toothache">Toothache</option>
-                <option value="Abdominal Pain Cramps">Abdominal pain/cramps</option>
-            </select>
-        </div>
+    <div class="tooltipBox">
+        <p><b>Rest/Observation</b> – if you need to rest or use a clinic bed.</p>
+        <p><b>Health Concern / Request Medicines</b> – for medicine or first aid.</p>
+        <p><b>Health Consultation</b> – talk to a health professional.</p>
     </div>
-    <div class="noteBlue">
-        <p class="size12">
-        <i class="fas fa-info-circle"></i> &nbsp; After submitting, your request will be reviewed by the clinic admin or nurse.
-    Please wait for approval before proceeding.</p>
-    </div>
+
+</div>
+</div>
+
+<div class="field">
+<label>Quantity</label>
+<div class="selectBar">
+    <select name="qty">
+        <option value="">--Select--</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+    </select>
+</div>
+</div>
+
+<div class="field">
+<label>Complaint</label>
+<div class="selectBar">
+    <select name="complaint">
+        <option value="" disabled selected>Select Complaint</option>
+        <option value="Fever">Fever</option>
+        <option value="Headache">Headache</option>
+    </select>
+</div>
+</div>
+
 <section class="justifyBetween gap70 padding0">
     <div class="nav width100" id="closeForm">Cancel</div>
     <button type="submit" class="nav pnav width100">Submit</button>
 </section>
+
 </form>
 
-<section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="notificationBox">
-    <img class="h100 w100" src="/images/like.png" alt="">
-    <section class="padding0 col alignCenter">
-        <p class="size23 str500">Request Submitted</p>
-        <p class="size17">Wait for the approval notification.</p>
-    </section>
-    <a class="nav w120 size15" href="javascript:void(0)" id="gotItBtn">Got It!</a>
-</section>
-
 <script>
-// =============================
-// SHOW MEDICINE FIELD
-// =============================
-const concern = document.getElementById("concernSelect");
-const medicineField = document.getElementById("medicineField");
-
-concern.addEventListener("change", function() {
-    if (this.value === "Health Concern / Request Medicines") {
-        medicineField.classList.remove("hidden");
-    } else {
-        medicineField.classList.add("hidden");
-    }
-});
-
-
-// =============================
-// BUTTONS & MODALS
-// =============================
+// BUTTONS
 const formBtn = document.getElementById("formBtn");
 const tnc = document.getElementById("tnc");
 const consultationForm = document.getElementById("Consultationform");
@@ -227,18 +156,12 @@ const closeForm = document.getElementById("closeForm");
 const agreeBtn = document.getElementById("agreeBtn");
 const agreeCheck = document.getElementById("agreeCheck");
 
-
-// =============================
-// STEP 1: CLICK "VISIT NOW"
-// =============================
+// OPEN TNC
 formBtn.addEventListener("click", function(){
     tnc.classList.remove("hidden");
 });
 
-
-// =============================
-// STEP 2: ENABLE PROCEED BUTTON
-// =============================
+// ENABLE BUTTON
 agreeCheck.addEventListener("change", function(){
     if(this.checked){
         agreeBtn.style.pointerEvents = "auto";
@@ -249,191 +172,15 @@ agreeCheck.addEventListener("change", function(){
     }
 });
 
-
-// =============================
-// STEP 3: PROCEED TO FORM
-// =============================
+// PROCEED
 agreeBtn.addEventListener("click", function(e){
     e.preventDefault();
     tnc.classList.add("hidden");
     consultationForm.classList.remove("hidden");
 });
 
-
-// =============================
 // CLOSE FORM
-// =============================
 closeForm.addEventListener("click", function(){
     consultationForm.classList.add("hidden");
-});
-
-
-// =============================
-// NOTIFICATION
-// =============================
-const gotItBtn = document.getElementById("gotItBtn");
-const notification = document.getElementById("notificationBox");
-
-gotItBtn.addEventListener("click", function(){
-    notification.classList.add("hidden");
-});
-</script>
-<script>
-const select = document.getElementById("concernSelect");
-const popup = document.getElementById("pop");
-const field = select.closest(".field");
-
-// show on hover
-select.addEventListener("mouseenter", () => {
-    field.classList.add("show-popup");
-});
-
-// show on click/focus
-select.addEventListener("focus", () => {
-    field.classList.add("show-popup");
-});
-
-// hide when mouse leaves
-select.addEventListener("mouseleave", () => {
-    field.classList.remove("show-popup");
-});
-
-// hide when clicking outside
-document.addEventListener("click", (e) => {
-    if (!field.contains(e.target)) {
-        field.classList.remove("show-popup");
-    }
-});
-</script>
-<div style="min-height:600px;background:linear-gradient(135deg,#d4eaf7 0%,#e8f4fd 100%);display:flex;align-items:center;justify-content:center;padding:2rem;border-radius:var(--border-radius-lg);">
-<div style="background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:2rem;width:100%;max-width:460px;">
-  <p style="font-size:20px;font-weight:500;margin:0 0 1.5rem;color:var(--color-text-primary);">Consultation Request Form:</p>
-
-  <div style="margin-bottom:1.25rem;">
-    <label style="font-size:14px;color:var(--color-text-secondary);display:block;margin-bottom:6px;">Concern</label>
-
-    <div style="position:relative;" id="ddWrap">
-      <div id="ddTrigger" onclick="toggleDD()" style="width:100%;padding:10px 14px;font-size:15px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;">
-        <span id="ddLabel">Select Concern</span>
-        <span style="font-size:11px;">▼</span>
-      </div>
-
-      <div id="ddMenu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);z-index:100;overflow:visible;">
-        <div class="opt" data-val="rest" onmouseenter="showPopup(this)" onmouseleave="hidePopup()" onclick="selectOpt(this)" style="padding:11px 14px;font-size:15px;cursor:pointer;color:var(--color-text-primary);border-radius:var(--border-radius-md) var(--border-radius-md) 0 0;">Rest/Observation</div>
-        <div style="height:0.5px;background:var(--color-border-tertiary);"></div>
-        <div class="opt" data-val="health" onmouseenter="showPopup(this)" onmouseleave="hidePopup()" onclick="selectOpt(this)" style="padding:11px 14px;font-size:15px;cursor:pointer;color:var(--color-text-primary);">Health Concern / Request Medicines</div>
-        <div style="height:0.5px;background:var(--color-border-tertiary);"></div>
-        <div class="opt" data-val="consult" onmouseenter="showPopup(this)" onmouseleave="hidePopup()" onclick="selectOpt(this)" style="padding:11px 14px;font-size:15px;cursor:pointer;color:var(--color-text-primary);border-radius:0 0 var(--border-radius-md) var(--border-radius-md);">Health Consultation</div>
-      </div>
-
-      <div id="hoverPopup" style="display:none;position:absolute;left:calc(100% + 12px);top:0;width:260px;z-index:200;">
-        <div style="position:absolute;left:-7px;top:18px;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-right:7px solid #1a1a1a;"></div>
-        <div style="background:#1a1a1a;border-radius:var(--border-radius-lg);padding:1rem 1.25rem;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:0.5px solid rgba(255,255,255,0.15);">
-            <span id="pIcon" style="font-size:15px;"></span>
-            <span id="pTitle" style="font-size:14px;font-weight:500;color:#f0f0f0;"></span>
-          </div>
-          <p id="pDesc" style="font-size:13px;color:rgba(255,255,255,0.6);margin:0;line-height:1.55;"></p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div style="background:#f0f6ff;border-radius:var(--border-radius-md);padding:0.85rem 1rem;margin-bottom:1.5rem;font-size:13px;color:#3a5fa0;line-height:1.5;">
-    Your request will be reviewed by the clinic admin or nurse. Please wait for approval before proceeding.
-  </div>
-
-  <div style="display:flex;gap:12px;">
-    <button style="flex:1;padding:11px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;font-size:15px;cursor:pointer;color:var(--color-text-primary);">Cancel</button>
-    <button style="flex:2;padding:11px;border-radius:var(--border-radius-md);border:none;background:#1a3a6e;color:#fff;font-size:15px;font-weight:500;cursor:pointer;">Submit</button>
-  </div>
-</div>
-</div>
-
-<style>
-.opt:hover { background: var(--color-background-secondary); }
-</style>
-
-<script>
-const info = {
-  rest:    { icon:'🛏', title:'Rest / Observation',                  desc:'Use a clinic bed or require a quiet space to rest and recover during school hours.' },
-  health:  { icon:'💊', title:'Health Concern / Request Medicines',  desc:'Seeking specific medication or basic first aid from clinic staff.' },
-  consult: { icon:'🩺', title:'Health Consultation',                 desc:'Speak directly with a health professional for personal advice or assessment.' }
-};
-
-function toggleDD() {
-  const m = document.getElementById('ddMenu');
-  m.style.display = m.style.display === 'none' ? 'block' : 'none';
-}
-
-function showPopup(el) {
-  const d = info[el.dataset.val];
-  if (!d) return;
-  document.getElementById('pIcon').textContent = d.icon;
-  document.getElementById('pTitle').textContent = d.title;
-  document.getElementById('pDesc').textContent = d.desc;
-  const popup = document.getElementById('hoverPopup');
-  popup.style.top = el.offsetTop + 'px';
-  popup.style.display = 'block';
-}
-
-function hidePopup() {
-  document.getElementById('hoverPopup').style.display = 'none';
-}
-
-function selectOpt(el) {
-  document.getElementById('ddLabel').textContent = el.textContent.trim();
-  document.getElementById('ddLabel').style.color = 'var(--color-text-primary)';
-  document.getElementById('ddMenu').style.display = 'none';
-  hidePopup();
-}
-
-document.addEventListener('click', function(e) {
-  if (!document.getElementById('ddWrap').contains(e.target)) {
-    document.getElementById('ddMenu').style.display = 'none';
-    hidePopup();
-  }
-});
-</script>
-
-<script>
-const info = {
-  rest:    { icon:'🛏', title:'Rest / Observation',                  desc:'Use a clinic bed or require a quiet space to rest and recover during school hours.' },
-  health:  { icon:'💊', title:'Health Concern / Request Medicines',  desc:'Seeking specific medication or basic first aid from clinic staff.' },
-  consult: { icon:'🩺', title:'Health Consultation',                 desc:'Speak directly with a health professional for personal advice or assessment.' }
-};
-
-function toggleDD() {
-  const m = document.getElementById('ddMenu');
-  m.style.display = m.style.display === 'none' ? 'block' : 'none';
-}
-
-function showPopup(el) {
-  const d = info[el.dataset.val];
-  if (!d) return;
-  document.getElementById('pIcon').textContent = d.icon;
-  document.getElementById('pTitle').textContent = d.title;
-  document.getElementById('pDesc').textContent = d.desc;
-  const popup = document.getElementById('hoverPopup');
-  popup.style.top = el.offsetTop + 'px';
-  popup.style.display = 'block';
-}
-
-function hidePopup() {
-  document.getElementById('hoverPopup').style.display = 'none';
-}
-
-function selectOpt(el) {
-  document.getElementById('ddLabel').textContent = el.textContent.trim();
-  document.getElementById('ddLabel').style.color = 'var(--color-text-primary)';
-  document.getElementById('ddMenu').style.display = 'none';
-  hidePopup();
-}
-
-document.addEventListener('click', function(e) {
-  if (!document.getElementById('ddWrap').contains(e.target)) {
-    document.getElementById('ddMenu').style.display = 'none';
-    hidePopup();
-  }
 });
 </script>

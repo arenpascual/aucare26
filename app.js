@@ -439,6 +439,14 @@ app.get('/pd', async (req, res) => {
     res.render('pending',{ title: 'pending', active: 'pd'});
 });
 
+app.get('/p2', async (req, res) => {
+    res.render('profile2',{ title: 'profile2', active: 'p2'});
+});
+
+app.get('/np', async (req, res) => {
+    res.render('notifpage',{ title: 'notifpage', active: 'np'});
+});
+
 
 
 

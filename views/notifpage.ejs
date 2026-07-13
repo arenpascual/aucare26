@@ -1,0 +1,160 @@
+<% layout('template') %>
+<style>
+    #bdy{
+        align-items: start;
+    }
+</style>
+
+
+
+<div class="col padding10 width35 justifyStart relative">
+    <div class="height0 corner15 col alignStart padding20 relative">
+        <p class="size40">Welcome</p>
+        <p class="size40" style="margin-top: -24px !important;">AREN PASCUAL!</p>
+        <br>
+        <p class="size20" style="margin-top: -15px !important;">Need Care?</p>
+        <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20 width25">Visit Now</a>
+    </div>
+    <div class="height0 corner15 col alignStart bgWhite padding20">
+        <p class="size20">Services</p>
+        <p class="size20"><i class="fas fa-check-circle"></i> Free Basic Medication</p>
+        <p class="size20"><i class="fas fa-check-circle"></i> First Aid & Minor Injury</p>
+        <p class="size20"><i class="fas fa-check-circle"></i> Vital Signs Monitoring</p>
+        <p class="size20"><i class="fas fa-check-circle"></i> Rest & Recovery Area</p>
+        <p class="size20"><i class="fas fa-check-circle"></i> Free Medicine</p>
+    </div>
+</div>
+    <!-- TERMS AND CONDITIONS -->
+    <section class="shadow1 col absolute bgWhite gap15 corner10 padding20 index100 height0 width45 alignStart hidden" id="tnc">
+        <a href="" id="lgBtn" class="nav cnav absolute right20 top20"><i class="fas fa-times"></i></a>
+        <p class="size29 colorPrimary str600">Magandang AraU Students!</p>
+        <p class="size12 red" style="font-style: italic;">In accordance with RA 10173 (Data Privacy Act of 2012), all information collected by AU Care will be used exclusively for PHINMA AU South Campus clinic records and inventory purposes. Your data is strictly confidential and protected.</p>
+        <p class="size12">Important: Please Review Your Request Before submitting, please ensure you have selected the correct Concern and Complaint so our clinic team can assist you effectively:</p>
+        <p class="size12 str600">Concern Selection:</p>
+        <p class="size12">Select: <span class="str600">Rest/Observation</span> if you need to use a clinic bed or require a quiet space to rest.</p>
+        <p class="size12">Select: <span class="str600">Health Concern/Request Medicine or Supply</span>  if you are seeking specific medication or basic first aid.</p>
+        <p class="size12">Select: <span class="str600">Health Consultation</span>  if you need to speak directly with a health professional for advice.</p>
+        <p class="size12 str600">Complaint Details:</p>
+        <p class="size12">Please use the Complaint dropdown to accurately describe your current symptoms or the reason for your visit.</p>
+        <p class="size12 noteBlue"> <span class="str600">Note:</span> This form is for non-emergency clinic requests. If you are experiencing a medical emergency, please seek immediate assistance from the nearest staff member.</p>
+        <p class="size12">Do you wish to proceed with this form?</p>
+        <!-- ✅ CHECKBOX -->
+        <div class="row gap10 alignCenter">
+            <input type="checkbox" id="agreeCheck">
+            <label for="agreeCheck" class="size13 str500" style="margin-right: 58%;">
+                I agree to the Terms and Conditions
+            </label>
+        </div>
+
+        <!-- ✅ BUTTON -->
+        <a id="agreeBtn" class="nav pnav" href="#"
+        style="margin-left: 73%; width: 25%; opacity: 0.5; pointer-events: none;">
+        Proceed
+        </a>
+    </section>
+<div class="width35 col padding10 gap10 justifyStart alignStart">
+    <a href="/h" class="nav"><i class="fas fa-chevron-left"></i> Back</a>
+    <div class="shadow1 col porcelain gap15 corner10 padding20 index100 height0 alignStart bgSoft justifyStart">
+    <p class=" size20 str500">Notifications</p>
+    <a class="bgWhite width100 padding10 corner10 justifyStart gap10 relative">
+        <div class="bgBlue200 absolute top5 right5 height0 width0 corner10 padding5">New!</div>
+        <div class="corner500 h40 w40 porcelain padding0"><i class="fas fa-bell size14 textBlue700"></i></div>
+        <div class="col alignStart width0">
+            <P class="size16">Your account is approved.</P>
+            <P class="">1 min ago</P>
+        </div>
+    </a>
+    <a class="bgSoft width100 padding10 corner10 justifyStart gap10 relative">
+        <div class="corner500 h40 w40 padding0"><i class="fas fa-bell size14"></i></div>
+        <div class="col alignStart width0">
+            <P class="size16">Your account is approved.</P>
+            <P class="">4 hours ago</P>
+        </div>
+    </a>
+    <a class="bgWhite width100 padding10 corner10 justifyStart gap10 relative">
+        <div class="corner500 h40 w40 porcelain padding0"><i class="fas fa-bell size14 textBlue700"></i></div>
+        <div class="col alignStart width0">
+            <P class="size16">You have complain on csdl</P>
+            <P class="">Jul 13 2026</P>
+        </div>
+    </a>
+    </div>
+</div>
+<script>
+// =============================
+// SHOW MEDICINE FIELD
+// =============================
+const concern = document.getElementById("concernSelect");
+const medicineField = document.getElementById("medicineField");
+
+concern.addEventListener("change", function() {
+    if (this.value === "Health Concern / Request Medicines") {
+        medicineField.classList.remove("hidden");
+    } else {
+        medicineField.classList.add("hidden");
+    }
+});
+
+
+// =============================
+// BUTTONS & MODALS
+// =============================
+const formBtn = document.getElementById("formBtn");
+const tnc = document.getElementById("tnc");
+const consultationForm = document.getElementById("Consultationform");
+const closeForm = document.getElementById("closeForm");
+
+const agreeBtn = document.getElementById("agreeBtn");
+const agreeCheck = document.getElementById("agreeCheck");
+
+
+// =============================
+// STEP 1: CLICK "VISIT NOW"
+// =============================
+formBtn.addEventListener("click", function(){
+    tnc.classList.remove("hidden");
+});
+
+
+// =============================
+// STEP 2: ENABLE PROCEED BUTTON
+// =============================
+agreeCheck.addEventListener("change", function(){
+    if(this.checked){
+        agreeBtn.style.pointerEvents = "auto";
+        agreeBtn.style.opacity = "1";
+    } else {
+        agreeBtn.style.pointerEvents = "none";
+        agreeBtn.style.opacity = "0.5";
+    }
+});
+
+
+// =============================
+// STEP 3: PROCEED TO FORM
+// =============================
+agreeBtn.addEventListener("click", function(e){
+    e.preventDefault();
+    tnc.classList.add("hidden");
+    consultationForm.classList.remove("hidden");
+});
+
+
+// =============================
+// CLOSE FORM
+// =============================
+closeForm.addEventListener("click", function(){
+    consultationForm.classList.add("hidden");
+});
+
+
+// =============================
+// NOTIFICATION
+// =============================
+const gotItBtn = document.getElementById("gotItBtn");
+const notification = document.getElementById("notificationBox");
+
+gotItBtn.addEventListener("click", function(){
+    notification.classList.add("hidden");
+});
+</script>

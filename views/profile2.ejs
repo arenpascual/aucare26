@@ -1,0 +1,76 @@
+<% layout('template') %>
+<style>
+    .mainf {
+        padding: 0;
+    }
+    .shape {
+        clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 0% 100%);
+    }
+    .bura{
+    border: 8px solid var(--tint2);
+
+    }
+</style>
+
+<div class=" gap10 polaroid alignStart">
+    <div class="padding10 width25 height100 col alignStart gap15">
+        <a href="/h" class="nav"><i class="fas fa-chevron-left"></i> Return</a> 
+        <div class="bgWhite corner15 justifyStart col padding20">
+            <section class="col ">
+                <img class="h100 w100 bura corner500" src="/images/profile.png" alt="">
+                <p class="size28 colorPrimary">Arenvie Pascual</p>
+                <p class="size16 blue">01-2223-037426</p>
+                <p class="size16 gray">arenpascual@gmail.com</p>
+            </section>
+            <section class="col gap5">
+                <a href="" class="nav pnav width100">Change Password</a>
+                <a href="javascript:void(0)" id="exportCard" class="nav pnav width100">log out</a>
+            </section>
+        </div>
+    </div>
+    <div class="width75 col justifyStart padding15 gap15">
+        <div class="height3"></div>
+        <div class="height0 justifyBetween gap10 padding0">
+            <p class="size28 str400 blue"></p>
+            <a href="" class="nav gnav hidden"><i class="fas fa-check-circle"></i> Approve Account</a>
+        </div>
+    
+            
+        <div class="height0 gap10">
+            <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
+                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                <p class="size20 str400">Personal Details</p>
+                <p class="size14 gray">Gender:</p>
+                <p class="size14 gray">Address:</p>
+                <p class="size14 gray">Date of Birth:</p>
+
+            </section>
+            <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
+                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                <p class="size20 str400">School Information</p>
+                <p class="size14 gray">School ID:</p>
+                <p class="size14 gray">Year Level:</p>
+                <p class="size14 gray">Course:</p>
+            </section>
+        </div>
+        
+        <div class="height0 justifyStart gap10 padding0 ">
+            <section class="left width100 bgWhite corner14 col alignStart padding15 borderGray relative height0">
+                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                <p class="size20 str400">Emergency Contact</p>
+                <p class="size14 gray">Name:</p>
+                <p class="size14 gray">Contact:</p>
+                <p class="size14 gray">Address:</p>
+            </section>
+        </div>
+        
+            <section class="left width100 bgWhite corner14 col alignStart gap5 padding10 borderGray relative height0">
+                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                <p class="size20 str400">Allergies</p>
+                <p class="size14 gray">Food Allergies:</p>
+                <p class="size14 gray">Medicines Allergies:</p>
+                <p class="size14 gray">Other Allergies:</p>
+
+            </section>
+    </div>
+</div>

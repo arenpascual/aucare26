@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -6,20 +6,65 @@
 <link rel="stylesheet" href="/style.css">
 <title>Registration</title>
 <style>
+    /* Pagination Circle Styles */
+    .pagination-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex: 2;
+    }
+    label{
+        margin-top: 5px;
+    }
+    .step-circle {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #777;
+        background-color: #fff;
+        transition: all 0.3s ease;
+    }
+    .step-circle.active {
+        background-color: #1f6aba;
+        color: white;
+        border-color: #1f6aba;
+    }
+    .nav-arrow {
+        color: #ccc;
+        font-size: 18px;
+        padding: 0 5px;
+    }
+
+    /* Core Logic Styles */
     .form-section { display: none; }
     .form-section.active { display: block; }
-    .pagination-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
-    .pagination-buttons button { padding: 8px 16px; }
+    .pagination-buttons { 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        margin-top: 20px; 
+        width: 100%;
+    }
+    .pagination-buttons button { padding: 8px 16px; cursor: pointer; }
+    .side-spacer { flex: 1; display: flex; }
+    #notificationBox{
+        z-index: 1000;
+    }
 </style>
 </head>
 <body class="polaroid">
 <a href="/h" class="hidden">home</a>
 
-<!-- LEFT SIDE -->
 <div class="left width60 col">
     <div class="top relative">
         <i class="fas fa-stethoscope absolute opacity2 top40 size90 h160 w160 padding20 corner500 porcelain" style="left: 120px;"></i>
-        <div class="height0 width0 index50">
+        <div class="height0 width0 index500">
             <img src="/images/logo.png" alt="" class="corner500 h140">
         </div>
         <div class="col width0 alignStart colorPrimary index50">
@@ -35,16 +80,14 @@
     </div>
 </div>
 
-<!-- RIGHT SIDE -->
 <div class="right width40 col alignStart">
-    <div class="up height0 padding20 block width90">
+    <div class="up height0 padding10 block width90">
         <a href="/" class="nav"><i class="fas fa-chevron-left"></i> Return</a>
         <br>
-        <form id="registrationForm" class="bgWhite shadow1 height0 gap10 padding30 width100 justifyStart">
+        <form id="registrationForm" class="bgWhite shadow1 height0 gap10 padding15 width100 justifyStart">
             <p class="size20 str500">Sign Up</p>
 
-            <!-- PERSONAL INFO -->
-            <div class="form-section active" id="personal-info">
+            <div class="form-section active" id="step-1">
                 <div class="field">
                     <label>Role</label>
                     <div class="selectBar">
@@ -60,6 +103,7 @@
                 <div class="field"><label>Last Name</label><input type="text"></div>
                 <div class="field"><label>Extension Name</label><input type="text"></div>
                 <div class="field"><label>Birthday</label><input type="text"></div>
+                <div class="field"><label>Contact Number</label><input type="text"></div>
                 <div class="field">
                     <label>Gender</label>
                     <div class="selectBar">
@@ -67,20 +111,40 @@
                             <option value="" selected disabled>--Select--</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
+                            <option value="">Other</option>
                         </select>
                     </div>
                 </div>
-                <div class="pagination-buttons" style="justify-content:flex-end;">
-                    <button type="button" id="next1" class="nav pnav">Next</button>
+
+                <div class="pagination-buttons">
+                    <div class="side-spacer"></div> <div class="pagination-wrapper">
+                        <span class="nav-arrow">&lt;</span>
+                        <div class="step-circle active">1</div>
+                        <div class="step-circle">2</div>
+                        <div class="step-circle">3</div>
+                        <span class="nav-arrow">&gt;</span>
+                    </div>
+                    <div class="side-spacer" style="justify-content: flex-end;">
+                        <button type="button" id="next1" class="nav pnav width100">Next</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- SCHOOL INFO -->
-            <div class="form-section" id="school-info">
-                <div class="field"><label>Contact Number</label><input type="text"></div>
+            <div class="form-section" id="step-2">
                 <div class="field"><label>Address</label><input type="text"></div>
                 <div class="field"><label>Email</label><input type="text"></div>
                 <div class="field"><label>School ID</label><input type="text"></div>
+                <div class="field">
+                    <label>Campus</label>
+                    <div class="selectBar">
+                        <select>
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="Main">Main</option>
+                            <option value="South">South</option>
+                            <option value="San Jose">San Jose</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="field">
                     <label>Year Level</label>
                     <div class="selectBar">
@@ -95,24 +159,25 @@
                 </div>
                 <div class="field"><label>Course</label><input type="text"></div>
                 <div class="field"><label>Section</label><input type="text"></div>
-                <div class="field">
-                    <label>Department</label>
-                    <div class="selectBar">
-                        <select>
-                            <option value="" selected disabled>--Select--</option>
-                            <option value="BSIT">BSIT</option>
-                            <option value="Criminology">Criminology</option>
-                        </select>
-                    </div>
-                </div>
+
                 <div class="pagination-buttons">
-                    <button type="button" id="prev2" class="nav pnav">Previous</button>
-                    <button type="button" id="next2" class="nav pnav">Next</button>
+                    <div class="side-spacer">
+                        <button type="button" id="prev2" class="nav pnav width100">Previous</button>
+                    </div>
+                    <div class="pagination-wrapper">
+                        <span class="nav-arrow">&lt;</span>
+                        <div class="step-circle">1</div>
+                        <div class="step-circle active">2</div>
+                        <div class="step-circle">3</div>
+                        <span class="nav-arrow">&gt;</span>
+                    </div>
+                    <div class="side-spacer" style="justify-content: flex-end;">
+                        <button type="button" id="next2" class="nav pnav width100">Next</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- ALLERGIES -->
-            <div class="form-section" id="allergies-info">
+            <div class="form-section" id="step-3">
                 <div class="field">
                     <label>Any Allergies to Medicines?</label>
                     <div class="selectBar">
@@ -133,42 +198,80 @@
                         </select>
                     </div>
                 </div>
+
                 <div class="pagination-buttons">
-                    <button type="button" id="prev3" class="nav pnav">Previous</button>
-                    <button type="submit" class="nav pnav">Submit</button>
+                    <div class="side-spacer">
+                        <button type="button" id="prev3" class="nav pnav width100">Previous</button>
+                    </div>
+                    <div class="pagination-wrapper">
+                        <span class="nav-arrow">&lt;</span>
+                        <div class="step-circle">1</div>
+                        <div class="step-circle">2</div>
+                        <div class="step-circle active">3</div>
+                        <span class="nav-arrow">&gt;</span>
+                    </div>
+                    <div class="side-spacer" style="justify-content: flex-end;">
+                        <button type="submit" class="nav pnav width100">Submit</button>
+                    </div>
                 </div>
             </div>
 
         </form>
     </div>
+    
+    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="notificationBox">
+        <img class="h100 w100" src="/images/like.png" alt="">
+            <section class="padding0 col alignCenter">
+        <p class="size23 str500">Request Submitted</p>
+        <p class="size17">Wait for the admin's approval within this day.</p>
+            </section>
+        <a class="nav w120 size15" href="/" id="">Got It!</a>
+    </section>
+
 </div>
 
 <script>
-    const personal = document.getElementById('personal-info');
-    const school = document.getElementById('school-info');
-    const allergies = document.getElementById('allergies-info');
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+    const step3 = document.getElementById('step-3');
 
     document.getElementById('next1').onclick = () => {
-        personal.classList.remove('active');
-        school.classList.add('active');
+        step1.classList.remove('active');
+        step2.classList.add('active');
     };
     document.getElementById('next2').onclick = () => {
-        school.classList.remove('active');
-        allergies.classList.add('active');
+        step2.classList.remove('active');
+        step3.classList.add('active');
     };
     document.getElementById('prev2').onclick = () => {
-        school.classList.remove('active');
-        personal.classList.add('active');
+        step2.classList.remove('active');
+        step1.classList.add('active');
     };
     document.getElementById('prev3').onclick = () => {
-        allergies.classList.remove('active');
-        school.classList.add('active');
+        step3.classList.remove('active');
+        step2.classList.add('active');
     };
-</script>
+    
+// 🔔 Notification Box Trigger Logic
+    const loginForm = document.querySelector('form');
+    const notificationBox = document.getElementById('notificationBox');
+    //const gotItBtn = document.getElementById('gotItBtn');
 
-<style>
-    .form-section { display: none; }
-    .form-section.active { display: block; }
-</style>
+    loginForm.addEventListener('submit', function(e) {
+        // Manual check kung kumpleto/valid ang form
+        if (!loginForm.checkValidity()) {
+            loginForm.reportValidity(); // ipapakita nito yung native error tooltip
+            return; // huwag ituloy kung may kulang
+        }
+
+        e.preventDefault();
+        notificationBox.classList.remove('hidden');
+    });
+
+    gotItBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        notificationBox.classList.add('hidden');
+    });
+</script>
 </body>
 </html>
