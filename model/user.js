@@ -28,6 +28,7 @@ const userSchema = new mongoose.Schema({
   reset: { type: Boolean, default: false },
 
   department: { type: String, trim: true },
+  campus: { type: String, trim: true },
 
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   gender: { type: String, enum: ['Male', 'Female'] },

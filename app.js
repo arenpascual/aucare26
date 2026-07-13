@@ -948,6 +948,121 @@ app.post('/visit/complaint/delete/:id', async (req, res) => {
         res.redirect(`/vv2/${item.visitId}`);
     } catch (err) { res.redirect('back'); }
 });
+app.post('/signup', async (req, res) => {
+    try {
+
+        const {
+            fName,
+            mName,
+            lName,
+            xName,
+
+            role,
+
+            phone,
+            gender,
+            address,
+            email,
+
+            schoolId,
+            campus,
+            course,
+            yearLevel,
+            section,
+
+            bDay,
+            bMonth,
+            bYear,
+
+            fAllergy,
+            mAllergy,
+
+            username,
+            password,
+
+            eName,
+            ePhone,
+            eAddress
+
+        } = req.body;
+
+        // Check existing email
+        const emailExist = await Users.findOne({
+            email: email.toLowerCase()
+        });
+
+        if (emailExist) {
+            req.session.error = "Email already exists.";
+            return res.redirect('/s');
+        }
+
+        // Check existing username
+        const usernameExist = await Users.findOne({
+            username
+        });
+
+        if (usernameExist) {
+            req.session.error = "Username already exists.";
+            return res.redirect('/s');
+        }
+
+        await Users.create({
+
+            fName,
+            mName,
+            lName,
+            xName,
+
+            role,
+
+            phone,
+            gender,
+            address,
+            email,
+
+            schoolId,
+            campus,
+            course,
+            yearLevel,
+            section,
+
+            bDay,
+            bMonth,
+            bYear,
+
+            fAllergy,
+            mAllergy,
+
+            username,
+            password,
+
+            eName,
+            ePhone,
+            eAddress,
+
+            archive: false,
+            verify: false,
+            suspend: false,
+            access: 0,
+            reset: false,
+            dump: false
+
+        });
+
+        req.session.success = "Registration submitted successfully.";
+
+        res.redirect('/');
+
+    } catch (err) {
+
+        console.log(err);
+
+        req.session.error = "Registration failed.";
+
+        res.redirect('/s');
+
+    }
+});
 
 app.use((req, res) => {
   res.status(404);

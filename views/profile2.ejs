@@ -18,9 +18,9 @@
         <div class="bgWhite corner15 justifyStart col padding20">
             <section class="col ">
                 <img class="h100 w100 bura corner500" src="/images/profile.png" alt="">
-                <p class="size28 colorPrimary">Arenvie Pascual</p>
-                <p class="size16 blue">01-2223-037426</p>
-                <p class="size16 gray">arenpascual@gmail.com</p>
+                <p class="size28 colorPrimary"><%= user.fName %> <%= user.mName %> <%= user.lName %><%= user.xName %></p>
+                <p class="size16 blue"> <%= user.schoolId %></p>
+                <p class="size16 gray"><%= user.email %></p>
             </section>
             <section class="col gap5">
                 <a href="" class="nav pnav width100">Change Password</a>
@@ -40,16 +40,16 @@
             <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
                 <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
                 <p class="size20 str400">Personal Details</p>
-                <p class="size14 gray">Gender:</p>
-                <p class="size14 gray">Address:</p>
-                <p class="size14 gray">Date of Birth:</p>
+                <p class="size14 gray">Gender: <%= user.gender %></p>
+                <p class="size14 gray">Address: <%= user.role %></p>
+                <p class="size14 gray">Date of Birth: <%= user.bDay %> <%= user.bMonth %> <%= user.bYear %>:</p>
 
             </section>
             <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
                 <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
                 <p class="size20 str400">School Information</p>
-                <p class="size14 gray">School ID:</p>
-                <p class="size14 gray">Year Level:</p>
+                <p class="size14 gray">School ID: <%= user.schoolId %></p>
+                <p class="size14 gray">Year Level: <%= user.yearLevel %></p>
                 <p class="size14 gray">Course:</p>
             </section>
         </div>

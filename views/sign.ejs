@@ -84,30 +84,55 @@
     <div class="up height0 padding10 block width90">
         <a href="/" class="nav"><i class="fas fa-chevron-left"></i> Return</a>
         <br>
-        <form id="registrationForm" class="bgWhite shadow1 height0 gap10 padding15 width100 justifyStart">
+        <form id="registrationForm"
+      action="/signup"
+      method="POST"
+      class="bgWhite shadow1 height0 gap10 padding15 width100 justifyStart">
             <p class="size20 str500">Sign Up</p>
 
             <div class="form-section active" id="step-1">
                 <div class="field">
                     <label>Role</label>
                     <div class="selectBar">
-                        <select>
+                        <select name="role" required>
                             <option value="" selected disabled>--Select--</option>
                             <option value="Student">Student</option>
                             <option value="Staff">Staff</option>
                         </select>
                     </div>
                 </div>
-                <div class="field"><label>First Name</label><input type="text"></div>
-                <div class="field"><label>Middle Name</label><input type="text"></div>
-                <div class="field"><label>Last Name</label><input type="text"></div>
-                <div class="field"><label>Extension Name</label><input type="text"></div>
-                <div class="field"><label>Birthday</label><input type="text"></div>
-                <div class="field"><label>Contact Number</label><input type="text"></div>
+                <div class="field"><label>First Name</label><input type="text" name="fName" required></div>
+                <div class="field"><label>Middle Name</label><input type="text" name="mName" ></div>
+                <div class="field"><label>Last Name</label><input type="text" name="lName" required></div>
+                <div class="field"><label>Extension Name</label><input type="text"name="xName" ></div>
+                <div class="field"><label>Date of Birth</label>
+                    <div class="row gap5">
+                        <div class="selectBar">
+                            <select name="" id="">
+                            <option value=""selected disabled>--Month--</option>
+                            <option value="">01</option>
+                            <option value="">02</option>
+                            <option value="">03</option>
+                            <option value="">04</option>
+                            <option value="">05</option>
+                            <option value="">06</option>
+                            <option value="">07</option>
+                            <option value="">08</option>
+                            <option value="">09</option>
+                            <option value="">10</option>
+                            <option value="">11</option>
+                            <option value="">12</option>
+                            </select>
+                        </div>
+                        <input type="text" placeholder="Day">
+                        <input type="text" placeholder="Year">
+                    </div>
+                </div>
+                <div class="field"><label>Contact Number</label><input type="text"name="phone" required></div>
                 <div class="field">
                     <label>Gender</label>
                     <div class="selectBar">
-                        <select>
+                        <select name="gender" required>
                             <option value="" selected disabled>--Select--</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
@@ -131,13 +156,13 @@
             </div>
 
             <div class="form-section" id="step-2">
-                <div class="field"><label>Address</label><input type="text"></div>
-                <div class="field"><label>Email</label><input type="text"></div>
-                <div class="field"><label>School ID</label><input type="text"></div>
+                <div class="field"><label>Address</label><input type="text" name="address" required></div>
+                <div class="field"><label>Email</label><input type="text" name="email" required></div>
+                <div class="field"><label>School ID</label><input type="text" name="schoolId" required></div>
                 <div class="field">
                     <label>Campus</label>
                     <div class="selectBar">
-                        <select>
+                        <select name="campus" required>
                             <option value="" selected disabled>--Select--</option>
                             <option value="Main">Main</option>
                             <option value="South">South</option>
@@ -148,7 +173,7 @@
                 <div class="field">
                     <label>Year Level</label>
                     <div class="selectBar">
-                        <select>
+                        <select name="yearLevel" required>
                             <option value="" selected disabled>--Select--</option>
                             <option value="4th Year">4th Year</option>
                             <option value="3rd Year">3rd Year</option>
@@ -157,8 +182,8 @@
                         </select>
                     </div>
                 </div>
-                <div class="field"><label>Course</label><input type="text"></div>
-                <div class="field"><label>Section</label><input type="text"></div>
+                <div class="field"><label>Course</label><input type="text" name="course"></div>
+                <div class="field"><label>Section</label><input type="text" name="section"></div>
 
                 <div class="pagination-buttons">
                     <div class="side-spacer">
@@ -181,7 +206,7 @@
                 <div class="field">
                     <label>Any Allergies to Medicines?</label>
                     <div class="selectBar">
-                        <select>
+                        <select name="mAllergy">
                             <option value="" selected disabled>--Select--</option>
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
@@ -191,13 +216,18 @@
                 <div class="field">
                     <label>Any Food Allergies?</label>
                     <div class="selectBar">
-                        <select>
+                        <select name="fAllergy">
                             <option value="" selected disabled>--Select--</option>
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
                         </select>
                     </div>
                 </div>
+                <br>
+                <div class="field"><label>Emergency Name</label><input type="text" name="eName" required></div>
+                <div class="field"><label>Emergency Contact</label><input type="text" name="ePhone" required></div>
+                <div class="field"><label>Emergency Address</label><input type="text" name="eAddress" required></div>
+
 
                 <div class="pagination-buttons">
                     <div class="side-spacer">
@@ -258,11 +288,14 @@
     //const gotItBtn = document.getElementById('gotItBtn');
 
     loginForm.addEventListener('submit', function(e) {
-        // Manual check kung kumpleto/valid ang form
-        if (!loginForm.checkValidity()) {
-            loginForm.reportValidity(); // ipapakita nito yung native error tooltip
-            return; // huwag ituloy kung may kulang
-        }
+
+    if (!loginForm.checkValidity()) {
+        loginForm.reportValidity();
+        return;
+    }
+
+    // Let the form submit normally
+
 
         e.preventDefault();
         notificationBox.classList.remove('hidden');
