@@ -52,6 +52,7 @@ const userSchema = new mongoose.Schema({
   disability: { type: String, trim: true },
   fAllergy: { type: String, trim: true },
   mAllergy: { type: String, trim: true },
+  oAllergy: { type: String, trim: true },
 
   
   schoolId: { type: String, trim: true },

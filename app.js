@@ -22,6 +22,7 @@ const Logs = require('./model/log');
 const Visits = require('./model/visit');
 const Complaint = require('./model/complaint');
 const Dispense = require('./model/dispense');
+const Notification = require('./model/notification');
 
 // Auth Middleware
 const isLogin = require('./middleware/isLogin');
@@ -267,53 +268,49 @@ app.get('/', async (req, res) => {
 
 app.post('/login', async (req, res) => {
     try {
-        // 0. Extract captcha fields along with username and password
         const { username, password, captcha_input, captcha_expected } = req.body;
 
-        // 1. Captcha Validation (NEW)
         if (!captcha_input || captcha_input !== captcha_expected) {
             req.session.error = "Captcha is incorrect. Please try again.";
             return req.session.save(() => res.redirect('/'));
         }
 
-        // 2. Basic Validation
         if (!username || !password) {
             req.session.error = "Please provide both username and password.";
             return req.session.save(() => res.redirect('/'));
         }
 
-        // 3. Find User
         const user = await Users.findOne({ username, archive: false });
 
-        // 4. Verify User and Password
         if (!user || user.password !== password) { 
             req.session.error = "Invalid username or password.";
             return req.session.save(() => res.redirect('/'));
         }
 
-        // 5. Check account status
+        // ⛔ NEW: Block login kung hindi pa in-approve ng admin
+        if (!user.verify) {
+            req.session.error = "Your account is still pending admin approval. Please wait for confirmation via email.";
+            return req.session.save(() => res.redirect('/'));
+        }
+
         if (user.suspend) {
             req.session.error = "Your account has been suspended.";
             return req.session.save(() => res.redirect('/'));
         }
 
-        // 6. Establish Session
         req.session.user = user;
 
-        // 7. Create Audit Log
         await Logs.create({
             who: user._id,
             what: `User logged into the system: ${user.username}`,
             archive: false
         });
 
-        // 8. Success Redirect
         req.session.save(() => {
             if (['Super Admin', 'Admin',].includes(user.role)) {
                 return res.redirect('/d');
              } else if (['Sub Admin'].includes(user.role)) {
                 return res.redirect('/r');
-
             } else {
                 return res.redirect('/h');
             }
@@ -328,7 +325,20 @@ app.post('/login', async (req, res) => {
 
 
 app.get('/h', isLogin, async (req, res) => {
-    res.render('home',{ title: 'Home', active: 'h'});
+    try {
+        const recentVisits = await Visits.find({
+            patient: req.session.user._id,
+            archive: false
+        })
+        .sort({ createdAt: -1 })
+        .limit(3);
+
+        res.render('home', { title: 'Home', active: 'h', recentVisits });
+
+    } catch (err) {
+        console.error('Home Fetch Error:', err.message);
+        res.render('home', { title: 'Home', active: 'h', recentVisits: [] });
+    }
 });
 
 app.get('/d', isLogin, async (req, res) => {
@@ -371,8 +381,35 @@ app.get('/v1', isLogin, async (req, res) => {
     res.render('visit1',{ title: 'Visit1', active: 'v1'});
 });
 
-app.get('/vv1', isLogin, async (req, res) => {
-    res.render('VisitView1',{ title: 'Visit View1', active: 'v1'});
+app.get('/vv1/:id', isLogin, async (req, res) => {
+    try {
+        const visit = await Visits.findOne({
+            _id: req.params.id,
+            patient: req.session.user._id, // para hindi makita ng ibang user ang record mo
+            archive: false
+        });
+
+        if (!visit) {
+            req.session.error = "Visit record not found.";
+            return req.session.save(() => res.redirect('/h'));
+        }
+
+        const complaints = await Complaint.find({ visitId: visit._id });
+        const medicines = await Dispense.find({ visitId: visit._id });
+
+        res.render('VisitView1', {
+            title: 'Visit View1',
+            active: 'v1',
+            visit,
+            complaints,
+            medicines
+        });
+
+    } catch (err) {
+        console.error('VisitView1 Fetch Error:', err.message);
+        req.session.error = "Failed to load visit details.";
+        res.redirect('/h');
+    }
 });
 
 app.get('/p', isLogin, async (req, res) => {
@@ -435,18 +472,55 @@ app.get('/ih', async (req, res) => {
     res.render('Inventoryhistory',{ title: 'Inventoryhistory', active: 'ih'});
 });
 
-app.get('/pd', async (req, res) => {
-    res.render('pending',{ title: 'pending', active: 'pd'});
+app.get('/pd', isLogin, async (req, res) => {
+    try {
+        const pendingUsers = await Users.find({ verify: false, archive: false }).sort({ createdAt: -1 });
+        res.render('pending', { title: 'Pending Accounts', active: 'pd', pendingUsers });
+    } catch (err) {
+        console.error('Pending Fetch Error:', err.message);
+        req.session.error = "Failed to load pending accounts.";
+        res.redirect('/d');
+    }
 });
 
 app.get('/p2', async (req, res) => {
     res.render('profile2',{ title: 'profile2', active: 'p2'});
 });
 
-app.get('/np', async (req, res) => {
-    res.render('notifpage',{ title: 'notifpage', active: 'np'});
+app.get('/np', isLogin, async (req, res) => {
+    try {
+        const notifications = await Notification.find({
+            who: req.session.user._id,
+            archive: false
+        }).sort({ createdAt: -1 });
+
+        console.log(JSON.stringify(notifications, null, 2));
+
+        res.render('notifpage', { 
+            title: 'notifpage', 
+            active: 'np', 
+            notifications 
+        });
+    } catch (err) {
+        console.error('Notification Fetch Error:', err.message);
+        res.render('notifpage', { title: 'notifpage', active: 'np', notifications: [] });
+    }
 });
 
+app.post('/api/notifications/read/:id', isLogin, async (req, res) => {
+    try {
+        const notif = await Notification.findOneAndUpdate(
+            { _id: req.params.id, who: req.session.user._id },
+            { read: true },
+            { new: true }
+        );
+        if (!notif) return res.json({ success: false, message: 'Notification not found.' });
+        res.json({ success: true, link: notif.link || '/h' });
+    } catch (err) {
+        console.error('Mark Notification Read Error:', err.message);
+        res.json({ success: false, message: 'Failed to mark as read.' });
+    }
+});
 
 
 
@@ -853,13 +927,20 @@ app.get('/proceed-request/:id', async (req, res) => {
     try {
         const requestId = req.params.id;
 
-        // Hanapin ang Visit at i-update ang status at verify fields
-        await Visits.findByIdAndUpdate(requestId, { 
+        const visit = await Visits.findByIdAndUpdate(requestId, { 
             status: 'Proceed', 
             verify: false 
-        });
+        }, { new: true });
 
-        // Ibalik ang user sa listahan ng requests (/r)
+        // ✅ Notification
+       if (visit) {
+             await Notification.create({
+                who: visit.patient,
+                message: 'You may now proceed to the clinic.',
+                type: 'visit',
+                link: `/vv1/${visit._id}`   // <-- IDAGDAG
+        });
+    }
         res.redirect('/r'); 
     } catch (err) {
         console.error("Error updating status and verify:", err);
@@ -905,9 +986,25 @@ app.post('/visit/vitals/delete/:id', async (req, res) => {
 // --- 2. TREATMENT (Update & Clear) ---
 app.post('/visit/update-treatment/:id', async (req, res) => {
     try {
-        await Visits.findByIdAndUpdate(req.params.id, { treatment: req.body.treatment, status: 'Attended' });
+        const visit = await Visits.findByIdAndUpdate(req.params.id, { 
+            treatment: req.body.treatment, 
+            status: 'Attended', 
+        }, { new: true });
+
+        // ✅ Notification
+        if (visit) {
+            await Notification.create({
+                who: visit.patient,
+                message: 'Your visit has been attended.',
+                type: 'visit',
+                link: `/vv1/${visit._id}`
+            });
+        }
+
         res.redirect(`/vv2/${req.params.id}`);
-    } catch (err) { res.redirect('back'); }
+    } catch (err) { 
+        res.redirect('back'); 
+    }
 });
 
 app.post('/visit/treatment/delete/:id', async (req, res) => {
@@ -952,115 +1049,97 @@ app.post('/signup', async (req, res) => {
     try {
 
         const {
-            fName,
-            mName,
-            lName,
-            xName,
-
+            fName, mName, lName, xName,
             role,
-
-            phone,
-            gender,
-            address,
-            email,
-
-            schoolId,
-            campus,
-            course,
-            yearLevel,
-            section,
-
-            bDay,
-            bMonth,
-            bYear,
-
-            fAllergy,
-            mAllergy,
-
-            username,
-            password,
-
-            eName,
-            ePhone,
-            eAddress
-
+            phone, gender, address, email,
+            schoolId, campus, course, yearLevel, section,
+            bDay, bMonth, bYear,
+            fAllergy, mAllergy,
+            username, password,
+            eName, ePhone, eAddress
         } = req.body;
 
-        // Check existing email
-        const emailExist = await Users.findOne({
-            email: email.toLowerCase()
-        });
-
+        const emailExist = await Users.findOne({ email: email.toLowerCase() });
         if (emailExist) {
-            req.session.error = "Email already exists.";
-            return res.redirect('/s');
+            return res.status(400).json({ success: false, message: "Email already exists." });
         }
 
-        // Check existing username
-        const usernameExist = await Users.findOne({
-            username
-        });
-
+        const usernameExist = await Users.findOne({ username });
         if (usernameExist) {
-            req.session.error = "Username already exists.";
-            return res.redirect('/s');
+            return res.status(400).json({ success: false, message: "Username already exists." });
         }
 
         await Users.create({
-
-            fName,
-            mName,
-            lName,
-            xName,
-
+            fName, mName, lName, xName,
             role,
-
-            phone,
-            gender,
-            address,
-            email,
-
-            schoolId,
-            campus,
-            course,
-            yearLevel,
-            section,
-
-            bDay,
-            bMonth,
-            bYear,
-
-            fAllergy,
-            mAllergy,
-
-            username,
-            password,
-
-            eName,
-            ePhone,
-            eAddress,
-
+            phone, gender, address, email,
+            schoolId, campus, course, yearLevel, section,
+            bDay, bMonth, bYear,
+            fAllergy, mAllergy,
+            username, password,
+            eName, ePhone, eAddress,
             archive: false,
             verify: false,
             suspend: false,
             access: 0,
             reset: false,
             dump: false
-
         });
 
-        req.session.success = "Registration submitted successfully.";
-
-        res.redirect('/');
+        return res.status(200).json({ success: true });
 
     } catch (err) {
-
         console.log(err);
+        return res.status(500).json({ success: false, message: "Registration failed. " + err.message });
+    }
+});
 
-        req.session.error = "Registration failed.";
+app.post('/api/users/approve/:id', isLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
 
-        res.redirect('/s');
+        const user = await Users.findByIdAndUpdate(id, {
+            verify: true,
+            verifyAt: Date.now(),
+            isVerify: req.session.user.username
+        }, { new: true });
 
+        if (!user) return res.json({ success: false, message: 'User not found.' });
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Approved account: ${user.username} (${user.fName} ${user.lName})`,
+            archive: false
+        });
+
+        // 📧 Notify student via email
+        const mailOptions = {
+            from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+            to: user.email,
+            subject: "Your AuCare Account Has Been Approved",
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                    <h2 style="color: #0056b3; text-align: center;">Account Approved</h2>
+                    <p>Hello ${user.fName},</p>
+                    <p>Your AuCare account has been reviewed and approved. You can now log in using your username and password.</p>
+                    <p><strong>Username:</strong> ${user.username}</p>
+                </div>`
+        };
+        await transporter.sendMail(mailOptions);
+
+        // ✅ Notify student in-app
+        await Notification.create({
+            who: user._id,
+            message: 'Your account is approved.',
+            type: 'approval',
+            link: '/p'
+        });
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error('Approve Error:', err.message);
+        res.json({ success: false, message: 'Failed to approve account.' });
     }
 });
 

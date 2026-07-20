@@ -1,130 +1,221 @@
 <% layout('template') %>
 <style>
-    .headf {
-        display: none;
-    }
+    .headf { display: none; }
 </style>
 
-<p class="noteBlue absolute bottom20 right20 size16"><i class="fas fa-bell"></i> Sample notification message</p>
 
-<div class=" gap0 colorPrimary justifyEnd relative width80">
+<div class="gap0 colorPrimary justifyEnd relative width80">
     <div class="col justifyStart padding10 gap10 width45">
-            <a href="/h" class="nav absolute left20 top15 cnav"><i class="fas fa-chevron-left"></i></a>
+        <a href="/h" class="nav absolute left20 top15 cnav"><i class="fas fa-chevron-left"></i></a>
+
         <section class="justifyStart padding5 paddingBlock5">
-            <p class="size12 noteGreen hidden">
-                <span class="str500"><i class="fas fa-info-circle"></i> </span>
-                
-            </p>
-            <div class="size12 noteGreen border0 col corner20 padding20 hidden ">
-                <a href="disabled" class="nav cnavLG"><i class="fas fa-check-circle"></i></a>
-                <p class="str500 size26">Proceed to Clinic!</p>
-                <p class="str400 size16">You may now visit the school clinic.</p>
-            </div>
-            <div class="size12 noteGray border0 col corner20 padding20 hidden">
-                <a href="disabled" class="nav cnavLG"><i class="fas fa-xmark-circle gray"></i></a>
-                <p class="str500 size26">Clinic Hours Ended!</p>
-                <p class="str400 size16">You may request another visit during the next clinic hours.</p>
-            </div>
-            <div class="size12 glass borderWhite col corner20 padding20 ">
-                <a href="disabled" class="nav cnavLG"><i class="fas fa-thumbs-up"></i></a>
-                <p class="str500 size26">Attended!</p>
-                <p class="str400 size16">Your visitation has been completed. </p>
-            </div>
+            <% if (visit.status === 'Attended') { %>
+                <div class="size12 porcelain textStone950 borderWhite col corner20 padding20">
+                    <img src="/images/like.png" alt="" class="h100 w100 corner500">
+                    <p class="str500 size26">Attended!</p>
+                    <p class="str400 size16">Your visitation has been completed.</p>
+                </div>
+            <% } else if (visit.status === 'Proceed') { %>
+                <div class="size12 porcelain textStone950 borderWhite col corner20 padding20">
+                    <a href="disabled" class="nav cnavLG"><i class="fas fa-check-circle"></i></a>
+                    <p class="str500 size26">Proceed to Clinic!</p>
+                    <p class="str400 size16">You may now visit the school clinic.</p>
+                </div>
+            <% } else if (visit.status === 'Ended') { %>
+                <div class="size12 porcelain textStone950 borderWhite col corner20 padding20">
+                    <a href="disabled" class="nav cnavLG"><i class="fas fa-xmark-circle gray"></i></a>
+                    <p class="str500 size26">Clinic Hours Ended!</p>
+                    <p class="str400 size16">You may request another visit during the next clinic hours.</p>
+                </div>
+            <% } else { %>
+                <div class="size12 porcelain textStone950 borderWhite col corner20 padding20">
+                    <a href="disabled" class=" corner500 h50 w50"><i class="fas fa-hourglass-half size20"></i></a>
+                    <p class="str500 size26">Pending</p>
+                    <p class="str400 size16">Your request is still waiting for admin approval.</p>
+                </div>
+            <% } %>
         </section>
+
         <section class="justifyBetween gap10 bgWhite corner15 padding15">
             <section class="col padding0 alignStart">
                 <p class="size14 str400">Reason</p>
-                <p class="size18 str500">Request Medication</p>
+                <p class="size18 str500"><%= visit.concern %></p>
             </section>
             <section class="col padding0 alignEnd">
                 <p class="size14 str400">Date</p>
-            <p class="size18 str500">Aug 23, 2025 9:20am</p>
+                <p class="size18 str500">
+                    <%= new Date(visit.createdAt).toLocaleString('en-US', {
+                        month: 'short', day: 'numeric', year: 'numeric',
+                        hour: 'numeric', minute: '2-digit'
+                    }) %>
+                </p>
             </section>
         </section>
-        <section class="col alignStart colorPrimary padding10">
-            <section class="padding0 justifyBetween">
-                <p class="size20 str500">Vital Sign</p>
-                <a href="" class="nav cnav glass shadowNone"><i class="fas fa-pen"></i></a>
-            </section>
-            <section class="gap30 justifyStart">
-                <div class="col width0">
-                    <img src="/images/bp.png" alt="" class="corner500 bgWhite h60 w60">
-                    <p class="size18 str500">120 / 80</p>
-                    <p class="size12">Blood Pressure</p>
-                </div>
-                <div class="col width0">
-                    <img src="/images/hb.png" alt="" class="corner500 bgWhite h60 w60">
-                    <p class="size18 str500">60 per min</p>
-                    <p class="size12">Heart Rate</p>
-                </div>
-                <div class="col width0">
-                    <img src="/images/10.png" alt="" class="corner500 bgWhite h60 w60">
-                    <p class="size18 str500">36 &deg; </p>
-                    <p class="size12">Temperature</p>
-                </div>
-            </section>
-        </section>
+
+        <!-- ⬇️ Vitals + Chief Complain — Attended lang ang makakakita -->
+        <% if (visit.status === 'Attended') { %>
+<section class="col alignStart colorPrimary padding10">
+    <section class="padding0 justifyBetween">
+        <p class="size20 str500">Vital Sign</p>
+    </section>
+    <section class="gap30 justifyStart">
+        <% if (typeof visit !== 'undefined' && visit) { %>
+            <% 
+                // Mapping the vital signs to their correct image names
+                const vitalMappings = {
+                    bloodPressure: 'bp',
+                    heartRate: 'hb',
+                    temperature: 'fever' // Maps temperature to your fever.png icon
+                };
+            %>
+            
+            <!-- Blood Pressure -->
+            <div class="col width0">
+                <img src="/images/<%= vitalMappings.bloodPressure %>.png" alt="Blood Pressure" class="corner500 bgWhite h60 w60">
+                <p class="size18 str500">
+                    <%= (visit.bloodPressure && visit.bloodPressure.systolic && visit.bloodPressure.diastolic) 
+                        ? `${visit.bloodPressure.systolic} / ${visit.bloodPressure.diastolic}` 
+                        : '-- / --' %>
+                </p>
+                <p class="size12">Blood Pressure</p>
+            </div>
+
+            <!-- Heart Rate -->
+            <div class="col width0">
+                <img src="/images/<%= vitalMappings.heartRate %>.png" alt="Heart Rate" class="corner500 bgWhite h60 w60">
+                <p class="size18 str500">
+                    <%= visit.hBeat ? `${visit.hBeat} per min` : '-- per min' %>
+                </p>
+                <p class="size12">Heart Rate</p>
+            </div>
+
+            <!-- Temperature -->
+            <div class="col width0">
+                <img src="/images/<%= vitalMappings.temperature %>.png" alt="Temperature" class="corner500 bgWhite h60 w60">
+                <p class="size18 str500">
+                    <%= visit.temperature ? `${visit.temperature} °C` : '-- °C' %>
+                </p>
+                <p class="size12">Temperature</p>
+            </div>
+        <% } else { %>
+            <p class="size14 gray">No vital signs recorded.</p>
+        <% } %>
+    </section>
+</section>
         <section class="glass col alignStart colorPrimary padding20 borderWhite">
             <section class="padding0 justifyBetween">
                 <p class="size20 str500">Chief Complain</p>
-                <a href="" class="nav cnav glass shadowNone"><i class="fas fa-pen"></i></a>
             </section>
             <section class="gap30 justifyStart">
-                <div class="col width0 relative">
-                    <img src="/images/9.png" alt="" class="corner500 bgWhite h60 w60">
-                    <p class="size18 str500">Dizziness</p>
-                    <a href="" class="nav absolute right0 top0 h25 w25 glass padding0 size12 shadowNone"><i class="fa-solid fa-circle-minus red"></i></a>
-                </div>
-                <div class="col width0 relative">
-                    <img src="/images/hd.png" alt="" class="corner500 bgWhite h60 w60">
-                    <p class="size18 str500">Headache</p>
-                    <a href="" class="nav absolute right0 top0 h25 w25 glass padding0 size12 shadowNone"><i class="fa-solid fa-circle-minus red"></i></a>
-                </div>
-                <div class="col width0 relative">
-                    <img src="/images/5.png" alt="" class="corner500 bgWhite h60 w60">
-                    <p class="size18 str500">Toothache</p>
-                    <a href="" class="nav absolute right0 top0 h25 w25 glass padding0 size12 shadowNone"><i class="fa-solid fa-circle-minus red"></i></a>
-                </div>
-                <div class="col width0">
-                    <div class="corner500 borderWhite borderDotted h60 w60">
-                        <i class="fas fa-plus size30 white"></i>
-                    </div>
-                    <p class="size18 str500 opacity0">Fever</p>
-                </div>
+
+<% if (complaints && complaints.length > 0) { %>
+    <% complaints.forEach(c => { %>
+        <div class="col width0 relative">
+            <% if (c && c.type) { %>
+                <% 
+                    // Complete mapping dictionary matching every file in your folder
+                    const fileMapping = {
+                        // Exact matches & Capitalized files
+                        'Abdominal Pain Cramps': 'Abdominal Pain Cramps',
+                        'Allergy': 'Allergy',
+                        'Body Muscle Pain': 'Body Muscle Pain',
+                        'Colds': 'Colds',
+                        'Cough': 'Cough',
+                        'Difficulty of Breathing': 'Difficulty of Breathing',
+                        'Dizziness': 'Dizziness',
+                        'Dysmenorrhea Menstrual Cramps': 'Dysmenorrhea Menstrual Cramps',
+                        'Headache': 'Headache',
+                        'Hyperacidity': 'Hyperacidity',
+                        'Toothache': 'Toothache',
+
+                        // Lowercase files
+                        'Fever': 'fever',
+                        'fever': 'fever',
+
+                        // Short abbreviations & common variations
+                        'Blood Pressure': 'bp',
+                        'BP': 'bp',
+                        'bp': 'bp',
+                        
+                        'High Blood': 'hb',
+                        'HB': 'hb',
+                        'hb': 'hb',
+
+                        'Heart Disease': 'hd',
+                        'HD': 'hd',
+                        'hd': 'hd',
+
+                        'Loose Bowel Movement': 'lbm',
+                        'LBM': 'lbm',
+                        'lbm': 'lbm',
+
+                        'Low Glucose': 'lg',
+                        'LG': 'lg',
+                        'lg': 'lg',
+                    };
+
+                    // Use mapping if defined, otherwise default to normalized lowercase/trimmed name
+                    let fileName = fileMapping[c.type] || c.type.trim();
+                %>
+                <img src="/images/<%= encodeURIComponent(fileName) %>.png" alt="<%= c.type %>" class="corner500 bgWhite h60 w60">
+            <% } else { %>
+                <p class="size14 gray">Unknown Complaint</p>
+            <% } %>
+            <p class="size18 str500"><%= c.type %></p>
+        </div>
+    <% }) %>
+<% } else { %>
+    <p class="size14 gray">No complaints recorded.</p>
+<% } %>
             </section>
         </section>
+        <% } %>
     </div>
+
+    <!-- ⬇️ Treatment + Dispensed Medicine — Attended lang ang makakakita -->
+    <% if (visit.status === 'Attended') { %>
     <div class="col justifyStart padding10 paddingInline15 colorPrimary gap15 width50">
         <section class="glass borderWhite col gap5 alignStart colorPrimary">
             <section class="padding0 justifyBetween">
                 <p class="size22 str500">Treatment</p>
-                <a href="" class="nav cnav"><i class="fas fa-pen"></i></a>
+                
             </section>
             <section class="bgWhite corner10 padding15">
-                <p class="size14">Lorem ipsum dolor sit amet consectetur adipisicing elit. Et deleniti odio repellendus veritatis magni neque nihil, vero perferendis sed ipsam iste quaerat, animi voluptatum esse earum ea veniam adipisci sint.</p>
+                <p class="size14"><%= visit.treatment && visit.treatment.trim() !== '' ? visit.treatment : 'No treatment details yet.' %></p>
             </section>
         </section>
+
         <section class="col alignStart gap10 padding15">
             <section class="padding0 justifyBetween">
                 <p class="size22 str500">Dispensed Medicine</p>
-                <a href="" class="nav cnav"><i class="fas fa-pen"></i></a>
+                
             </section>
-            <section class="padding5 gap5 bgWhite justifyStart corner16 shadow1 relative">
-                <img src="/images/item.png" alt="" class="h80 width0">
-                <section class="col padding0 alignStart">
-                    <p class="size18 str500">Biogesic</p>
-                    <p class="size14 str400">1 tablet (500 mg) every 4-6 hours as needed for pain or fever</p>
-                </section>
-                <p class="size14 str500 absolute right15 top15">3pcs</p>
-            </section>
-            <section class="padding5 gap5 bgWhite justifyStart corner16 shadow1 relative">
-                <img src="/images/item.png" alt="" class="h80 width0">
-                <section class="col padding0 alignStart">
-                    <p class="size18 str500">Diatabs</p>
-                    <p class="size14 str400">1 tablet (500 mg) every 4-6 hours as needed for pain or fever</p>
-                </section>
-                <p class="size14 str500 absolute right15 top15">3pcs</p>
-            </section>
+
+            <% if (medicines && medicines.length > 0) { %>
+                <% medicines.forEach(m => { %>
+                    <section class="padding5 gap5 bgWhite justifyStart corner16 shadow1 relative">
+                        <img src="/images/item.png" alt="" class="h80 width0">
+                        <section class="col padding0 alignStart">
+                            <p class="size18 str500"><%= m.item %></p>
+                            <p class="size14 str400"><%= m.remarks && m.remarks.trim() !== '' ? m.remarks : '1 tablet (500 mg) every 4-6 hours as needed' %></p>
+                        </section>
+                        <p class="size14 str500 absolute right15 top15"><%= m.qty %><%= m.unit %></p>
+                    </section>
+                <% }) %>
+            <% } else { %>
+                <p class="size14 gray">No medicine dispensed.</p>
+            <% } %>
         </section>
     </div>
+    <% } else { %>
+    <div class="col justifyStart padding10 paddingInline15 colorPrimary gap15 width50">
+        <section class="glass borderWhite col gap10 alignCenter colorPrimary padding30">
+            <p class="size20 str500">Details not yet available</p>
+            <p class="size14 str400">
+                Please wait for the clinic staff to attend to your request.
+                Details like vitals, treatment, and dispensed medicine will appear here once your visit is marked as "Attended".
+            </p>
+        </section>
+    </div>
+    <% } %>
 </div>

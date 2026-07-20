@@ -10,10 +10,10 @@
 <div class="col padding10 width35 justifyStart relative">
     <div class="height0 corner15 col alignStart padding20 relative">
         <p class="size40">Welcome</p>
-        <p class="size40" style="margin-top: -24px !important;">AREN PASCUAL!</p>
+        <p class="size40" style="margin-top: -24px !important;"><%= user.fName.toUpperCase() %> <%= user.lName.toUpperCase() %>!</p>
         <br>
         <p class="size20" style="margin-top: -15px !important;">Need Care?</p>
-        <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20 width25">Visit Now</a>
+        <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20 width25 hidden">Visit Now</a>
     </div>
     <div class="height0 corner15 col alignStart bgWhite padding20">
         <p class="size20">Services</p>
@@ -52,34 +52,67 @@
         Proceed
         </a>
     </section>
+<% layout('template') %>
+
 <div class="width35 col padding10 gap10 justifyStart alignStart">
     <a href="/h" class="nav"><i class="fas fa-chevron-left"></i> Back</a>
     <div class="shadow1 col porcelain gap15 corner10 padding20 index100 height0 alignStart bgSoft justifyStart">
-    <p class=" size20 str500">Notifications</p>
-    <a class="bgWhite width100 padding10 corner10 justifyStart gap10 relative">
-        <div class="bgBlue200 absolute top5 right5 height0 width0 corner10 padding5">New!</div>
-        <div class="corner500 h40 w40 porcelain padding0"><i class="fas fa-bell size14 textBlue700"></i></div>
-        <div class="col alignStart width0">
-            <P class="size16">Your account is approved.</P>
-            <P class="">1 min ago</P>
-        </div>
-    </a>
-    <a class="bgSoft width100 padding10 corner10 justifyStart gap10 relative">
-        <div class="corner500 h40 w40 padding0"><i class="fas fa-bell size14"></i></div>
-        <div class="col alignStart width0">
-            <P class="size16">Your account is approved.</P>
-            <P class="">4 hours ago</P>
-        </div>
-    </a>
-    <a class="bgWhite width100 padding10 corner10 justifyStart gap10 relative">
-        <div class="corner500 h40 w40 porcelain padding0"><i class="fas fa-bell size14 textBlue700"></i></div>
-        <div class="col alignStart width0">
-            <P class="size16">You have complain on csdl</P>
-            <P class="">Jul 13 2026</P>
-        </div>
-    </a>
+        <p class="size20 str500">Notifications</p>
+
+        <% if (notifications && notifications.length > 0) { %>
+            <% notifications.forEach(n => { %>
+                <a class="notif-item <%= n.read ? 'bgSoft' : 'bgWhite' %> width100 padding10 corner10 justifyStart gap10 relative"
+                   href="javascript:void(0)"
+                   data-id="<%= n._id %>"
+                   data-link="<%= n.link || '/h' %>"
+                   style="cursor:pointer;">
+                    <% if (!n.read) { %>
+                        <div class="bgBlue200 absolute top5 right5 height0 width0 corner10 padding5">New!</div>
+                    <% } %>
+                    <div class="corner500 h40 w40 <%= n.read ? '' : 'porcelain' %> padding0">
+                        <i class="fas fa-bell size14 <%= n.read ? '' : 'textBlue700' %>"></i>
+                    </div>
+                    <div class="col alignStart width0">
+                        <p class="size16"><%= n.message %></p>
+                        <p class="">
+                            <%= new Date(n.createdAt).toLocaleString('en-US', { 
+                                month: 'short', day: 'numeric', year: 'numeric', 
+                                hour: 'numeric', minute: '2-digit' 
+                            }) %>
+                        </p>
+                    </div>
+                </a>
+            <% }) %>
+        <% } else { %>
+            <p class="size14 gray">No notifications yet.</p>
+        <% } %>
     </div>
 </div>
+
+<script>
+// =============================
+// NOTIFICATIONS: mark as read + navigate
+// =============================
+document.querySelectorAll('.notif-item').forEach(item => {
+    item.addEventListener('click', async function () {
+        const id = this.dataset.id;
+        const link = this.dataset.link || '/h';
+
+        try {
+            const res = await fetch(`/api/notifications/read/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+
+            window.location.href = data.link || link;
+        } catch (err) {
+            console.error('Failed to mark notification as read:', err);
+            window.location.href = link;
+        }
+    });
+});
+</script>
 <script>
 // =============================
 // SHOW MEDICINE FIELD
@@ -157,4 +190,6 @@ const notification = document.getElementById("notificationBox");
 gotItBtn.addEventListener("click", function(){
     notification.classList.add("hidden");
 });
+
+
 </script>

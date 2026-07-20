@@ -106,33 +106,33 @@
                 <div class="field"><label>Last Name</label><input type="text" name="lName" required></div>
                 <div class="field"><label>Extension Name</label><input type="text"name="xName" ></div>
                 <div class="field"><label>Date of Birth</label>
-                    <div class="row gap5">
-                        <div class="selectBar">
-                            <select name="" id="">
-                            <option value=""selected disabled>--Month--</option>
-                            <option value="">01</option>
-                            <option value="">02</option>
-                            <option value="">03</option>
-                            <option value="">04</option>
-                            <option value="">05</option>
-                            <option value="">06</option>
-                            <option value="">07</option>
-                            <option value="">08</option>
-                            <option value="">09</option>
-                            <option value="">10</option>
-                            <option value="">11</option>
-                            <option value="">12</option>
-                            </select>
-                        </div>
-                        <input type="text" placeholder="Day">
-                        <div class="selectBar">
-                            <select name="" id="">
-                            <option value=""selected disabled>--Year--</option>
-                            <option value="">2005</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+    <div class="row gap5">
+        <div class="selectBar">
+            <select name="bMonth" required>
+            <option value="" selected disabled>--Month--</option>
+            <option value="1">01</option>
+            <option value="2">02</option>
+            <option value="3">03</option>
+            <option value="4">04</option>
+            <option value="5">05</option>
+            <option value="6">06</option>
+            <option value="7">07</option>
+            <option value="8">08</option>
+            <option value="9">09</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            </select>
+        </div>
+        <input type="text" name="bDay" placeholder="Day" required>
+        <div class="selectBar">
+            <select name="bYear" required>
+            <option value="" selected disabled>--Year--</option>
+            <option value="2005">2005</option>
+            </select>
+        </div>
+    </div>
+</div>
                 <div class="field"><label>Contact Number</label><input type="text"name="phone" required></div>
                 <div class="field">
                     <label>Gender</label>
@@ -141,7 +141,6 @@
                             <option value="" selected disabled>--Select--</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
-                            <option value="">Other</option>
                         </select>
                     </div>
                 </div>
@@ -232,6 +231,8 @@
                 <div class="field"><label>Emergency Name</label><input type="text" name="eName" required></div>
                 <div class="field"><label>Emergency Contact</label><input type="text" name="ePhone" required></div>
                 <div class="field"><label>Emergency Address</label><input type="text" name="eAddress" required></div>
+                <div class="field"><label>Username</label><input type="text" name="username" required></div>
+                <div class="field"><label>Password</label><input type="password" name="password" required></div>
 
 
                 <div class="pagination-buttons">
@@ -260,7 +261,7 @@
         <p class="size23 str500">Request Submitted</p>
         <p class="size17">Wait for the admin's approval within this day.</p>
             </section>
-        <a class="nav w120 size15" href="/" id="">Got It!</a>
+        <a class="nav w120 size15" href="/" id="gotItBtn">Got It!</a>
     </section>
 
 </div>
@@ -286,30 +287,48 @@
         step3.classList.remove('active');
         step2.classList.add('active');
     };
-    
-// 🔔 Notification Box Trigger Logic
-    const loginForm = document.querySelector('form');
+
+    // 🔔 Notification Box Trigger Logic
+    const loginForm = document.getElementById('registrationForm');
     const notificationBox = document.getElementById('notificationBox');
-    //const gotItBtn = document.getElementById('gotItBtn');
+    const gotItBtn = document.getElementById('gotItBtn');
 
-    loginForm.addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', async function (e) {
+        e.preventDefault(); // laging pigilan muna, AJAX na tayo
 
-    if (!loginForm.checkValidity()) {
-        loginForm.reportValidity();
-        return;
-    }
+        if (!loginForm.checkValidity()) {
+            loginForm.reportValidity();
+            return;
+        }
 
-    // Let the form submit normally
+        try {
+            const formData = new URLSearchParams(new FormData(loginForm));
 
+            const response = await fetch('/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            });
 
-        e.preventDefault();
-        notificationBox.classList.remove('hidden');
+            const data = await response.json();
+
+            if (data.success) {
+                notificationBox.classList.remove('hidden');
+            } else {
+                alert(data.message || "Hindi na-submit ang registration. Subukan ulit.");
+            }
+
+        } catch (err) {
+            console.error('Signup fetch error:', err);
+            alert("May error habang nagsu-submit. Subukan ulit.");
+        }
     });
 
-    gotItBtn.addEventListener('click', function(e) {
+    gotItBtn.addEventListener('click', function (e) {
         e.preventDefault();
-        notificationBox.classList.add('hidden');
+        window.location.href = '/'; // saka lang siya mag-navigate paalis
     });
+</script>
 </script>
 </body>
 </html>

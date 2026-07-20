@@ -1,1 +1,114 @@
 <% layout('layout') %>
+<style>
+    div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+</style>
+<div class="polaroid col">
+    <div class="up height10 justifyStart padding10">
+        <div class="width0">
+            <a href="" class="nav w100"><i class="fas fa-chevron-left"></i> Return</a>
+        </div>
+    </div>
+
+    <div class="col justifyCenter alignCenter height0">
+        <div class="height0 padding20" style="width: 700px; max-width: 90%;">
+            <form class="bgWhite shadow1 height0 gap10 padding30 justifyStart" action="">
+                <p class="size20 str500 width100 textLeft">Personal Information:</p>
+
+                <div class="row gap20 alignStart">
+                    <div class="col width50">
+                        <div class="field">
+                            <label for="">First Name</label>
+                            <input type="text" name="firstName">
+                        </div>
+                        <div class="field">
+                            <label for="">Last Name</label>
+                            <input type="text" name="lastName">
+                        </div>
+                        <div class="field">
+                            <label for="">Middle Name</label>
+                            <input type="text" name="middleName">
+                        </div>
+                        <div class="field">
+                            <label for="">Ext Name (optional)</label>
+                            <input type="text" name="extName">
+                        </div>
+                        <div class="field">
+                            <label for="">Gender</label>
+                            <input type="text" name="gender">
+                        </div>
+                        <div class="field">
+                            <label for="">Contact Number</label>
+                            <input type="text" name="contactNumber">
+                        </div>
+                        <div class="field">
+                            <label for="">Address</label>
+                            <input type="text" name="address">
+                        </div>
+                        <div class="field">
+                            <label for="">Birthday</label>
+                            <input type="date" name="birthday">
+                        </div>
+                    </div>
+
+                    <div class="col width50">
+                        <div class="field">
+                            <label for="">School ID</label>
+                            <input type="text" name="schoolId">
+                        </div>
+                        <div class="field">
+                            <label for="">Course</label>
+                            <input type="text" name="course">
+                        </div>
+                        <div class="field">
+                            <label for="">Year Level</label>
+                            <input type="text" name="yearLevel">
+                        </div>
+                        <div class="field">
+                            <label for="">Section</label>
+                            <input type="text" name="section">
+                        </div>
+                        <div class="field">
+                            <label for="">Email</label>
+                            <input type="text" name="email">
+                        </div>
+                        <div class="field">
+                            <label for="">Any Food Allergies:</label>
+                            <div class="selectBar">
+                                <select name="foodAllergies">
+                                    <option value="none">None</option>
+                                    <option value="peanuts">Peanuts</option>
+                                    <option value="seafood">Seafood</option>
+                                    <option value="dairy">Dairy</option>
+                                    <option value="others">Others</option>
+                                    <option value="">--Select--</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="">Any Allergies to Medicine:</label>
+                            <div class="selectBar">
+                            <select name="medicineAllergies">
+                                <option value="">--Select--</option>
+                                <option value="none">None</option>
+                                <option value="penicillin">Penicillin</option>
+                                <option value="aspirin">Aspirin</option>
+                                <option value="others">Others</option>
+                            </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="justifyEnd height0">
+                    <button class="nav pnav">Add Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

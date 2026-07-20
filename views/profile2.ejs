@@ -1,76 +1,376 @@
-<% layout('template') %>
-<style>
-    .mainf {
-        padding: 0;
-    }
-    .shape {
-        clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 0% 100%);
-    }
-    .bura{
-    border: 8px solid var(--tint2);
+    <% layout('template') %>
+    <style>
+        .mainf {
+            padding: 0;
+        }
+        .shape {
+            clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 0% 100%);
+        }
+        .bura{
+        border: 8px solid var(--tint2);
 
+        }
+        .profile-name{
+        width:100%;
+        text-align:center;
+        overflow: hidden;
+        font-weight:600;
+        margin-top:10px;
     }
-</style>
 
-<div class=" gap10 polaroid alignStart">
-    <div class="padding10 width25 height100 col alignStart gap15">
-        <a href="/h" class="nav"><i class="fas fa-chevron-left"></i> Return</a> 
-        <div class="bgWhite corner15 justifyStart col padding20">
-            <section class="col ">
-                <img class="h100 w100 bura corner500" src="/images/profile.png" alt="">
-                <p class="size28 colorPrimary"><%= user.fName %> <%= user.mName %> <%= user.lName %><%= user.xName %></p>
-                <p class="size16 blue"> <%= user.schoolId %></p>
-                <p class="size16 gray"><%= user.email %></p>
-            </section>
-            <section class="col gap5">
-                <a href="" class="nav pnav width100">Change Password</a>
-                <a href="javascript:void(0)" id="exportCard" class="nav pnav width100">log out</a>
-            </section>
+    .modal{
+        position: fixed;
+        inset: 0;
+        width:100vw;
+        height:100vh;
+        background:rgba(0,0,0,.45);
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        z-index:99999;
+    }
+
+    .hidden{
+        display:none;
+    }
+    .password-card{
+        width:520px;
+        max-width:95%;
+        padding:35px;
+        gap:18px;
+        border-radius:18px;
+    }
+
+    .password-card h2{
+        color:#0d3b66;
+        font-size:30px;
+        font-weight:500;
+    }
+
+    .password-note{
+        display:flex;
+        flex-direction:column;
+        align-items:flex-start;
+        gap:8px;
+
+        border:1px solid #444;
+        border-radius:12px;
+        padding:15px 20px;
+        width:100%;
+        box-sizing:border-box;
+    }
+
+    .password-note p{
+        margin:0;
+        text-align:left;
+    }
+
+    .password-list{
+        width:100%;
+    }
+
+    .password-item{
+        position:relative;
+        padding-left:18px;
+        margin:6px 0;
+        text-align:left;
+        line-height:1.5;
+    }
+
+    .password-item::before{
+    content:"•";
+    position:absolute;
+    left:0;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:18px;
+    font-weight:bold;
+    color:#000;
+    line-height:1;
+}
+
+
+    .password-input{
+        display:flex;
+        align-items:center;
+        border:1px solid #999;
+        border-radius:14px;
+        overflow:hidden;
+    }
+
+    .password-input input{
+        border:none;
+        flex:1;
+        padding:14px;
+        outline:none;
+    }
+
+    .password-input i{
+        padding:15px;
+        cursor:pointer;
+    }
+
+    .otp-row{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-end;
+        gap:15px;
+    }
+
+    .otp-field{
+        width:350px;
+    }
+
+    .otp-resend{
+        margin-bottom:10px;
+        font-size:16px;
+    }
+
+    .otp-resend a{
+        color:#0d3b66;
+        font-weight:600;
+        text-decoration:underline;
+    }
+
+    .button-row{
+        display:flex;
+        justify-content:center;
+        gap:25px;
+    }
+
+    .button-row button{
+        width:173px;
+        height:40px;
+        font-size:15px;
+    }
+    *{
+        list-style:none;
+    }
+    ul{
+        padding:0;
+    }
+    .password-list {
+        list-style: disc;
+        padding-left: 20px;
+    }
+    </style>
+
+    <div class=" gap10 polaroid alignStart">
+        <div class="padding10 width25 height100 col alignStart gap15">
+            <a href="/h" class="nav"><i class="fas fa-chevron-left"></i> Return</a> 
+            <div class="bgWhite corner15 justifyStart col padding20">
+                <section class="col ">
+                    <img class="h100 w100 bura corner500" src="/images/profile.png" alt="">
+                    <p class="size28 colorPrimary profile-name">
+                        <%= user.fName %> <%= user.mName %> <%= user.lName %> <%= user.xName %>
+                    </p>
+                    <p class="size16 blue"> <%= user.schoolId %></p>
+                    <p class="size16 gray"><%= user.email %></p>
+                </section>
+                <section class="col gap5">
+                    <a href="javascript:void(0)" id="openPassword" class="nav pnav width100">
+                        Change Password
+                    </a>
+                    <a href="javascript:void(0)" id="openLogout" class="nav pnav width100">
+                        Log Out
+                    </a>
+                </section>
+            </div>
         </div>
-    </div>
-    <div class="width75 col justifyStart padding15 gap15">
-        <div class="height3"></div>
-        <div class="height0 justifyBetween gap10 padding0">
-            <p class="size28 str400 blue"></p>
-            <a href="" class="nav gnav hidden"><i class="fas fa-check-circle"></i> Approve Account</a>
-        </div>
-    
+        <div class="width75 col justifyStart padding15 gap15">
+            <div class="height3"></div>
+            <div class="height0 justifyBetween gap10 padding0">
+                <p class="size28 str400 blue"></p>
+                <a href="" class="nav gnav hidden"><i class="fas fa-check-circle"></i> Approve Account</a>
+            </div>
+        
+                
+            <div class="height0 gap10">
+                <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
+                    <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                    <p class="size20 str400">Personal Details</p>
+                    <p class="size14 gray">Gender: <%= user.gender %></p>
+                    <p class="size14 gray">Address: <%= user.address %></p>
+                    <p class="size14 gray">Date of Birth: <%= user.bMonth %> <%= user.bDay %> <%= user.bYear %>:</p>
+
+                </section>
+                <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
+                    <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                    <p class="size20 str400">School Information</p>
+                    <p class="size14 gray">School ID: <%= user.schoolId %></p>
+                    <p class="size14 gray">Year Level: <%= user.yearLevel %></p>
+                    <p class="size14 gray">Course: <%= user.course %></p>
+                </section>
+            </div>
             
-        <div class="height0 gap10">
-            <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
-                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
-                <p class="size20 str400">Personal Details</p>
-                <p class="size14 gray">Gender: <%= user.gender %></p>
-                <p class="size14 gray">Address: <%= user.role %></p>
-                <p class="size14 gray">Date of Birth: <%= user.bDay %> <%= user.bMonth %> <%= user.bYear %>:</p>
+            <div class="height0 justifyStart gap10 padding0 ">
+                <section class="left width100 bgWhite corner14 col alignStart padding15 borderGray relative height0">
+                    <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                    <p class="size20 str400">Emergency Contact</p>
+                    <p class="size14 gray">Name: <%= user.eName %></p>
+                    <p class="size14 gray">Contact: <%= user.ePhone %></p>
+                    <p class="size14 gray">Address: <%= user.eAddress %></p>
+                </section>
+            </div>
+            
+                <section class="left width100 bgWhite corner14 col alignStart gap5 padding10 borderGray relative height0">
+                    <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                    <p class="size20 str400">Allergies</p>
+                    <p class="size14 gray">Food Allergies: <%= user.fAllergy %></p>
+                    <p class="size14 gray">Medicines Allergies: <%= user.mAllergy %></p>
+                    <p class="size14 gray">Other Allergies: <%= user.oAllergy %></p>
 
-            </section>
-            <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
-                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
-                <p class="size20 str400">School Information</p>
-                <p class="size14 gray">School ID: <%= user.schoolId %></p>
-                <p class="size14 gray">Year Level: <%= user.yearLevel %></p>
-                <p class="size14 gray">Course:</p>
-            </section>
+                </section>
         </div>
-        
-        <div class="height0 justifyStart gap10 padding0 ">
-            <section class="left width100 bgWhite corner14 col alignStart padding15 borderGray relative height0">
-                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
-                <p class="size20 str400">Emergency Contact</p>
-                <p class="size14 gray">Name:</p>
-                <p class="size14 gray">Contact:</p>
-                <p class="size14 gray">Address:</p>
-            </section>
-        </div>
-        
-            <section class="left width100 bgWhite corner14 col alignStart gap5 padding10 borderGray relative height0">
-                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
-                <p class="size20 str400">Allergies</p>
-                <p class="size14 gray">Food Allergies:</p>
-                <p class="size14 gray">Medicines Allergies:</p>
-                <p class="size14 gray">Other Allergies:</p>
-
-            </section>
     </div>
-</div>
+
+    <div id="modal" class="modal hidden">
+
+        <form id="passCard" class="password-card bgWhite corner15 shadow1 col">
+
+        <h2>Reset Password</h2>
+
+        <div class="password-note">
+            <p class="size15"><strong class="size15">Take Note!</strong> Password must contain the following:</p>
+
+            <ul class="password-list">
+                <li class="size13 password-item">At least 1 upper case letter</li>
+                <li class="size13 password-item">At least 1 special character</li>
+                <li class="size13 password-item">Combination of letter and number</li>
+                <li class="size13 password-item">Minimum of 8 characters</li>
+            </ul>
+        </div>
+
+        <div class="field">
+            <label>Current Password</label>
+
+            <div class="password-input">
+                <input type="password" id="currentPassword">
+                <i class="far fa-eye toggle-password"></i>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Create Password</label>
+
+            <div class="password-input">
+                <input type="password" id="newPassword">
+                <i class="far fa-eye toggle-password"></i>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Confirm Password</label>
+
+            <div class="password-input">
+                <input type="password" id="confirmPassword">
+                <i class="far fa-eye-slash toggle-password"></i>
+            </div>
+        </div>
+
+        <div class="otp-row">
+
+            <div class="field otp-field">
+                <label>OTP</label>
+                <input type="text" maxlength="6">
+            </div>
+
+            <div class="otp-resend">
+                Didn't get the code?
+                <a href="#">Resend</a>
+            </div>
+
+        </div>
+
+        <div class="button-row">
+
+            <button type="button" class="nav">
+                Cancel
+            </button>
+
+            <button class="nav pnav">
+                Update
+            </button>
+
+        </div>
+
+    </form>
+
+
+        <!-- LOGOUT -->
+        <section class="width30 bgWhite corner15 col padding20 shadow1 relative hidden" id="lgCard">
+
+            <div class="nav cnavLG">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+
+            <br>
+
+            <p class="size18 textCenter textBalance">
+                Are you sure you want to Log Out?
+            </p>
+
+            <br>
+
+            <section class="padding0 justifyBetween gap10">
+
+                <a href="javascript:void(0)" class="nav width100" id="closeLogout">
+                    Cancel
+                </a>
+
+                <a href="/" class="nav pnav width100">
+                    Log Out
+                </a>
+
+            </section>
+
+        </section>
+
+    </div>
+
+    <script>
+
+    const modal = document.getElementById("modal");
+
+    const passCard = document.getElementById("passCard");
+    const lgCard = document.getElementById("lgCard");
+
+    document.getElementById("openPassword").onclick = () => {
+
+        modal.classList.remove("hidden");
+
+        passCard.classList.remove("hidden");
+        lgCard.classList.add("hidden");
+
+    };
+
+    document.getElementById("openLogout").onclick = () => {
+
+        modal.classList.remove("hidden");
+
+        lgCard.classList.remove("hidden");
+        passCard.classList.add("hidden");
+
+    };
+
+    document.getElementById("closePassword").onclick = closeModal;
+    document.getElementById("closeLogout").onclick = closeModal;
+
+    modal.onclick = function(e){
+
+        if(e.target === modal){
+            closeModal();
+        }
+
+    }
+
+    function closeModal(){
+
+        modal.classList.add("hidden");
+
+        passCard.classList.add("hidden");
+        lgCard.classList.add("hidden");
+
+    }
+
+    </script>

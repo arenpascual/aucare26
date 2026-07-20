@@ -4,7 +4,7 @@
 <div class="col padding10 width35 justifyStart relative">
     <div class="height0 corner15 col alignStart padding20 relative">
         <p class="size40">Welcome</p>
-        <p class="size40" style="margin-top: -24px !important;">AREN PASCUAL!</p>
+        <p class="size40" style="margin-top: -24px !important;"><%= user.fName.toUpperCase() %> <%= user.lName.toUpperCase() %>!</p>
         <br>
         <p class="size20" style="margin-top: -15px !important;">Need Care?</p>
         <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20 width25">Visit Now</a>
@@ -47,27 +47,28 @@
         </a>
     </section>
 
-<div class="col padding10 width35 justifyStart relative">
-    <div class="height0 corner15 col alignStart porcelain padding20 gap10">
+<div class="col width35 justifyStart padding40">
+    <div class="height0 width100 corner15 col alignStart porcelain padding20 gap10">
         <section class="padding0 justifyBetween">
-            <p class="size20">Recents</p>
-            <a href="" class="size18">See All</a>
+        <p class="size20">Recents</p>
+        <a href="" class="size18">See All</a>
         </section>
-        <a href="/vv1" class="width100 gap5 bgWhite corner10 shadow1 alignStart col relative padding10">
-            <p class="size16 str5">Headache</p>
-            <p class="size12 str4 noteBlue">Pending</p>
-            <p class="size12 gray absolute right10 top10">Nov 23, 2025</p>
-        </a>
-        <section class="gap5 bgWhite corner10 shadow1 alignStart col relative">
-            <p class="size16 str5">Headache</p>
-            <p class="size12 str4 noteGreen">Attended</p>
-            <p class="size12 gray absolute right10 top10">Nov 23, 2025</p>
-        </section>
-        <section class="gap5 bgWhite corner10 shadow1 alignStart col relative">
-            <p class="size16 str5">Fever</p>
-            <p class="size12 str4 noteGreen">Attended</p>
-            <p class="size12 gray absolute right10 top10">Nov 23, 2025</p>
-        </section>
+   <% if (recentVisits && recentVisits.length > 0) { %>
+        <% recentVisits.forEach(v => { %>
+            <a href="/vv1/<%= v._id %>" class="width100 gap5 bgWhite corner10 shadow1 alignStart col relative padding10">
+                <p class="size16 str5"><%= v.complaint %></p>
+                <p class="size12 str4 <%= v.status === 'Attended' ? 'noteGreen' : 'noteBlue' %>"><%= v.status %></p>
+                <p class="size12 gray absolute right10 top10">
+                    <%= new Date(v.createdAt).toLocaleString('en-US', { 
+                        month: 'short', day: 'numeric', year: 'numeric', 
+                        hour: 'numeric', minute: '2-digit' 
+                    }) %>
+                </p>
+            </a>
+        <% }) %>
+    <% } else { %>
+        <p class="size14 gray">No visit records yet.</p>
+    <% } %>
     </div>
     <div class="height0 corner15 col alignStart padding20">
         <p class="size40">About Us</p>
@@ -76,8 +77,9 @@
         <p class="size20" style="margin-top: -5px !important;">Phinma Araullo University South Campus</p>
         <p class="size20" style="margin-top: -5px !important;">Need Help? <a href="" class="sizeInherit inline navy">Learn More</a></p>
     </div>
-
+    
 </div>
+
 
 <form action="/visitnow" method="POST" class="absolute translateCenter shadow3 width30 padding30 gap10 index500 height0 hidden" id="Consultationform">
     <p class="size24">Consultation Request Form:</p>
