@@ -48,17 +48,17 @@ process.env.TZ = "Asia/Manila";
 
 // Database Connection to!
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ AuCare DB Access Granted'))
-  .catch(err => console.error('❌ AuCare DB Access Denied, Why? :', err));
+    .then(() => console.log('✅ AuCare DB Access Granted'))
+    .catch(err => console.error('❌ AuCare DB Access Denied, Why? :', err));
 
 // Setup ng Session
 const store = new MongoDBStore({
-  uri: process.env.MONGO_URI,
-  collection: 'sessions'
+    uri: process.env.MONGO_URI,
+    collection: 'sessions'
 });
 
 store.on('error', (error) => {
-  console.error('Naku, Aray mo Session store error:', error);
+    console.error('Naku, Aray mo Session store error:', error);
 });
 
 // Mga Middleware
@@ -68,107 +68,107 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());    
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '0',
-  etag: true
+    maxAge: '0',
+    etag: true
 }));
 
 const isProduction = process.env.NODE_ENV === 'production';
 
 if (isProduction) {
-  app.set('trust proxy', 1);
+    app.set('trust proxy', 1);
 }
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'aucare2026',
-  resave: false,
-  saveUninitialized: false,
-  store: store,
-  cookie: {
-    secure: isProduction,
-    httpOnly: true,
-    sameSite: 'lax',
-    maxAge: 1000 * 60 * 60 * 24
-  }
+    secret: process.env.SESSION_SECRET || 'aucare2026',
+    resave: false,
+    saveUninitialized: false,
+    store: store,
+    cookie: {
+        secure: isProduction,
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 1000 * 60 * 60 * 24
+    }
 }));
 
 
 // Helmet security middleware
 app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "https://cdnjs.cloudflare.com",
-        "https://cdn.jsdelivr.net",
-        "https://kit.fontawesome.com",
-        "https://ka-f.fontawesome.com",
-        "https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js",
-        "https://cdn.sheetjs.com/*"
-      ],
-      styleSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "https://fonts.googleapis.com",
-        "https://cdnjs.cloudflare.com",
-        "https://cdn.jsdelivr.net",
-        "https://ka-f.fontawesome.com"
-      ],
-      fontSrc: [
-        "'self'",
-        "https://fonts.gstatic.com",
-        "https://fonts.googleapis.com",
-        "https://cdnjs.cloudflare.com",
-        "https://cdn.jsdelivr.net",
-        "https://ka-f.fontawesome.com"
-      ],
-      imgSrc: [
-        "'self'",
-        "data:",
-        "https://res.cloudinary.com",
-      ],
-      connectSrc: [
-        "'self'",
-        "https://ka-f.fontawesome.com",
-        "https://cdn.jsdelivr.net"
-      ],
-      objectSrc: ["'none'"],
-      frameSrc: ["'self'"],
-    }
-  })
+    helmet.contentSecurityPolicy({
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                "https://cdnjs.cloudflare.com",
+                "https://cdn.jsdelivr.net",
+                "https://kit.fontawesome.com",
+                "https://ka-f.fontawesome.com",
+                "https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js",
+                "https://cdn.sheetjs.com/*"
+            ],
+            styleSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                "https://fonts.googleapis.com",
+                "https://cdnjs.cloudflare.com",
+                "https://cdn.jsdelivr.net",
+                "https://ka-f.fontawesome.com"
+            ],
+            fontSrc: [
+                "'self'",
+                "https://fonts.gstatic.com",
+                "https://fonts.googleapis.com",
+                "https://cdnjs.cloudflare.com",
+                "https://cdn.jsdelivr.net",
+                "https://ka-f.fontawesome.com"
+            ],
+            imgSrc: [
+                "'self'",
+                "data:",
+                "https://res.cloudinary.com",
+            ],
+            connectSrc: [
+                "'self'",
+                "https://ka-f.fontawesome.com",
+                "https://cdn.jsdelivr.net"
+            ],
+            objectSrc: ["'none'"],
+            frameSrc: ["'self'"],
+        }
+    })
 );
 
 
 app.use((req, res, next) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
-  next();
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    next();
 });
 
 app.use((req, res, next) => {
-  console.log(`ID Session ID: ${req.sessionID}`);
-  next();
+    console.log(`ID Session ID: ${req.sessionID}`);
+    next();
 });
 
 
 app.use((req, res, next) => {
-  try {
-    if (req.session && req.session.user) {
-      // Only expose safe user data to EJS (avoid password or other sensitive fields)
-      const { _id, id, username, email, role } = req.session.user;
-      res.locals.user = { _id, id, username, email, role };
-    } else {
-      res.locals.user = null;
+    try {
+        if (req.session && req.session.user) {
+            // Only expose safe user data to EJS (avoid password or other sensitive fields)
+            const { _id, id, username, email, role } = req.session.user;
+            res.locals.user = { _id, id, username, email, role };
+        } else {
+            res.locals.user = null;
+        }
+    } catch (err) {
+        console.error('⚠️ Error setting res.locals.user:', err);
+        res.locals.user = null;
     }
-  } catch (err) {
-    console.error('⚠️ Error setting res.locals.user:', err);
-    res.locals.user = null;
-  }
-  next();
+    next();
 });
 
 const flash = require('connect-flash');
@@ -177,90 +177,90 @@ const { truncate } = require('fs/promises');
 app.use(flash());
 
 app.use((req, res, next) => {
-  res.locals.messageSuccess = req.flash('messageSuccess');
-  res.locals.messagePass = req.flash('messagePass');
-  next();
+    res.locals.messageSuccess = req.flash('messageSuccess');
+    res.locals.messagePass = req.flash('messagePass');
+    next();
 });
 
 // Global variables na ipapasok sa lahat ng page
 app.use((req, res, next) => {
-  // Transfer any session messages to res.locals (so they show in EJS)
-  
-  res.locals.back = '';
-  res.locals.active = '';
-  res.locals.error = req.session.error || null;
-  res.locals.message = req.session.message || null;
-  res.locals.warning = req.session.warning || null;
-  res.locals.success = req.session.success || null;
-  res.locals.denied = req.session.denied || null;
+    // Transfer any session messages to res.locals (so they show in EJS)
 
-  // Always include the user if logged in
-  res.locals.user = req.session.user || null;
+    res.locals.back = '';
+    res.locals.active = '';
+    res.locals.error = req.session.error || null;
+    res.locals.message = req.session.message || null;
+    res.locals.warning = req.session.warning || null;
+    res.locals.success = req.session.success || null;
+    res.locals.denied = req.session.denied || null;
 
-  // Clear messages after showing them once (like flash messages)
-  req.session.error = null;
-  req.session.message = null;
-  req.session.warning = null;
-  req.session.success = null;
-  req.session.denied = null;
+    // Always include the user if logged in
+    res.locals.user = req.session.user || null;
 
-  console.log(`🌀 Global variables ready `);
-  next();
+    // Clear messages after showing them once (like flash messages)
+    req.session.error = null;
+    req.session.message = null;
+    req.session.warning = null;
+    req.session.success = null;
+    req.session.denied = null;
+
+    console.log(`🌀 Global variables ready `);
+    next();
 });
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 // Cloudinary storage
 const storage = new CloudinaryStorage({
-  cloudinary,
-  params: async (req, file) => ({
-    folder: 'audres25', // your folder in Cloudinary
-    resource_type: 'auto',
-    public_id: `${Date.now()}-${file.originalname}`
-  })
+    cloudinary,
+    params: async (req, file) => ({
+        folder: 'audres25', // your folder in Cloudinary
+        resource_type: 'auto',
+        public_id: `${Date.now()}-${file.originalname}`
+    })
 });
 
 // Create multer middleware
 const upload = multer({
-  storage,
-  limits: { fileSize: 524288000 }, // 500MB
-  fileFilter: (req, file, cb) => {
-    if (!file.mimetype.startsWith("image/")) {
-      return cb(new Error("Only image files are allowed!"));
+    storage,
+    limits: { fileSize: 524288000 }, // 500MB
+    fileFilter: (req, file, cb) => {
+        if (!file.mimetype.startsWith("image/")) {
+            return cb(new Error("Only image files are allowed!"));
+        }
+        cb(null, true);
     }
-    cb(null, true);
-  }
 });
 
 const cpUpload = upload.any();
 
 const photoStorage = new CloudinaryStorage({
-  cloudinary,
-  params: async (req, file) => ({
-    folder: 'audres25', // your folder in Cloudinary
-    resource_type: 'auto',
-    public_id: `${Date.now()}-${file.originalname}`
-  })
+    cloudinary,
+    params: async (req, file) => ({
+        folder: 'audres25', // your folder in Cloudinary
+        resource_type: 'auto',
+        public_id: `${Date.now()}-${file.originalname}`
+    })
 });
 
 // Multer middleware for single file upload
 const uploadPhoto = multer({
-  storage: photoStorage,
-  limits: { fileSize: 524288000 }, // 500MB
-  fileFilter: (req, file, cb) => {
-    if (!file.mimetype.startsWith("image/")) {
-      return cb(new Error("Only image files allowed!"));
+    storage: photoStorage,
+    limits: { fileSize: 524288000 }, // 500MB
+    fileFilter: (req, file, cb) => {
+        if (!file.mimetype.startsWith("image/")) {
+            return cb(new Error("Only image files allowed!"));
+        }
+        cb(null, true);
     }
-    cb(null, true);
-  }
 });
 
- // routes
+// routes
 
 app.get('/', async (req, res) => {
     res.render('index');
@@ -268,26 +268,25 @@ app.get('/', async (req, res) => {
 
 app.post('/login', async (req, res) => {
     try {
-        const { username, password, captcha_input, captcha_expected } = req.body;
+        const { email, password, captcha_input, captcha_expected } = req.body;
 
         if (!captcha_input || captcha_input !== captcha_expected) {
             req.session.error = "Captcha is incorrect. Please try again.";
             return req.session.save(() => res.redirect('/'));
         }
 
-        if (!username || !password) {
-            req.session.error = "Please provide both username and password.";
+        if (!email || !password) {
+            req.session.error = "Please provide both email and password.";
             return req.session.save(() => res.redirect('/'));
         }
 
-        const user = await Users.findOne({ username, archive: false });
+        const user = await Users.findOne({ email: email.trim().toLowerCase(), archive: false });
 
-        if (!user || user.password !== password) { 
-            req.session.error = "Invalid username or password.";
+        if (!user || user.password !== password) {
+            req.session.error = "Invalid email or password.";
             return req.session.save(() => res.redirect('/'));
         }
 
-        // ⛔ NEW: Block login kung hindi pa in-approve ng admin
         if (!user.verify) {
             req.session.error = "Your account is still pending admin approval. Please wait for confirmation via email.";
             return req.session.save(() => res.redirect('/'));
@@ -307,10 +306,25 @@ app.post('/login', async (req, res) => {
         });
 
         req.session.save(() => {
-            if (['Super Admin', 'Admin',].includes(user.role)) {
+            // Still on the temporary password issued at approval — force a change first.
+            if (user.reset) {
+                if (['Super Admin', 'Admin'].includes(user.role)) {
+                    return res.redirect('/p?forcePasswordChange=1');
+                }
+                if (['Sub Admin'].includes(user.role)) {
+                    return res.redirect('/p?forcePasswordChange=1');
+                }
+                if (['Student'].includes(user.role)) {
+                    return res.redirect('/p?forcePasswordChange=1');
+                }
+                return res.redirect('/p?forcePasswordChange=1');
+            }
+            if (['Super Admin', 'Admin'].includes(user.role)) {
                 return res.redirect('/d');
-             } else if (['Sub Admin'].includes(user.role)) {
+            } else if (['Sub Admin'].includes(user.role)) {
                 return res.redirect('/r');
+            } else if (['Student'].includes(user.role)) {
+                return res.redirect('/h');
             } else {
                 return res.redirect('/h');
             }
@@ -330,8 +344,8 @@ app.get('/h', isLogin, async (req, res) => {
             patient: req.session.user._id,
             archive: false
         })
-        .sort({ createdAt: -1 })
-        .limit(3);
+            .sort({ createdAt: -1 })
+            .limit(3);
 
         res.render('home', { title: 'Home', active: 'h', recentVisits });
 
@@ -342,43 +356,43 @@ app.get('/h', isLogin, async (req, res) => {
 });
 
 app.get('/d', isLogin, async (req, res) => {
-    res.render('dashboard',{ title: 'Dashboard', active: 'd'} );
+    res.render('dashboard', { title: 'Dashboard', active: 'd' });
 });
 
 app.get('/r', isRequest, isLogin, async (req, res) => {
-    res.render('request',{ title: 'Request', active: 'r'});
+    res.render('request', { title: 'Request', active: 'r' });
 });
 
 app.get('/st', isLogin, isStocks, async (req, res) => {
     res.render('stocks', {
         title: 'Stocks',
         active: 'st',
-        stocks:      res.locals.stocks      || [],
-        lowStocks:   res.locals.lowStocks   || [],
+        stocks: res.locals.stocks || [],
+        lowStocks: res.locals.lowStocks || [],
         outOfStocks: res.locals.outOfStocks || [],
-        medicines:   res.locals.medicines   || [],
-        supplies:    res.locals.supplies    || []
+        medicines: res.locals.medicines || [],
+        supplies: res.locals.supplies || []
     });
 });
 
 app.get('/s', async (req, res) => {
-    res.render('sign',{ title: 'Sign', active: 's'});
+    res.render('sign', { title: 'Sign', active: 's' });
 });
 
 app.get('/hp', async (req, res) => {
-    res.render('help',{ title: 'Help', active: 'hp'});
+    res.render('help', { title: 'Help', active: 'hp' });
 });
 
 app.get('/f', async (req, res) => {
-    res.render('forgot',{ title: 'Forgot Password', active: 'f'});
+    res.render('forgot', { title: 'Forgot Password', active: 'f' });
 });
 
 app.get('/vs', isLogin, async (req, res) => {
-    res.render('VisitSubmit',{ title: 'Visit Submit', active: 'v'});
+    res.render('VisitSubmit', { title: 'Visit Submit', active: 'v' });
 });
 
 app.get('/v1', isLogin, async (req, res) => {
-    res.render('visit1',{ title: 'Visit1', active: 'v1'});
+    res.render('visit1', { title: 'Visit1', active: 'v1' });
 });
 
 app.get('/vv1/:id', isLogin, async (req, res) => {
@@ -413,11 +427,11 @@ app.get('/vv1/:id', isLogin, async (req, res) => {
 });
 
 app.get('/p', isLogin, async (req, res) => {
-    res.render('profile',{ title: 'Profile', active: 'p'});
+    res.render('profile', { title: 'Profile', active: 'p' });
 });
 
 app.get('/v2', isVisit, isLogin, async (req, res) => {
-    res.render('visit2',{ title: 'Visit2', active: 'v2'});
+    res.render('visit2', { title: 'Visit2', active: 'v2' });
 });
 
 app.get('/vv2/:id', isLogin, itsVisit, async (req, res) => {
@@ -425,51 +439,51 @@ app.get('/vv2/:id', isLogin, itsVisit, async (req, res) => {
 });
 
 app.get('/nv', isLogin, async (req, res) => {
-    res.render('NewVisit',{ title: 'New Visit', active: 'v2'});
+    res.render('NewVisit', { title: 'New Visit', active: 'v2' });
 });
 
-app.get('/va', isArchiveVisit, isLogin,  async (req, res) => {
-    res.render('VisitArchive',{ title: 'Visit Archive', active: 'v2'});
+app.get('/va', isArchiveVisit, isLogin, async (req, res) => {
+    res.render('VisitArchive', { title: 'Visit Archive', active: 'v2' });
 });
 
 app.get('/e', isAdmin, isLogin, async (req, res) => {
-    res.render('employee',{ title: 'Employee', active: 'e'});
+    res.render('employee', { title: 'Employee', active: 'e' });
 });
 
 app.get('/ne', isLogin, async (req, res) => {
-    res.render('NewEmployee',{ title: 'New Employee', active: 'e'});
+    res.render('NewEmployee', { title: 'New Employee', active: 'e' });
 });
 
 app.get('/ea', isArchiveAdmin, isLogin, async (req, res) => {
-    res.render('EmployeeArchive',{ title: 'Employee Archive', active: 'e'});
+    res.render('EmployeeArchive', { title: 'Employee Archive', active: 'e' });
 });
 
 app.get('/um', isUsers, isLogin, async (req, res) => {
-    res.render('UserManagement',{ title: 'User Management', active: 'um'});
+    res.render('UserManagement', { title: 'User Management', active: 'um' });
 });
 
 app.get('/uv', async (req, res) => {
-    res.render('userView',{ title: 'userView', active: 'um'});
+    res.render('userView', { title: 'userView', active: 'um' });
 });
 
 app.get('/ua', isArchiveUser, isLogin, async (req, res) => {
-    res.render('UserArchive',{ title: 'User Archive', active: 'um'});
+    res.render('UserArchive', { title: 'User Archive', active: 'um' });
 });
 
 app.get('/nu', isLogin, async (req, res) => {
-    res.render('NewUser',{ title: 'New User', active: 'um'});
+    res.render('NewUser', { title: 'New User', active: 'um' });
 });
 
 app.get('/l', isLogs, isLogin, async (req, res) => {
-    res.render('logs',{ title: 'Logs', active: 'l'});
+    res.render('logs', { title: 'Logs', active: 'l' });
 });
 
 app.get('/otp', async (req, res) => {
-    res.render('otp',{ title: 'Otp', active: 'otp'});
+    res.render('otp', { title: 'Otp', active: 'otp' });
 });
 
 app.get('/ih', async (req, res) => {
-    res.render('Inventoryhistory',{ title: 'Inventoryhistory', active: 'ih'});
+    res.render('Inventoryhistory', { title: 'Inventoryhistory', active: 'ih' });
 });
 
 app.get('/pd', isLogin, async (req, res) => {
@@ -484,7 +498,7 @@ app.get('/pd', isLogin, async (req, res) => {
 });
 
 app.get('/p2', async (req, res) => {
-    res.render('profile2',{ title: 'profile2', active: 'p2'});
+    res.render('profile2', { title: 'profile2', active: 'p2' });
 });
 
 app.get('/np', isLogin, async (req, res) => {
@@ -496,10 +510,10 @@ app.get('/np', isLogin, async (req, res) => {
 
         console.log(JSON.stringify(notifications, null, 2));
 
-        res.render('notifpage', { 
-            title: 'notifpage', 
-            active: 'np', 
-            notifications 
+        res.render('notifpage', {
+            title: 'notifpage',
+            active: 'np',
+            notifications
         });
     } catch (err) {
         console.error('Notification Fetch Error:', err.message);
@@ -599,7 +613,7 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS 
+        pass: process.env.EMAIL_PASS
     }
 });
 
@@ -609,9 +623,9 @@ app.post('/api/verify-email', async (req, res) => {
 
     try {
         // 1. Find the user in your MongoDB Users model
-        const user = await Users.findOne({ 
+        const user = await Users.findOne({
             email: email.trim().toLowerCase(),
-            archive: false 
+            archive: false
         });
 
         if (!user) {
@@ -674,16 +688,17 @@ app.post('/api/verify-otp', async (req, res) => {
 
     try {
         // 2. Generate Random Temporary Password (8 characters)
-        const tempPassword = crypto.randomBytes(4).toString('hex'); 
+        const tempPassword = crypto.randomBytes(4).toString('hex');
 
         // 3. Update User Password sa MongoDB
         // TANDAAN: Kung gumagamit ka ng bcrypt, i-hash mo muna ang tempPassword bago i-save.
         // Pero base sa code mo kanina, plain text ang gamit mo (user.password === password)
         const updatedUser = await Users.findOneAndUpdate(
             { email: userEmail },
-            { password: tempPassword,
-              reset: true
-             },
+            {
+                password: tempPassword,
+                reset: true
+            },
             { new: true }
         );
 
@@ -730,6 +745,179 @@ app.get('/success', (req, res) => {
 });
 
 // ============================================================
+// CHANGE PASSWORD (Logged-in User) - OTP Verification
+// ============================================================
+
+// Step 1: Send / Resend OTP papunta sa email ng naka-login na user
+app.post('/api/account/send-password-otp', isLogin, async (req, res) => {
+    try {
+        const user = await Users.findById(req.session.user._id);
+        if (!user) return res.status(404).json({ success: false, message: "User not found." });
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        req.session.changePassOtp = otp;
+        req.session.changePassOtpExpires = Date.now() + 600000; // 10 minutes
+
+        const mailOptions = {
+            from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+            to: user.email,
+            subject: "Your AuCare Password Change Verification Code",
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                    <h2 style="color: #0056b3; text-align: center;">Password Change Verification</h2>
+                    <p>Hello ${user.fName},</p>
+                    <p>You requested to change your password. Please use the following code:</p>
+                    <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px;">
+                        ${otp}
+                    </div>
+                    <p>This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+                </div>`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({ success: true, message: "OTP sent to your email." });
+
+    } catch (err) {
+        console.error('Send Change-Password OTP Error:', err.message);
+        res.status(500).json({ success: false, message: "Failed to send OTP." });
+    }
+});
+
+// Step 2: I-verify ang OTP + i-update ang password
+app.post('/api/account/verify-password-otp', isLogin, async (req, res) => {
+    try {
+        const { currentPassword, newPassword, confirmPassword, otp } = req.body;
+
+        const sessionOtp = req.session.changePassOtp;
+        const expiry = req.session.changePassOtpExpires;
+
+        if (!sessionOtp) {
+            return res.status(400).json({ success: false, message: "No OTP request found. Please click Get OTP." });
+        }
+        if (Date.now() > expiry) {
+            return res.status(400).json({ success: false, message: "OTP has expired. Please request a new code." });
+        }
+        if (!otp || otp !== sessionOtp) {
+            return res.status(400).json({ success: false, message: "Invalid OTP code." });
+        }
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({ success: false, message: "Please fill in all password fields." });
+        }
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ success: false, message: "New password and confirm password do not match." });
+        }
+
+        const passwordRules = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+        if (!passwordRules.test(newPassword)) {
+            return res.status(400).json({ success: false, message: "Password does not meet the requirements." });
+        }
+
+        const user = await Users.findById(req.session.user._id);
+        if (!user) return res.status(404).json({ success: false, message: "User not found." });
+
+        if (user.password !== currentPassword) {
+            return res.status(400).json({ success: false, message: "Current password is incorrect." });
+        }
+
+        user.password = newPassword; s
+        user.reset = false;
+        await user.save();
+
+        req.session.user.password = newPassword;
+        req.session.user.reset = false;   // ⬅️ IDAGDAG ITO — kulang ito dati
+
+        await Logs.create({
+            who: user._id,
+            what: `User changed their password: ${user.username}`,
+            archive: false
+        });
+
+        req.session.changePassOtp = null;
+        req.session.changePassOtpExpires = null;
+
+        req.session.save(() => {
+            return res.status(200).json({ success: true, message: "Password updated successfully." });
+        });
+
+    } catch (err) {
+        console.error('Verify Change-Password OTP Error:', err.message);
+        res.status(500).json({ success: false, message: "Failed to update password." });
+    }
+});
+
+// BAGONG ROUTE — para sa first-time forced password reset (walang OTP)
+app.post('/api/account/reset-temp-password', isLogin, async (req, res) => {
+    try {
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({ success: false, message: "Please fill in all password fields." });
+        }
+        
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ success: false, message: "New password and confirm password do not match." });
+        }
+
+        const passwordRules = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+        if (!passwordRules.test(newPassword)) {
+            return res.status(400).json({ success: false, message: "Password does not meet the requirements." });
+        }
+
+        const user = await Users.findById(req.session.user._id);
+        if (!user) return res.status(404).json({ success: false, message: "User not found." });
+
+        if (user.password !== currentPassword) {
+            return res.status(400).json({ success: false, message: "Temporary password is incorrect." });
+        }
+
+        if (!user.reset) {
+            return res.status(400).json({ success: false, message: "This action is not allowed." });
+        }
+
+        // Update database
+        user.password = newPassword; // Remind: Recommended to hash this with bcrypt
+        user.reset = false;
+        await user.save();
+
+        // Update session state
+        req.session.user.password = newPassword;
+        req.session.user.reset = false;
+
+        await Logs.create({
+            who: user._id,
+            what: `User set new password after temp password reset: ${user.username}`,
+            archive: false
+        });
+
+        // Determine Redirect URL based on Role
+        let redirect = "/h";
+        if (['Super Admin', 'Admin'].includes(user.role)) {
+            redirect = "/d";
+        } else if (['Sub Admin'].includes(user.role)) {
+            redirect = "/r";
+        } else if (['Student'].includes(user.role)) {
+            redirect = "/h";
+        }
+
+        // Save session before sending response
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+                return res.status(500).json({ success: false, message: "Session update failed." });
+            }
+            return res.status(200).json({ success: true, redirect });
+        });
+
+    } catch (err) {
+        console.error('Reset Temp Password Error:', err.message);
+        res.status(500).json({ success: false, message: "Failed to update password." });
+    }
+});
+
+// ============================================================
 // STOCKS API ROUTES  — paste these into your app.js
 // (add after your existing routes, before the 404 handler)
 // ============================================================
@@ -739,72 +927,96 @@ app.get('/sta', isArchiveStock, isLogin, async (req, res) => {
     res.render('stocksArchive', { title: 'Archive Stocks', active: 'st' });
 });
 
-// ─── POST: Add New Stock ────────────────────────────────────
+// POST: Add New Stock
 app.post('/api/stocks/add', isLogin, async (req, res) => {
-    try {
-        const { name, type, unit, remaining, description } = req.body;
+  try {
+    const {
+      name, type, unit, remaining, description,
+      brandName, isLocal, medicineForm, dosageStrength,
+      category, sizeSpecification, expirationDate
+    } = req.body;
 
-        if (!name || !type || !unit || remaining === undefined) {
-            req.session.error = 'Please fill in all required fields.';
-            return req.session.save(() => res.redirect('/st'));
-        }
-
-        const newStock = await Stocks.create({
-            name:        name.trim(),
-            type:        type,           // 'medicine' | 'supply'
-            unit:        unit.trim(),
-            remaining:   Number(remaining),
-            description: description ? description.trim() : '',
-            archive:     false
-        });
-
-        await Logs.create({
-            who:     req.session.user._id,
-            what:    `Added new stock item: ${newStock.name} (${newStock.type}) — ${newStock.remaining} ${newStock.unit}`,
-            archive: false
-        });
-
-        req.session.success = `"${newStock.name}" has been added to stocks.`;
-        req.session.save(() => res.redirect('/st'));
-    } catch (err) {
-        console.error('Add Stock Error:', err.message);
-        req.session.error = 'Failed to add item. Please try again.';
-        req.session.save(() => res.redirect('/st'));
+    if (!name || !type || !unit || remaining === undefined) {
+      req.session.error = 'Please fill in all required fields.';
+      return req.session.save(() => res.redirect('/st'));
     }
+
+    const newStock = await Stocks.create({
+      name: name.trim(),
+      type: type,
+      unit: unit.trim(),
+      remaining: Number(remaining),
+      description: description ? description.trim() : '',
+      genericName: name.trim(),
+      brandName: brandName ? brandName.trim() : '',
+      isLocal: isLocal === 'true' || isLocal === true,
+      medicineForm: medicineForm || '',
+      dosageStrength: dosageStrength ? dosageStrength.trim() : '',
+      category: category || '',
+      sizeSpecification: sizeSpecification ? sizeSpecification.trim() : '',
+      expirationDate: expirationDate ? new Date(expirationDate) : null,
+      archive: false
+    });
+
+    await Logs.create({
+      who: req.session.user._id,
+      what: `Added new stock item: ${newStock.name} (${newStock.type}) ${newStock.remaining} ${newStock.unit}`,
+      archive: false
+    });
+
+    req.session.success = `"${newStock.name}" has been added to stocks.`;
+    req.session.save(() => res.redirect('/st'));
+  } catch (err) {
+    console.error('Add Stock Error:', err.message);
+    req.session.error = 'Failed to add item. Please try again.';
+    req.session.save(() => res.redirect('/st'));
+  }
 });
 
-// ─── POST: Edit/Update Stock ────────────────────────────────
+// POST: Edit/Update Stock
 app.post('/api/stocks/edit/:id', isLogin, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, type, unit, remaining, description } = req.body;
+  try {
+    const { id } = req.params;
+    const {
+      name, type, unit, remaining, description,
+      brandName, isLocal, medicineForm, dosageStrength,
+      category, sizeSpecification, expirationDate
+    } = req.body;
 
-        const updated = await Stocks.findByIdAndUpdate(id, {
-            name:        name.trim(),
-            type:        type,
-            unit:        unit.trim(),
-            remaining:   Number(remaining),
-            description: description ? description.trim() : ''
-        }, { new: true });
+    const updated = await Stocks.findByIdAndUpdate(id, {
+      name: name.trim(),
+      type: type,
+      unit: unit.trim(),
+      remaining: Number(remaining),
+      description: description ? description.trim() : '',
+      genericName: name.trim(),
+      brandName: brandName ? brandName.trim() : '',
+      isLocal: isLocal === 'true' || isLocal === true,
+      medicineForm: medicineForm || '',
+      dosageStrength: dosageStrength ? dosageStrength.trim() : '',
+      category: category || '',
+      sizeSpecification: sizeSpecification ? sizeSpecification.trim() : '',
+      expirationDate: expirationDate ? new Date(expirationDate) : null
+    }, { new: true });
 
-        if (!updated) {
-            req.session.error = 'Item not found.';
-            return req.session.save(() => res.redirect('/st'));
-        }
-
-        await Logs.create({
-            who:     req.session.user._id,
-            what:    `Updated stock item: ${updated.name} — now ${updated.remaining} ${updated.unit}`,
-            archive: false
-        });
-
-        req.session.success = `"${updated.name}" has been updated.`;
-        req.session.save(() => res.redirect('/st'));
-    } catch (err) {
-        console.error('Edit Stock Error:', err.message);
-        req.session.error = 'Failed to update item.';
-        req.session.save(() => res.redirect('/st'));
+    if (!updated) {
+      req.session.error = 'Item not found.';
+      return req.session.save(() => res.redirect('/st'));
     }
+
+    await Logs.create({
+      who: req.session.user._id,
+      what: `Updated stock item: ${updated.name} now ${updated.remaining} ${updated.unit}`,
+      archive: false
+    });
+
+    req.session.success = `"${updated.name}" has been updated.`;
+    req.session.save(() => res.redirect('/st'));
+  } catch (err) {
+    console.error('Edit Stock Error:', err.message);
+    req.session.error = 'Failed to update item.';
+    req.session.save(() => res.redirect('/st'));
+  }
 });
 
 // ─── POST: Archive Stock (JSON response for fetch()) ────────
@@ -816,8 +1028,8 @@ app.post('/api/stocks/archive/:id', isLogin, async (req, res) => {
         if (!item) return res.json({ success: false, message: 'Item not found.' });
 
         await Logs.create({
-            who:     req.session.user._id,
-            what:    `Archived stock item: ${item.name}`,
+            who: req.session.user._id,
+            what: `Archived stock item: ${item.name}`,
             archive: false
         });
 
@@ -837,8 +1049,8 @@ app.post('/api/stocks/restore/:id', isLogin, async (req, res) => {
         if (!item) return res.json({ success: false, message: 'Item not found.' });
 
         await Logs.create({
-            who:     req.session.user._id,
-            what:    `Restored stock item from archive: ${item.name}`,
+            who: req.session.user._id,
+            what: `Restored stock item from archive: ${item.name}`,
             archive: false
         });
 
@@ -858,8 +1070,8 @@ app.post('/api/stocks/delete/:id', isLogin, async (req, res) => {
         if (!item) return res.json({ success: false, message: 'Item not found.' });
 
         await Logs.create({
-            who:     req.session.user._id,
-            what:    `Permanently deleted stock item: ${item.name}`,
+            who: req.session.user._id,
+            what: `Permanently deleted stock item: ${item.name}`,
             archive: false
         });
 
@@ -872,7 +1084,7 @@ app.post('/api/stocks/delete/:id', isLogin, async (req, res) => {
 
 app.post('/visitnow', async (req, res) => {
     try {
-        const userId = req.session.user._id; 
+        const userId = req.session.user._id;
         const { concern, complaint, item, qty } = req.body;
 
         // 1. I-save ang Visit (Mother Record)
@@ -913,7 +1125,7 @@ app.post('/visitnow', async (req, res) => {
         // 4. Set success message sa session
         // Lalabas na ito sa <%= success %> dahil dadaan ang code dito kahit walang gamot
         req.session.success = "Request Submitted Successfully!";
-        res.redirect('/h'); 
+        res.redirect('/h');
 
     } catch (err) {
         console.error('Submission Error:', err.message);
@@ -927,21 +1139,21 @@ app.get('/proceed-request/:id', async (req, res) => {
     try {
         const requestId = req.params.id;
 
-        const visit = await Visits.findByIdAndUpdate(requestId, { 
-            status: 'Proceed', 
-            verify: false 
+        const visit = await Visits.findByIdAndUpdate(requestId, {
+            status: 'Proceed',
+            verify: false
         }, { new: true });
 
         // ✅ Notification
-       if (visit) {
-             await Notification.create({
+        if (visit) {
+            await Notification.create({
                 who: visit.patient,
                 message: 'You may now proceed to the clinic.',
                 type: 'visit',
                 link: `/vv1/${visit._id}`   // <-- IDAGDAG
-        });
-    }
-        res.redirect('/r'); 
+            });
+        }
+        res.redirect('/r');
     } catch (err) {
         console.error("Error updating status and verify:", err);
         res.status(500).send("Nagkaroon ng error sa pag-update.");
@@ -971,7 +1183,7 @@ app.post('/visit/vitals/:id', async (req, res) => {
 app.post('/visit/vitals/delete/:id', async (req, res) => {
     try {
         await Visits.findByIdAndUpdate(req.params.id, {
-            $set: { 
+            $set: {
                 bloodPressure: { systolic: null, diastolic: null },
                 hBeat: null,
                 temperature: '' // Clear temperature
@@ -986,9 +1198,9 @@ app.post('/visit/vitals/delete/:id', async (req, res) => {
 // --- 2. TREATMENT (Update & Clear) ---
 app.post('/visit/update-treatment/:id', async (req, res) => {
     try {
-        const visit = await Visits.findByIdAndUpdate(req.params.id, { 
-            treatment: req.body.treatment, 
-            status: 'Attended', 
+        const visit = await Visits.findByIdAndUpdate(req.params.id, {
+            treatment: req.body.treatment,
+            status: 'Attended',
         }, { new: true });
 
         // ✅ Notification
@@ -1002,8 +1214,8 @@ app.post('/visit/update-treatment/:id', async (req, res) => {
         }
 
         res.redirect(`/vv2/${req.params.id}`);
-    } catch (err) { 
-        res.redirect('back'); 
+    } catch (err) {
+        res.redirect('back');
     }
 });
 
@@ -1047,7 +1259,6 @@ app.post('/visit/complaint/delete/:id', async (req, res) => {
 });
 app.post('/signup', async (req, res) => {
     try {
-
         const {
             fName, mName, lName, xName,
             role,
@@ -1055,28 +1266,30 @@ app.post('/signup', async (req, res) => {
             schoolId, campus, course, yearLevel, section,
             bDay, bMonth, bYear,
             fAllergy, mAllergy,
-            username, password,
             eName, ePhone, eAddress
         } = req.body;
 
-        const emailExist = await Users.findOne({ email: email.toLowerCase() });
+        const normalizedEmail = email.trim().toLowerCase();
+
+        const emailExist = await Users.findOne({ email: normalizedEmail });
         if (emailExist) {
             return res.status(400).json({ success: false, message: "Email already exists." });
         }
 
-        const usernameExist = await Users.findOne({ username });
-        if (usernameExist) {
-            return res.status(400).json({ success: false, message: "Username already exists." });
-        }
+        // Email doubles as the username. Password is a random placeholder —
+        // the account can't log in until it's verified AND has a real
+        // temporary password (issued on approval below).
+        const placeholderPassword = crypto.randomBytes(16).toString('hex');
 
         await Users.create({
             fName, mName, lName, xName,
             role,
-            phone, gender, address, email,
+            phone, gender, address, email: normalizedEmail,
             schoolId, campus, course, yearLevel, section,
             bDay, bMonth, bYear,
             fAllergy, mAllergy,
-            username, password,
+            username: normalizedEmail,
+            password: placeholderPassword,
             eName, ePhone, eAddress,
             archive: false,
             verify: false,
@@ -1098,10 +1311,15 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
     try {
         const { id } = req.params;
 
+        // Real temp password, generated only now that the account is approved
+        const tempPassword = crypto.randomBytes(4).toString('hex');
+
         const user = await Users.findByIdAndUpdate(id, {
             verify: true,
             verifyAt: Date.now(),
-            isVerify: req.session.user.username
+            isVerify: req.session.user.username,
+            password: tempPassword,
+            reset: true
         }, { new: true });
 
         if (!user) return res.json({ success: false, message: 'User not found.' });
@@ -1112,7 +1330,6 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
             archive: false
         });
 
-        // 📧 Notify student via email
         const mailOptions = {
             from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
             to: user.email,
@@ -1121,18 +1338,21 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
                 <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
                     <h2 style="color: #0056b3; text-align: center;">Account Approved</h2>
                     <p>Hello ${user.fName},</p>
-                    <p>Your AuCare account has been reviewed and approved. You can now log in using your username and password.</p>
-                    <p><strong>Username:</strong> ${user.username}</p>
+                    <p>Your AuCare account has been reviewed and approved. Log in using your email and the temporary password below:</p>
+                    <p><strong>Email (Username):</strong> ${user.email}</p>
+                    <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 4px;">
+                        ${tempPassword}
+                    </div>
+                    <p style="color: red;">You'll be required to set a new password immediately after logging in.</p>
                 </div>`
         };
         await transporter.sendMail(mailOptions);
 
-        // ✅ Notify student in-app
         await Notification.create({
             who: user._id,
-            message: 'Your account is approved.',
+            message: 'Your account is approved. Check your email for a temporary password.',
             type: 'approval',
-            link: '/p'
+            link: '/p2'
         });
 
         res.json({ success: true });
@@ -1144,23 +1364,23 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
 });
 
 app.use((req, res) => {
-  res.status(404);
-  res.locals.error = 'Oops! Page cannot be found!';
-  console.log(`404 triggered: ${res.locals.error}`);
-  res.render('index', { title: 'Invalid URL' });
+    res.status(404);
+    res.locals.error = 'Oops! Page cannot be found!';
+    console.log(`404 triggered: ${res.locals.error}`);
+    res.render('index', { title: 'Invalid URL' });
 });
 
 app.use((err, req, res, next) => {
-  console.error('⚠️ Error occurred:', err.message);
-  res.locals.error = 'Oh no! Page is missing!';
-  res.status(500).render('index', { 
-    title: 'File Missing',
-    message: `OH NO! File in Directory is missing!' ${err.message}`,
-    error: `OH NO! File in Directory is missing!`
-  });
+    console.error('⚠️ Error occurred:', err.message);
+    res.locals.error = 'Oh no! Page is missing!';
+    res.status(500).render('index', {
+        title: 'File Missing',
+        message: `OH NO! File in Directory is missing!' ${err.message}`,
+        error: `OH NO! File in Directory is missing!`
+    });
 });
 
 // Sumakses ka dyan boy!
 app.listen(PORT, () => {
-  console.log(`🚀 Kudos Master Aren! Running at http://localhost:${PORT}`);
+    console.log(`🚀 Kudos Master Aren! Running at http://localhost:${PORT}`);
 });

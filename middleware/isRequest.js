@@ -6,44 +6,41 @@ const Allergy = require('../model/allergy');
 
 const isRequest = async (req, res, next) => {
     try {
-        // 1. Fetch all visits that are not archived
-        // We populate 'patient' to get User details (name, role, etc.)
+        // 1. Fetch all visits na hindi archived at verified
         const allRequest = await Visits.find({ archive: false, verify: true })
             .populate('patient')
             .sort({ _id: -1 })
             .lean();
 
-        // 2. Prepare for batch fetching related data
-        const visitIds = allRequest.map(v => v._id);
-        const patientIds = allRequest.map(v => v.patient._id);
+        // 2. Filter out visits na may null/deleted patient para iwas crash
+        const validVisits = allRequest.filter(v => v.patient && v.patient._id);
 
-        // 3. Fetch related data using your flow requirements
+        // 3. Prepare IDs safely
+        const visitIds = validVisits.map(v => v._id);
+        // Gumamit ng Set at Array.from para tanggalin ang duplicate patient IDs
+        const patientIds = [...new Set(validVisits.map(v => v.patient._id.toString()))];
+
+        // 4. Batch fetch related data
         const [allComplaints, allDispensed, allAllergies] = await Promise.all([
-            // complaint.visitID = visit.id
             Complaint.find({ visitId: { $in: visitIds } }).lean(),
-            // dispense.visitId = visit.id
             Dispense.find({ visitId: { $in: visitIds } }).lean(),
-            // allergy.who = user.id
             Allergy.find({ who: { $in: patientIds } }).lean()
         ]);
 
-        // 4. Combine everything into the visit objects
-        const detailedVisits = allRequest.map(visit => {
+        // 5. Combine data safely
+        const detailedVisits = validVisits.map(visit => {
             const patientId = visit.patient._id.toString();
             const visitId = visit._id.toString();
 
             return {
                 ...visit,
-                // Attach multiple complaints for this visit
-                complaints: allComplaints.filter(c => c.visitId.toString() === visitId),
-                // Attach medicines/supplies dispensed during this visit
-                dispensed: allDispensed.filter(d => d.visitId.toString() === visitId),
-                // Attach the patient's allergies (linked via patient ID)
-                patientAllergies: allAllergies.filter(a => a.who.toString() === patientId)
+                complaints: allComplaints.filter(c => c.visitId?.toString() === visitId),
+                dispensed: allDispensed.filter(d => d.visitId?.toString() === visitId),
+                patientAllergies: allAllergies.filter(a => a.who?.toString() === patientId)
             };
         });
 
-        // 5. Store in res.locals for EJS
+        // 6. Pass to template
         res.locals.allRequest = detailedVisits;
 
         next();

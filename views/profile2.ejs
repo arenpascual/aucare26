@@ -1,4 +1,4 @@
-    <% layout('template') %>
+<% layout('template') %>
     <style>
         .mainf {
             padding: 0;
@@ -109,28 +109,52 @@
         padding:15px;
         cursor:pointer;
     }
+    .otp-field{
+        width:200px;
+    }
 
     .otp-row{
-        display:flex;
-        justify-content:space-between;
-        align-items:flex-end;
-        gap:15px;
-    }
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:15px;
+    flex-wrap:nowrap;
+}
 
-    .otp-field{
-        width:350px;
-    }
+.otp-field{
+    width:140px;
+    flex-shrink:0;
+}
 
-    .otp-resend{
-        margin-bottom:10px;
-        font-size:16px;
-    }
+#getOtpBtn{
+    flex-shrink:0;
+    white-space:nowrap;
+}
 
-    .otp-resend a{
-        color:#0d3b66;
-        font-weight:600;
-        text-decoration:underline;
-    }
+.otp-resend{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:2px;
+    font-size:10px;
+    flex:1;
+    min-width:0;
+}
+
+.otp-resend p{
+    margin:0;
+}
+
+.otp-resend a{
+    color:#0d3b66;
+    font-weight:600;
+    text-decoration:underline;
+}
+
+.otp-resend #otpStatus{
+    margin-left:6px;
+}
 
     .button-row{
         display:flex;
@@ -251,7 +275,7 @@
         </div>
 
         <div class="field">
-            <label>Create Password</label>
+            <label>New Password</label>
 
             <div class="password-input">
                 <input type="password" id="newPassword">
@@ -272,23 +296,28 @@
 
             <div class="field otp-field">
                 <label>OTP</label>
-                <input type="text" maxlength="6">
+                <input type="text" id="otpCode" maxlength="6">
             </div>
 
-            <div class="otp-resend">
-                Didn't get the code?
-                <a href="#">Resend</a>
+            <a href="javascript:void(0)" id="getOtpBtn" class="nav pnav size10">Get OTP</a>
+
+            <div class="otp-resend justifyStart ">
+                <p class=" alignStart">Didn't get the code?</p>
+                <a href="javascript:void(0)" id="resendOtp">Resend</a>
+                <div id="otpStatus" class="size13 gray"></div>
             </div>
 
         </div>
 
+        <p id="passError" class="size13" style="color:red; display:none;"></p>
+
         <div class="button-row">
 
-            <button type="button" class="nav">
+            <button type="button" class="nav" id="closePassword">
                 Cancel
             </button>
 
-            <button class="nav pnav">
+            <button type="button" class="nav pnav" id="submitPassword">
                 Update
             </button>
 
@@ -331,17 +360,67 @@
     <script>
 
     const modal = document.getElementById("modal");
-
     const passCard = document.getElementById("passCard");
     const lgCard = document.getElementById("lgCard");
+    const otpStatus = document.getElementById("otpStatus");
+    const passError = document.getElementById("passError");
+    const getOtpBtn = document.getElementById("getOtpBtn");
+
+    let otpCooldown = false;
+
+    function showError(msg){
+        passError.textContent = msg;
+        passError.style.display = "block";
+    }
+    function clearError(){
+        passError.style.display = "none";
+        passError.textContent = "";
+    }
+
+    async function sendOtp(){
+        if (otpCooldown) return;
+
+        otpCooldown = true;
+        getOtpBtn.style.pointerEvents = "none";
+        otpStatus.textContent = "Sending code...";
+
+        try {
+            const res = await fetch('/api/account/send-password-otp', { method: 'POST' });
+            const data = await res.json();
+            otpStatus.textContent = data.success ? "Code sent to your email." : (data.message || "Failed to send code.");
+        } catch (err) {
+            otpStatus.textContent = "Failed to send code. Check your connection.";
+        }
+
+        // 30-second cooldown bago pwede ulit mag-request, para hindi ma-spam
+        let seconds = 30;
+        getOtpBtn.textContent = `Wait (${seconds}s)`;
+        const timer = setInterval(() => {
+            seconds--;
+            getOtpBtn.textContent = seconds > 0 ? `Wait (${seconds}s)` : "Get OTP";
+            if (seconds <= 0) {
+                clearInterval(timer);
+                getOtpBtn.style.pointerEvents = "auto";
+                otpCooldown = false;
+            }
+        }, 1000);
+    }
 
     document.getElementById("openPassword").onclick = () => {
-
         modal.classList.remove("hidden");
 
         passCard.classList.remove("hidden");
         lgCard.classList.add("hidden");
 
+        clearError();
+        document.getElementById("currentPassword").value = "";
+        document.getElementById("newPassword").value = "";
+        document.getElementById("confirmPassword").value = "";
+        document.getElementById("otpCode").value = "";
+        otpStatus.textContent = "";
+        getOtpBtn.textContent = "Get OTP";
+        getOtpBtn.style.pointerEvents = "auto";
+        otpCooldown = false;
     };
 
     document.getElementById("openLogout").onclick = () => {
@@ -353,15 +432,64 @@
 
     };
 
+    getOtpBtn.onclick = sendOtp;
+
+    document.getElementById("resendOtp").onclick = (e) => {
+        e.preventDefault();
+        sendOtp();
+    };
+
     document.getElementById("closePassword").onclick = closeModal;
     document.getElementById("closeLogout").onclick = closeModal;
 
-    modal.onclick = function(e){
+    document.getElementById("submitPassword").onclick = async () => {
+        clearError();
 
+        const currentPassword = document.getElementById("currentPassword").value;
+        const newPassword = document.getElementById("newPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+        const otp = document.getElementById("otpCode").value;
+
+        if (!currentPassword || !newPassword || !confirmPassword || !otp) {
+            return showError("Please fill in all fields, including the OTP.");
+        }
+        if (newPassword !== confirmPassword) {
+            return showError("New password and confirm password do not match.");
+        }
+
+        try {
+            const res = await fetch('/api/account/verify-password-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentPassword, newPassword, confirmPassword, otp })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert("Password updated successfully!");
+                closeModal();
+            } else {
+                showError(data.message || "Failed to update password.");
+            }
+        } catch (err) {
+            showError("Something went wrong. Please try again.");
+        }
+    };
+
+    document.querySelectorAll(".toggle-password").forEach(icon => {
+        icon.addEventListener("click", () => {
+            const input = icon.previousElementSibling;
+            const isHidden = input.type === "password";
+            input.type = isHidden ? "text" : "password";
+            icon.classList.toggle("fa-eye");
+            icon.classList.toggle("fa-eye-slash");
+        });
+    });
+
+    modal.onclick = function(e){
         if(e.target === modal){
             closeModal();
         }
-
     }
 
     function closeModal(){

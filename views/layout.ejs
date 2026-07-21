@@ -29,37 +29,87 @@
 </head>
 <body>
     <% if ( user.reset === true ) { %>
-        <div class="fgCard bgWhite absolute left0 top0 index100">
-            <section class="height0 width30 bgWhite shadow1 col padding30 corner30 gap10">
-                <p class="size30">Reset Password</p>
-                <section class="height0 bgWhite alignStart col borderGray corner12">
-                    <p>Take Note! Password must contain the following:</p>
-                    <p>&bull; Minimum of 8 characters</p>
-                    <p>&bull; Combination of letter and number</p>
-                    <p>&bull; At least 1 upper case letter</p>
-                    <p>&bull; At least 1 special character</p>
-                </section> 
-                <br>
-                <section class="field">
-                    <label class="str500 col alignStart" for="">Temporary Password</label>
-                    <input type="text" name="username" required>
-                </section>
-                <section class="field">
-                    <label class="str500 col" for="">Create Password</label>
-                    <input type="text" name="username" required>
-                </section>
-                <section class="field">
-                    <label class="str500 col" for="">Confirm Password</label>
-                    <input type="text" name="username" required>
-                </section>
-                <br>
-                <section class="justifyBetween padding0">
-                    <a href=""  class="nav w150">Cancel</a>
-                    <a href=""  class="nav pnav w150">Update</a>
-                </section>
+    <div class="fgCard bgWhite absolute left0 top0 index100">
+        <section class="height0 width30 bgWhite shadow1 col padding30 corner30 gap10">
+            <p class="size30">Reset Password</p>
+            <section class="height0 bgWhite alignStart col borderGray corner12">
+                <p>Take Note! Password must contain the following:</p>
+                <p>&bull; Minimum of 8 characters</p>
+                <p>&bull; Combination of letter and number</p>
+                <p>&bull; At least 1 upper case letter</p>
+                <p>&bull; At least 1 special character</p>
+            </section> 
+            <br>
+            <section class="field">
+                <label class="str500 col alignStart" for="">Temporary Password</label>
+                <input type="password" id="tempPassword" required>
+                <i class="far fa-eye toggle-password"></i>
             </section>
-        </div>
-    <% } %>    <div class="sidef">
+            <section class="field">
+                <label class="str500 col" for="">Create Password</label>
+                <input type="password" id="newPassword" required>
+                <i class="far fa-eye toggle-password"></i>
+            </section>
+            <section class="field">
+                <label class="str500 col" for="">Confirm Password</label>
+                <input type="password" id="confirmPassword" required>
+                <i class="far fa-eye toggle-password"></i>
+            </section>
+            <p id="resetPassError" class="size13" style="color:red; display:none;"></p>
+            <br>
+            <section class="justifyBetween padding0">
+                <button type="button" id="resetUpdateBtn" class="nav pnav w150" style="margin:0 auto;">Update</button>
+            </section>
+        </section>
+    </div>
+
+    <script>
+        const resetPassError = document.getElementById('resetPassError');
+
+        function showResetError(msg){
+            resetPassError.textContent = msg;
+            resetPassError.style.display = "block";
+        }
+        function clearResetError(){
+            resetPassError.style.display = "none";
+            resetPassError.textContent = "";
+        }
+
+        document.getElementById('resetUpdateBtn').onclick = async () => {
+            clearResetError();
+
+            const currentPassword = document.getElementById('tempPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                return showResetError("Please fill in all fields.");
+            }
+            if (newPassword !== confirmPassword) {
+                return showResetError("New password and confirm password do not match.");
+            }
+
+            try {
+                const res = await fetch('/api/account/reset-temp-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    alert("Password updated successfully!");
+                    window.location.href = data.redirect || '/h';
+                } else {
+                    showResetError(data.message || "Failed to update password.");
+                }
+            } catch (err) {
+                showResetError("Something went wrong. Please try again.");
+            }
+        };
+    </script>
+<% } %>
+    <div class="sidef">
         <div class="height16 geo corner15 borderPrimary">
             <img src="/images/logo.png" alt="" class="corner500 h95 ">
         </div>
@@ -105,4 +155,4 @@
         <%- body %>
     </div>
 </body>
-</html>
+</html>6
