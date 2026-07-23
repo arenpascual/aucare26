@@ -10,7 +10,7 @@ const isAdmin = async (req, res, next) => {
         const allowedRoles = [
             'Super Admin', 
             'Admin', 
-            'Sub-Admin'
+            'Sub Admin'
         ];
 
         // 1. Fetch filtered active administrative users

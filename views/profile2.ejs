@@ -24,10 +24,11 @@
         width:100vw;
         height:100vh;
         background:rgba(0,0,0,.45);
-        display:flex;
+        display:block;
         justify-content:center;
         align-items:center;
         z-index:99999;
+        overflow-y: auto;
     }
 
     .hidden{
@@ -36,7 +37,7 @@
     .password-card{
         width:520px;
         max-width:95%;
-        padding:35px;
+        padding:25px;
         gap:18px;
         border-radius:18px;
     }
@@ -55,7 +56,7 @@
 
         border:1px solid #444;
         border-radius:12px;
-        padding:15px 20px;
+        padding:10px 15px;
         width:100%;
         box-sizing:border-box;
     }
@@ -109,26 +110,24 @@
         padding:15px;
         cursor:pointer;
     }
-    .otp-field{
-        width:200px;
-    }
 
     .otp-row{
     display:flex;
     justify-content:space-between;
     align-items:flex-end;
-    gap:15px;
     flex-wrap:nowrap;
 }
 
-.otp-field{
-    width:140px;
-    flex-shrink:0;
-}
 
 #getOtpBtn{
     flex-shrink:0;
     white-space:nowrap;
+}
+
+#getOtpBtn.disabled{
+    opacity:0.5;
+    pointer-events:none;
+    cursor:not-allowed;
 }
 
 .otp-resend{
@@ -138,8 +137,6 @@
     gap:6px;
     margin-bottom:2px;
     font-size:10px;
-    flex:1;
-    min-width:0;
 }
 
 .otp-resend p{
@@ -152,10 +149,6 @@
     text-decoration:underline;
 }
 
-.otp-resend #otpStatus{
-    margin-left:6px;
-}
-
     .button-row{
         display:flex;
         justify-content:center;
@@ -163,9 +156,7 @@
     }
 
     .button-row button{
-        width:173px;
-        height:40px;
-        font-size:15px;
+        width: 100%;
     }
     *{
         list-style:none;
@@ -249,81 +240,87 @@
     </div>
 
     <div id="modal" class="modal hidden">
+    <div class="width100 height0 padding10">
+        <form id="passCard" class="password-card bgWhite corner15 shadow1 col padding5">
 
-        <form id="passCard" class="password-card bgWhite corner15 shadow1 col">
+            <p class="size24 str500">Change Password</p>
 
-        <h2>Reset Password</h2>
+            <div class="password-note padding0">
+                <p class="size12"><strong class="str500">Take Note!</strong> Password must contain the following:</p>
 
-        <div class="password-note">
-            <p class="size15"><strong class="size15">Take Note!</strong> Password must contain the following:</p>
-
-            <ul class="password-list">
-                <li class="size13 password-item">At least 1 upper case letter</li>
-                <li class="size13 password-item">At least 1 special character</li>
-                <li class="size13 password-item">Combination of letter and number</li>
-                <li class="size13 password-item">Minimum of 8 characters</li>
-            </ul>
-        </div>
-
-        <div class="field">
-            <label>Current Password</label>
-
-            <div class="password-input">
-                <input type="password" id="currentPassword">
-                <i class="far fa-eye toggle-password"></i>
-            </div>
-        </div>
-
-        <div class="field">
-            <label>New Password</label>
-
-            <div class="password-input">
-                <input type="password" id="newPassword">
-                <i class="far fa-eye toggle-password"></i>
-            </div>
-        </div>
-
-        <div class="field">
-            <label>Confirm Password</label>
-
-            <div class="password-input">
-                <input type="password" id="confirmPassword">
-                <i class="far fa-eye-slash toggle-password"></i>
-            </div>
-        </div>
-
-        <div class="otp-row">
-
-            <div class="field otp-field">
-                <label>OTP</label>
-                <input type="text" id="otpCode" maxlength="6">
+                <ul class="password-list padding0">
+                    <li class="size12 password-item">At least 1 upper case letter</li>
+                    <li class="size12 password-item">At least 1 special character</li>
+                    <li class="size12 password-item">Combination of letter and number</li>
+                    <li class="size12 password-item">Minimum of 8 characters</li>
+                </ul>
             </div>
 
-            <a href="javascript:void(0)" id="getOtpBtn" class="nav pnav size10">Get OTP</a>
+            <div class="field">
+                <label>Current Password</label>
 
-            <div class="otp-resend justifyStart ">
-                <p class=" alignStart">Didn't get the code?</p>
-                <a href="javascript:void(0)" id="resendOtp">Resend</a>
+                <div class="password-input">
+                    <input type="password" id="currentPassword">
+                    <i class="far fa-eye toggle-password"></i>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>New Password</label>
+
+                <div class="password-input">
+                    <input type="password" id="newPassword">
+                    <i class="far fa-eye toggle-password"></i>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Confirm Password</label>
+
+                <div class="password-input">
+                    <input type="password" id="confirmPassword">
+                    <i class="far fa-eye-slash toggle-password"></i>
+                </div>
+            </div>
+
+            <div class="col padding10 borderGray corner10 gap5">
+                <div class="otp-row justifyBetween gap10">
+
+                    <a href="javascript:void(0)" id="getOtpBtn" class="nav pnav size12">Get OTP</a>
+
+                    <div class="field otp-field">
+                        <input type="text" id="otpCode" maxlength="6" placeholder="Enter OTP code here">
+                    </div>
+
+                </div>
+
                 <div id="otpStatus" class="size13 gray"></div>
+
+                <p id="otpTimer" class="size12 gray hidden"></p>
+
+                <div class="otp-resend hidden" id="otpResendRow">
+                    <p class="alignStart">Didn't get the code?</p>
+                    <a href="javascript:void(0)" id="resendOtp">Resend</a>
+                </div>
             </div>
 
+            <p id="passError" class="size13" style="color:red; display:none;"></p>
+
+            <div class="button-row">
+
+                <button type="button" class="nav" id="closePassword">
+                    Cancel
+                </button>
+
+                <button type="button" class="nav pnav" id="submitPassword">
+                    Update
+                </button>
+
+            </div>
+
+        </form>
         </div>
-
-        <p id="passError" class="size13" style="color:red; display:none;"></p>
-
-        <div class="button-row">
-
-            <button type="button" class="nav" id="closePassword">
-                Cancel
-            </button>
-
-            <button type="button" class="nav pnav" id="submitPassword">
-                Update
-            </button>
-
-        </div>
-
-    </form>
+    </div>
 
 
         <!-- LOGOUT -->
@@ -363,47 +360,128 @@
     const passCard = document.getElementById("passCard");
     const lgCard = document.getElementById("lgCard");
     const otpStatus = document.getElementById("otpStatus");
+    const otpTimerEl = document.getElementById("otpTimer");
+    const otpResendRow = document.getElementById("otpResendRow");
     const passError = document.getElementById("passError");
     const getOtpBtn = document.getElementById("getOtpBtn");
 
-    let otpCooldown = false;
+    const currentPasswordInput = document.getElementById("currentPassword");
+    const newPasswordInput = document.getElementById("newPassword");
+    const confirmPasswordInput = document.getElementById("confirmPassword");
+
+    let otpExpiryTimer = null;
+
+    // Palitan mo lang 'to kung ilang seconds gusto mong expiration ng OTP
+    const OTP_EXPIRY_SECONDS = 180; // 3 minutes
 
     function showError(msg){
         passError.textContent = msg;
-        passError.style.display = "block";
+        passError.style.display = "flex";
+        passError.style.flexDirection = "row";
+        passError.style.backgroundColor = "#fef2f2";
+        passError.style.padding = "6px";
+        passError.style.borderRadius = "10px";
     }
     function clearError(){
         passError.style.display = "none";
         passError.textContent = "";
     }
 
-    async function sendOtp(){
-        if (otpCooldown) return;
+    // Sinisigurado na kumpleto muna ang 3 password fields bago pumayag mag-send ng OTP
+    function validatePasswordFieldsBeforeOtp(){
+        const currentPassword = currentPasswordInput.value;
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
 
-        otpCooldown = true;
-        getOtpBtn.style.pointerEvents = "none";
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            showError("Please fill in all password fields first before requesting an OTP!");
+            return false;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showError("New password and confirm password do not match.");
+            return false;
+        }
+
+        clearError();
+        return true;
+    }
+
+    function disableGetOtpBtn(){
+        getOtpBtn.classList.add("disabled");
+    }
+
+    function enableGetOtpBtn(){
+        getOtpBtn.classList.remove("disabled");
+    }
+
+    function startOtpExpiryCountdown(){
+        clearInterval(otpExpiryTimer);
+
+        // Naka-disable ang Get OTP habang buhay pa ang code;
+        // Resend lang ang gagana pagkatapos mag-expire
+        disableGetOtpBtn();
+        otpResendRow.classList.add("hidden");
+        otpTimerEl.classList.remove("hidden");
+
+        let remaining = OTP_EXPIRY_SECONDS;
+
+        function render(){
+            const m = Math.floor(remaining / 60);
+            const s = String(remaining % 60).padStart(2, "0");
+            otpTimerEl.textContent = `Code has been sent to your email and will expire in ${m}:${s}`;
+        }
+
+        render();
+
+        otpExpiryTimer = setInterval(() => {
+            remaining--;
+            if (remaining <= 0){
+                clearInterval(otpExpiryTimer);
+                otpTimerEl.textContent = "Code expired.";
+                otpResendRow.classList.remove("hidden");
+                enableGetOtpBtn();
+            } else {
+                render();
+            }
+        }, 1000);
+    }
+
+    function resetOtpUI(){
+        clearInterval(otpExpiryTimer);
+        otpTimerEl.classList.add("hidden");
+        otpTimerEl.textContent = "";
+        otpResendRow.classList.add("hidden");
+        otpStatus.textContent = "";
+        enableGetOtpBtn();
+    }
+
+    async function sendOtp(){
+        // Habang tumatakbo pa ang countdown, hindi na kailangan pang i-check dito
+        // dahil naka-disable na ang button sa CSS/pointer-events, pero double-check pa rin:
+        if (getOtpBtn.classList.contains("disabled")) return;
+
+        // Huwag payagang mag-send ng OTP kung hindi pa kumpleto ang password fields
+        if (!validatePasswordFieldsBeforeOtp()) return;
+
+        disableGetOtpBtn();
         otpStatus.textContent = "Sending code...";
 
         try {
             const res = await fetch('/api/account/send-password-otp', { method: 'POST' });
             const data = await res.json();
-            otpStatus.textContent = data.success ? "Code sent to your email." : (data.message || "Failed to send code.");
+
+            if (data.success) {
+                otpStatus.textContent = "";
+                startOtpExpiryCountdown();
+            } else {
+                otpStatus.textContent = data.message || "Failed to send code.";
+                enableGetOtpBtn();
+            }
         } catch (err) {
             otpStatus.textContent = "Failed to send code. Check your connection.";
+            enableGetOtpBtn();
         }
-
-        // 30-second cooldown bago pwede ulit mag-request, para hindi ma-spam
-        let seconds = 30;
-        getOtpBtn.textContent = `Wait (${seconds}s)`;
-        const timer = setInterval(() => {
-            seconds--;
-            getOtpBtn.textContent = seconds > 0 ? `Wait (${seconds}s)` : "Get OTP";
-            if (seconds <= 0) {
-                clearInterval(timer);
-                getOtpBtn.style.pointerEvents = "auto";
-                otpCooldown = false;
-            }
-        }, 1000);
     }
 
     document.getElementById("openPassword").onclick = () => {
@@ -413,14 +491,11 @@
         lgCard.classList.add("hidden");
 
         clearError();
-        document.getElementById("currentPassword").value = "";
-        document.getElementById("newPassword").value = "";
-        document.getElementById("confirmPassword").value = "";
+        currentPasswordInput.value = "";
+        newPasswordInput.value = "";
+        confirmPasswordInput.value = "";
         document.getElementById("otpCode").value = "";
-        otpStatus.textContent = "";
-        getOtpBtn.textContent = "Get OTP";
-        getOtpBtn.style.pointerEvents = "auto";
-        otpCooldown = false;
+        resetOtpUI();
     };
 
     document.getElementById("openLogout").onclick = () => {
@@ -445,9 +520,9 @@
     document.getElementById("submitPassword").onclick = async () => {
         clearError();
 
-        const currentPassword = document.getElementById("currentPassword").value;
-        const newPassword = document.getElementById("newPassword").value;
-        const confirmPassword = document.getElementById("confirmPassword").value;
+        const currentPassword = currentPasswordInput.value;
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
         const otp = document.getElementById("otpCode").value;
 
         if (!currentPassword || !newPassword || !confirmPassword || !otp) {
@@ -498,6 +573,8 @@
 
         passCard.classList.add("hidden");
         lgCard.classList.add("hidden");
+
+        clearInterval(otpExpiryTimer);
 
     }
 

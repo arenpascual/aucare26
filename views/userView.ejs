@@ -14,12 +14,14 @@
         <div class="bgWhite corner15 justifyStart col padding20">
             <section class="col ">
                 <img class="h80 w80 hidden" src="/images/profile.png" alt="">
-                <p class="size28 colorPrimary">Arenvie Pascual</p>
-                <p class="size16 blue">01-2223-037426</p>
-                <p class="size16 gray">arenpascual@gmail.com</p>
+                <p class="size28 colorPrimary">
+                    <%= patient.fName %> <%= patient.mName ? patient.mName + ' ' : '' %><%= patient.lName %>
+                </p>
+                <p class="size16 blue"><%= patient.schoolId || '—' %></p>
+                <p class="size16 gray"><%= patient.email %></p>
             </section>
             <section class="col gap5">
-                <a href="" class="nav pnav width100">Consultation Record</a>
+                <a href="/vv1/<%= patient._id %>" class="nav pnav width100">Consultation Record</a>
                 <a href="javascript:void(0)" id="exportCard" class="nav pnav width100">Export Health Card</a>
             </section>
         </div>
@@ -34,50 +36,40 @@
             <section class="left width100 bgWhite corner14 col alignStart padding15 borderGray relative height0">
                 <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
                 <p class="size20 str400">Personal Details</p>
-                <p class="size14 gray">Gender:</p>
-                <p class="size14 gray">Address:</p>
-                <p class="size14 gray">Date of Birth:</p>
+                <p class="size14 gray">Gender: <%= patient.gender || '—' %></p>
+                <p class="size14 gray">Address: <%= patient.address || '—' %></p>
+                <p class="size14 gray">Date of Birth: <%= dob %></p>
             </section>
         </div>
         
-            <section class="left width100 bgWhite corner14 col alignStart gap5 padding10 borderGray relative height0">
-                <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
-                <p class="size20 str400">School Information</p>
-                <p class="size14 gray">School ID:</p>
-                <p class="size14 gray">Year Level:</p>
-                <p class="size14 gray">Course:</p>
-
-            </section>
+        <section class="left width100 bgWhite corner14 col alignStart gap5 padding10 borderGray relative height0">
+            <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+            <p class="size20 str400">School Information</p>
+            <p class="size14 gray">School ID: <%= patient.schoolId || '—' %></p>
+            <p class="size14 gray">Year Level: <%= patient.yearLevel || '—' %></p>
+            <p class="size14 gray">Course: <%= patient.course || '—' %></p>
+        </section>
             
         <div class="height0 gap10">
             <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
                 <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
                 <p class="size20 str400">Allergies</p>
-                <p class="size14 gray">Food Allergies:</p>
-                <p class="size14 gray">Medicines Allergies:</p>
-                <p class="size14 gray">Other Allergies:</p>
-
+                <p class="size14 gray">Food Allergies: <%= patient.fAllergy || 'None' %></p>
+                <p class="size14 gray">Medicines Allergies: <%= patient.mAllergy || 'None' %></p>
+                <p class="size14 gray">Other Allergies: <%= patient.oAllergy || 'None' %></p>
             </section>
             <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
                 <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
                 <p class="size20 str400">Emergency Contact</p>
-                <p class="size14 gray">Name:</p>
-                <p class="size14 gray">Contact:</p>
-                <p class="size14 gray">Address:</p>
+                <p class="size14 gray">Name: <%= patient.eName || '—' %></p>
+                <p class="size14 gray">Contact: <%= patient.ePhone || '—' %></p>
+                <p class="size14 gray">Address: <%= patient.eAddress || '—' %></p>
             </section>
         </div>
     </div>
 </div>
 
-
-
-
-
-
-
 <div class="bgWhite corner200 hidden">
-
-
     <div class="bgWhite shadow1 absolute left20 top70 width40 height0 justifyStart col hidden" id="healthCard">
         <section class="justifyBetween padding0 relative">
             <section class="bgIndigo950 justifyStart width60 gap5" style="border-bottom-right-radius: 40px;">
@@ -92,19 +84,19 @@
             </section>
         </section>
         <section class="col alignStart">
-            <p class="size16">Name: </p>
-            <p class="size16">Address: </p>
-            <p class="size16">Contact Number: </p>
+            <p class="size16">Name: <%= patient.fName %> <%= patient.lName %></p>
+            <p class="size16">Address: <%= patient.address || '—' %></p>
+            <p class="size16">Contact Number: <%= patient.phone || '—' %></p>
         </section>
         <section class="bgGray padding5">
             <p class="size18 str500 upperCase">MEDICAL CONCERNS</p>
         </section>
         <section class="">
             <section class="col alignStart padding0">
-            <p class="size16">Allergies: </p>
+                <p class="size16">Allergies: <%= [patient.fAllergy, patient.mAllergy, patient.oAllergy].filter(Boolean).join(', ') || 'None' %></p>
             </section>
             <section class="col alignStart padding0">
-            <p class="size16">Health History: </p>
+                <p class="size16">Health History: </p>
             </section>
         </section>
         <section class="bgGray padding5">
@@ -113,13 +105,13 @@
         <section class="t">
             <section class="col alignStart padding0">
                 <p class="size16">Contact #1</p>
-                <p class="size16">Name: </p>
-                <p class="size16">Address: </p>
-                <p class="size16">Contact Number: </p>
+                <p class="size16">Name: <%= patient.eName || '—' %></p>
+                <p class="size16">Address: <%= patient.eAddress || '—' %></p>
+                <p class="size16">Contact Number: <%= patient.ePhone || '—' %></p>
                 <p class="size16">Relationship: </p>
             </section>
             <section class="col alignStart padding0">
-                <p class="size16">Contact #1</p>
+                <p class="size16">Contact #2</p>
                 <p class="size16">Name: </p>
                 <p class="size16">Address: </p>
                 <p class="size16">Contact Number: </p>
@@ -129,49 +121,40 @@
         <br>
         <section class="bgIndigo950"></section>
         <br>
-
     </div>
-
 </div>
-
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
     document.getElementById('exportCard').addEventListener('click', function () {
-    const originalCard = document.getElementById('healthCard');
+        const originalCard = document.getElementById('healthCard');
+        const clone = originalCard.cloneNode(true);
 
-    // 1. Clone the card
-    const clone = originalCard.cloneNode(true);
+        Object.assign(clone.style, {
+            display: 'flex',
+            position: 'absolute',
+            top: '-9999px',
+            left: '-9999px',
+            width: '40%',
+            height: 'auto'
+        });
 
-    // 2. Style the clone so it's "visible" to the script but hidden from the user
-    Object.assign(clone.style, {
-        display: 'flex',       // Ensure it's not 'none'
-        position: 'absolute',
-        top: '-9999px',        // Push it far off-screen
-        left: '-9999px',
-        width: '40%',        // Match your desired card width
-        height: 'auto'
+        document.body.appendChild(clone);
+
+        html2canvas(clone, {
+            useCORS: true,
+            scale: 3,
+            backgroundColor: null,
+            logging: false
+        }).then(canvas => {
+            const image = canvas.toDataURL("image/png");
+            const link = document.createElement('a');
+            link.download = 'AuCare-Emergency-Card.png';
+            link.href = image;
+            link.click();
+            document.body.removeChild(clone);
+        }).catch(err => {
+            console.error("Export failed:", err);
+        });
     });
-
-    document.body.appendChild(clone);
-
-    // 3. Capture the clone
-    html2canvas(clone, {
-        useCORS: true,
-        scale: 3,              // Higher scale for better print quality
-        backgroundColor: null,
-        logging: false         // Clean up the console
-    }).then(canvas => {
-        const image = canvas.toDataURL("image/png");
-        const link = document.createElement('a');
-        link.download = 'AuCare-Emergency-Card.png';
-        link.href = image;
-        link.click();
-
-        // 4. Remove the clone from the DOM
-        document.body.removeChild(clone);
-    }).catch(err => {
-        console.error("Export failed:", err);
-    });
-});
 </script>

@@ -1,11 +1,55 @@
 <% layout('layout') %>
+<style>
+.ts-wrapper{
+    width:100%;
+}
+
+.ts-control{
+    min-height:45px;
+    height:auto !important;
+}
+
+.ts-dropdown{
+    height:auto !important;
+    max-height:220px;
+    overflow-y:auto;
+}
+
+.ts-dropdown-content{
+    height:auto !important;
+}
+
+.ts-control input{
+    height:auto !important;
+}
+
+.ts-wrapper div,
+.ts-wrapper span{
+    height:auto !important;
+}
+
+.navTabActive{
+    background: #1b5f99;
+    color: #ffffff !important;
+    padding-inline: 20px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.15s ease;
+}
+.tabN {
+    border-bottom: none !important;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+</style>
 
 <div class="height10 justifyBetween">
     <div class="width0">
         <p class="size40 str400">Visitation Record</p>
     </div>
         <div class="width0 gap8 ">
-        <a href="/nv" class="nav pnav w108"> <i class="fas fa-plus"></i>New Visit</a>
+        <a href="javascript:void(0)" class="nav pnav w108" id="openConsultForm"> <i class="fas fa-plus"></i>New Visit</a>
         |
         <a href="/va" class="nav w100">Archive</a>
     </div>
@@ -13,37 +57,47 @@
 <div class="height90 col justifyStart">
     <div class="height10 justifyBetween ">
         <div class="width0 gap5">
-        <a href="" class="nav ">Pending</a>
-        <a href="" class="nav ">Attended</a>
-            <div class="selectBar w190"><i class="fas fa-filter"></i><select name="" id="">
-                <option value=""></i> Filter By Date</option>
-                <option value=""></i> Today</option>
-                <option value=""></i> Yesterday</option>
-                <option value=""></i> This Week</option>
-                <option value=""></i> Last Week</option>
-                <option value=""></i> This Month</option>
-                <option value=""></i> Last Month</option>
-                <option value=""></i> This Year</option>
-                <option value=""></i> Last Year</option>
+        <a href="javascript:void(0)" class="nav tabN" id="tabAll">All Records</a>
+        <a href="javascript:void(0)" class="nav tabN" id="tabProceed">Proceed</a>
+        <a href="javascript:void(0)" class="nav tabN" id="tabAttended">Attended</a>
+            <div class="selectBar w190"><i class="fas fa-filter"></i><select name="" id="dateFilterSelect">
+                <option value="">Filter By Date</option>
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="thisWeek">This Week</option>
+                <option value="lastWeek">Last Week</option>
+                <option value="thisMonth">This Month</option>
+                <option value="lastMonth">Last Month</option>
+                <option value="thisYear">This Year</option>
+                <option value="lastYear">Last Year</option>
             </select>
         </div>
         <div class="selectBar w190 hidden" ><i class="fas fa-filter"></i><select name="" id="">
                 <option value=""></i> Filter By Status</option>
-                <option value=""></i> Pending</option>
+                <option value=""></i> Proceed</option>
                 <option value=""></i> Attended</option>
             </select>
         </div>
         </div>
         <div class="width0 gap8 ">
-            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id=""></div>
+            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id="visitSearchInput" placeholder="Search patient..."></div>
         </div>
     </div>
-    <section class="height90 bgGray200 corner12 col gap10 block overflow-y1">
+    <section class="height90 bgGray200 corner12 col gap10 block overflow-y1" id="visitsContainer">
         <% if (allVisits && allVisits.length > 0) { %>
 
             <% if (allVisits.length > 0) { %>
                 <% allVisits.forEach(request => { %>
-                    <a href="/vv2/<%= request._id %>" class="height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10">
+                    <a href="/vv2/<%= request._id %>"
+                        class="visitCard height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10"
+                        data-status="<%= request.status %>"
+                        data-date="<%= request.createdAt ? new Date(request.createdAt).getTime() : 0 %>"
+                        data-search="<%= (
+                            (request.patient.fName || '') + ' ' +
+                            (request.patient.lName || '') + ' ' +
+                            (request.patient.email || '') + ' ' +
+                            (request.patient.schoolId || '')
+                        ).toLowerCase() %>">
                         
                         <p class="size14 absolute right15 top15">
                             <%= request.createdAt ? new Date(request.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'No Date' %>
@@ -97,7 +151,345 @@
         <% } else { %>
             <div class="padding20 textCenter size16 colorPrimary">No requests found.</div>
         <% } %>
+
+        <div class="padding20 textCenter size16 colorPrimary hidden" id="noResultsMsg">No matching visits found.</div>
     </section>
 </div>
 
+<form action="/visitnow2" method="POST" class="absolute translateCenter shadow3 width36 padding30 gap10 index500 height0 hidden" id="Consultationform">
+    <p class="size24"> New Visit Form:</p>
 
+    
+  <div class="field">
+    <label>Patient</label>
+
+    <input
+        type="text"
+        id="patientSearch"
+        placeholder="Search patient..."
+        autocomplete="off">
+
+    <select
+        id="patientList"
+        name="patient"
+        size="10"
+        style="display:none; margin-top:5px; overflow-y: auto !important;"
+        class="">
+
+        <% allUsers.forEach(user => { %>
+            <option
+                value="<%= user._id %>"
+                data-name="<%= (user.fName + ' ' + user.mName + ' ' + user.lName + ' ' + user.xName).toLowerCase() %>">
+
+                <%= user.fName %> <%= user.mName %> <%= user.lName %> <%= user.xName %>
+
+            </option>
+        <% }) %>
+
+    </select>
+</div>
+
+    <div class="field">
+        <label for="">Concern</label>
+        <div class="selectBar">
+            <select name="concern" id="concernSelect" required>
+                <option value="" title="" disabled selected >Select Concern</option>
+                <option value="Rest/Observation" title="if you need to use a clinic bed or require a quiet space to rest.">Rest/Observation</option>
+                <option value="Health Concern / Request Medicines" title="if you are seeking specific medication or basic first aid.">Health Concern / Request Medicines</option>
+                <option value="Health Consultation" title="if you need to speak directly with a health professional for advice.">Health Consultation</option>
+            </select>
+        </div>
+    </div>
+    <section class="gap10 hidden" id="medicineField">
+    <div class="field">
+        <label for="">Type of Medicines <span class="gray inherit">( Optional )</span></label>
+        <div class="selectBar">
+            <select name="item" id="">
+                <option value="" disabled selected >--Select--</option>
+                <option value="Carbocisteine" title="Hello">Carbocisteine (SOLMUX)</option>
+                <option value="Cetirizine" title="Hello">Cetirizine</option>
+                <option value="Cinnarizine" title="Hello">Cinnarizine</option>
+                <option value="Dicycloverine" title="Hello">Dicycloverine</option>
+                <option value="Hyoscine" title="Hello">Hyoscine (BUSCOPAN)</option>
+                <option value="Kremil-S" title="Hello">Kremil-S</option>
+                <option value="Loperamide" title="Hello">Loperamide (DIATABS)</option>
+                <option value="Mefenamic" title="Hello">Mefenamic Acid</option>
+                <option value="Neozep" title="Hello">Neozep</option>
+                <option value="Paracetamol" title="Hello">Paracetamol (BIOGESIC)</option>
+                <option value="Salbutamol Neb" title="Hello">Salbutamol Neb</option>
+            </select>
+        </div>
+    </div>
+    <div class="field">
+        <label for="">Quantity</label>
+        <div class="selectBar">
+            <select name="qty" id="">
+                <option value="" >--Select--</option>
+                <option value="1" title="Minimum">1</option>
+                <option value="2" title="Maximum">2</option>
+            </select>
+        </div>
+    </div>
+
+    </section>
+    
+    <div class="field">
+        <label for="">Complaint <span class="gray inherit">( Optional )</span></label>
+        <div class="selectBar">
+            <select name="complaint" id="">
+                <option value="" disabled selected >Select Complaint</option>
+                <option value="Allergy">Allergy</option>
+                <option value="Body Muscle Pain">Body/Muscle pain</option>
+                <option value="Colds">Colds</option>
+                <option value="Cough">Cough</option>
+                <option value="Difficulty of Breathing">Difficulty of Breathing</option>
+                <option value="Dizziness">Dizziness</option>
+                <option value="Dysmenorrhea Menstrual Cramps">Dysmenorrhea/Menstrual cramps</option>
+                <option value="Fever">Fever</option>
+                <option value="Headache">Headache</option>
+                <option value="Hyperacidity">Hyperacidity</option>
+                <option value="Lbm">LBM</option>
+                <option value="Toothache">Toothache</option>
+                <option value="Abdominal Pain Cramps">Abdominal pain/cramps</option>
+            </select>
+        </div>
+    </div>
+<section class="justifyBetween gap70 padding0">
+    <div class="nav width100" id="closeForm">Cancel</div>
+    <button type="submit" class="nav pnav width100">Submit</button>
+</section>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const openBtn = document.getElementById('openConsultForm');
+    const closeBtn = document.getElementById('closeForm');
+    const form = document.getElementById('Consultationform');
+
+    openBtn.addEventListener('click', () => {
+        form.classList.remove('hidden');
+    });
+
+    closeBtn.addEventListener('click', () => {
+        form.classList.add('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!form.classList.contains('hidden') &&
+            !form.contains(e.target) &&
+            !openBtn.contains(e.target)) {
+            form.classList.add('hidden');
+        }
+    });
+
+    form.addEventListener('click', (e) => e.stopPropagation());
+});
+
+const concern = document.getElementById("concernSelect");
+const medicineField = document.getElementById("medicineField");
+
+concern.addEventListener("change", function() {
+    if (this.value === "Health Concern / Request Medicines") {
+        medicineField.classList.remove("hidden");
+    } else {
+        medicineField.classList.add("hidden");
+    }
+});
+</script>
+
+<script>
+    const search = document.getElementById("patientSearch");
+const list = document.getElementById("patientList");
+
+search.addEventListener("input", function () {
+
+    const keyword = this.value.toLowerCase();
+
+    list.style.display = "flex";
+
+    let visible = 0;
+
+    [...list.options].forEach(option => {
+
+        if(option.dataset.name.includes(keyword)){
+            option.hidden = false;
+            visible++;
+        }else{
+            option.hidden = true;
+        }
+
+    });
+
+    if(visible === 0){
+        list.style.display = "none";
+    }
+
+});
+
+list.addEventListener("change", function(){
+
+    search.value = list.options[list.selectedIndex].text;
+
+    list.style.display = "none";
+
+});
+</script>
+
+<script>
+/* ============================================================
+   VISIT LIST: TABS (Proceed/Attended) + DATE FILTER + SEARCH
+   ============================================================ */
+(function () {
+    const container = document.getElementById('visitsContainer');
+    const cards = Array.from(container.querySelectorAll('.visitCard'));
+    const noResultsMsg = document.getElementById('noResultsMsg');
+
+    const tabAll = document.getElementById('tabAll');
+    const tabProceed = document.getElementById('tabProceed');
+    const tabAttended = document.getElementById('tabAttended');
+    const dateFilterSelect = document.getElementById('dateFilterSelect');
+    const searchInput = document.getElementById('visitSearchInput');
+
+    // Backend na (isVisit middleware, .sort({ _id: -1 })) ang naghahandle
+    // ng newest-first order, so wala na kailangan i-resort dito sa client.
+
+    // statusFilter: 'all' | 'proceed' | 'attended'
+    let statusFilter = 'all';
+
+    function setActiveTab(tab) {
+
+    tabAll.classList.remove('navTabActive');
+    tabProceed.classList.remove('navTabActive');
+    tabAttended.classList.remove('navTabActive');
+
+    if (tab === 'all') tabAll.classList.add('navTabActive');
+    if (tab === 'proceed') tabProceed.classList.add('navTabActive');
+    if (tab === 'attended') tabAttended.classList.add('navTabActive');
+    }
+
+    setActiveTab('all');
+
+    tabProceed.addEventListener('click', () => {
+        statusFilter = (statusFilter === 'proceed') ? 'all' : 'proceed';
+        setActiveTab(statusFilter === 'proceed' ? 'proceed' : null);
+        applyFilters();
+    });
+
+    tabAttended.addEventListener('click', () => {
+        statusFilter = (statusFilter === 'attended') ? 'all' : 'attended';
+        setActiveTab(statusFilter === 'attended' ? 'attended' : null);
+        applyFilters();
+    });
+
+    tabAll.addEventListener('click', () => {
+
+    statusFilter = 'all';
+    setActiveTab('all');
+    applyFilters();
+    });
+
+    function startOfDay(d) {
+        const nd = new Date(d);
+        nd.setHours(0, 0, 0, 0);
+        return nd;
+    }
+    function endOfDay(d) {
+        const nd = new Date(d);
+        nd.setHours(23, 59, 59, 999);
+        return nd;
+    }
+    function startOfWeek(d) {
+        const nd = startOfDay(d);
+        const day = nd.getDay(); // 0 = Sunday
+        nd.setDate(nd.getDate() - day);
+        return nd;
+    }
+    function endOfWeek(d) {
+        const nd = startOfWeek(d);
+        nd.setDate(nd.getDate() + 6);
+        return endOfDay(nd);
+    }
+
+    function getDateRange(filterValue) {
+        const now = new Date();
+
+        switch (filterValue) {
+            case 'today':
+                return [startOfDay(now).getTime(), endOfDay(now).getTime()];
+            case 'yesterday': {
+                const y = new Date(now);
+                y.setDate(y.getDate() - 1);
+                return [startOfDay(y).getTime(), endOfDay(y).getTime()];
+            }
+            case 'thisWeek':
+                return [startOfWeek(now).getTime(), endOfWeek(now).getTime()];
+            case 'lastWeek': {
+                const lw = new Date(now);
+                lw.setDate(lw.getDate() - 7);
+                return [startOfWeek(lw).getTime(), endOfWeek(lw).getTime()];
+            }
+            case 'thisMonth': {
+                const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                return [startOfDay(start).getTime(), endOfDay(end).getTime()];
+            }
+            case 'lastMonth': {
+                const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                const end = new Date(now.getFullYear(), now.getMonth(), 0);
+                return [startOfDay(start).getTime(), endOfDay(end).getTime()];
+            }
+            case 'thisYear': {
+                const start = new Date(now.getFullYear(), 0, 1);
+                const end = new Date(now.getFullYear(), 11, 31);
+                return [startOfDay(start).getTime(), endOfDay(end).getTime()];
+            }
+            case 'lastYear': {
+                const start = new Date(now.getFullYear() - 1, 0, 1);
+                const end = new Date(now.getFullYear() - 1, 11, 31);
+                return [startOfDay(start).getTime(), endOfDay(end).getTime()];
+            }
+            default:
+                return null; // walang filter
+        }
+    }
+
+    dateFilterSelect.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+
+    function applyFilters() {
+        const dateRange = getDateRange(dateFilterSelect.value);
+        const searchTerm = searchInput.value.trim().toLowerCase();
+
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const cardStatus = (card.dataset.status || '').toLowerCase();
+            const cardDate = parseInt(card.dataset.date, 10) || 0;
+            const cardSearchText = card.dataset.search || '';
+
+            let matchesStatus = true;
+            if (statusFilter === 'proceed') {
+                matchesStatus = cardStatus === 'proceed';
+            } else if (statusFilter === 'attended') {
+                matchesStatus = cardStatus === 'attended';
+            }
+
+            let matchesDate = true;
+            if (dateRange) {
+                matchesDate = cardDate >= dateRange[0] && cardDate <= dateRange[1];
+            }
+
+            let matchesSearch = true;
+            if (searchTerm.length > 0) {
+                matchesSearch = cardSearchText.includes(searchTerm);
+            }
+
+            const isVisible = matchesStatus && matchesDate && matchesSearch;
+            card.classList.toggle('hidden', !isVisible);
+            if (isVisible) visibleCount++;
+        });
+
+        noResultsMsg.classList.toggle('hidden', visibleCount !== 0);
+    }
+})();
+</script>

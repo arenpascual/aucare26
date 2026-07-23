@@ -7,8 +7,34 @@
         <p class="size40" style="margin-top: -24px !important;"><%= user.fName.toUpperCase() %> <%= user.lName.toUpperCase() %>!</p>
         <br>
         <p class="size20" style="margin-top: -15px !important;">Need Care?</p>
-        <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20 width25">Visit Now</a>
+
+        <% if (!isClinicOpen) { %>
+            <a href="javascript:void(0)" class="nav pnav absolute bottom20 right20 width25"
+               style="opacity: 0.5; pointer-events: none;"
+               title="The clinic is closed. Clinic hours are 7:30 AM - 5:30 PM.">
+               Visit Now
+            </a>
+        <% } else if (hasActiveVisit) { %>
+            <a href="javascript:void(0)" class="nav pnav absolute bottom20 right20 width25"
+               style="opacity: 0.5; pointer-events: none;"
+               title="You already have a pending request. Please wait until it's attended.">
+               Visit Now
+            </a>
+        <% } else { %>
+            <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20 width25">Visit Now</a>
+        <% } %>
     </div>
+
+    <% if (!isClinicOpen || hasActiveVisit) { %>
+        <p class="size12 red" style="padding: 0 20px; margin-top: -10px;">
+            <% if (!isClinicOpen) { %>
+                Clinic is closed. Open 7:30 AM - 5:30 PM.
+            <% } else { %>
+                You already have a pending request. Please wait for it to be attended.
+            <% } %>
+        </p>
+    <% } %>
+
     <div class="height0 corner15 col alignStart bgWhite padding20">
         <p class="size20">Services</p>
         <p class="size20"><i class="fas fa-check-circle"></i> Free Basic Medication</p>
@@ -199,9 +225,12 @@ const agreeCheck = document.getElementById("agreeCheck");
 // =============================
 // STEP 1: CLICK "VISIT NOW"
 // =============================
-formBtn.addEventListener("click", function(){
-    tnc.classList.remove("hidden");
-});
+// Guard: kapag naka-disable ang button (clinic closed / may pending), wala itong id="formBtn"
+if (formBtn) {
+    formBtn.addEventListener("click", function(){
+        tnc.classList.remove("hidden");
+    });
+}
 
 
 // =============================

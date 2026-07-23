@@ -19,9 +19,38 @@
     }
 </style>
 
+<div class="bgModal5 absolute justifyCenter alignCenter hidden" id="successModal" style="z-index:9999999999;">
+
+    <form id="successForm" action="" method="POST" class="width30 corner20 bgWhite col padding20 alignCenter">
+
+        <a href="" class="disabled nav cnavLG"><i class="fas fa-question-circle size30"></i></a>
+        <br>
+
+        <p class="size16 textBalance textCenter">
+            Are you sure you want to mark this visit as Attended?
+        </p>
+
+        <br>
+
+        <section class="justifyBetween gap10 width100">
+
+            <button type="button" class="width100 nav" id="cancelSuccess">
+                Cancel
+            </button>
+
+            <button type="submit" class="width100 nav pnav">
+                Proceed
+            </button>
+
+        </section>
+
+    </form>
+
+</div>
+
 <div class="polaroid gap0 colorPrimary justifyEnd relative">
     <a href="/v2" class="nav cnav absolute left20 top20"><i class="fas fa-chevron-left"></i></a>
-    
+
     <div class="col justifyStart padding10 gap10 width45">
         <section class="justifyBetween gap10 padding0 paddingInline10">
             <p class="size16 str500"><%= v.createdAt ? 
@@ -60,17 +89,17 @@
             </section>
             <section class="gap20 justifyStart">
                 <div class="col width20">
-                    <img src="/images/bp.png" alt="" class="corner500 bgWhite h60 w60">
+                    <img src="/images/bp.png" alt="" class="corner500 bgWhite h60 w60 porcelain padding5">
                     <p class="size18 str500"><%= v.bloodPressure?.systolic || '--' %> / <%= v.bloodPressure?.diastolic || '--' %></p>
                     <p class="size12">Blood Pressure</p>
                 </div>
                 <div class="col width20">
-                    <img src="/images/hb.png" alt="" class="corner500 bgWhite h60 w60">
+                    <img src="/images/hb.png" alt="" class="corner500 bgWhite h60 w60 porcelain padding5">
                     <p class="size18 str500"><%= v.hBeat || '--' %></p>
                     <p class="size12">Heart Rate</p>
                 </div>
                 <div class="col width20">
-                    <img src="/images/fever.png" alt="" class="corner500 bgWhite h60 w60">
+                    <img src="/images/fever.png" alt="" class="corner500 bgWhite h60 w60 porcelain padding5">
                     <p class="size18 str500"><%= v.temperature || '--' %>°C</p>
                     <p class="size12">Temperature</p>
                 </div>
@@ -93,7 +122,7 @@
                 <% if (v.complaints && v.complaints.length > 0) { %>
                     <% v.complaints.forEach(item => { %>
                         <div class="col width0 relative">
-                            <img src="/images/<%= item.type %>.png" onerror="this.src='/images/item.png'" alt="" class="corner500 bgWhite h60 w60">
+                            <img src="/images/<%= item.type %>.png" onerror="this.src='/images/item.png'" alt="" class="corner500 bgWhite h60 w60 porcelain padding5">
                             <p class="size14 str500"><%= item.type %></p>
                             <form action="/visit/complaint/delete/<%= item._id %>" method="POST" class="absolute right10 top5 corner500 height0 width0 padding0">
                                 <button type="submit" class="h20 w20 corner500 pointer"><i class="fa-solid fa-circle-minus red h15 w15"></i></button>
@@ -110,15 +139,20 @@
     <div class="col justifyStart padding10 paddingInline15 colorPrimary gap15 width50">
 
         
+        <% if (v.status !== "Attended") { %>
         <section class="glass justifyBetween colorPrimary borderWhite">
-            <p class="size16">Add Details:</p>
+            <p class="size16">Action Panel</p>
             <section class="padding0 width0 gap10">
                 <% if (!v.treatment || v.treatment.length === 0) { %>
                     <button id="openTreatment1" class="nav pointer"><i class="fas fa-plus"></i> Treatment</button>
                 <% } %>
+                <% if (v.dispensed && v.dispensed.length === 0) { %>
                 <button id="openMedicine1" class="nav pointer"><i class="fas fa-plus"></i> Medicine</button>
+                <% } %>
+                <button id="successVisit" class="nav gnav pointer"><i class="fas fa-check-circle"></i> Done Attending</button>
             </section>
         </section>
+        <% } %>
 
         <% if (v.treatment && v.treatment.length > 0) { %>
             <section class="glass borderWhite col gap5 alignStart colorPrimary">
@@ -281,5 +315,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+});
+</script>
+<script>
+    const successBtn = document.getElementById("successVisit");
+const successModal = document.getElementById("successModal");
+const cancelSuccess = document.getElementById("cancelSuccess");
+const successForm = document.getElementById("successForm");
+
+// Current visit id
+const visitId = "<%= v._id %>";
+
+successBtn.addEventListener("click", () => {
+
+    successModal.classList.remove("hidden");
+
+    successForm.action = `/successVisit/${visitId}`;
+
+});
+
+cancelSuccess.addEventListener("click", () => {
+
+    successModal.classList.add("hidden");
+
+});
+
+// Click outside modal
+successModal.addEventListener("click", (e)=>{
+
+    if(e.target === successModal){
+        successModal.classList.add("hidden");
+    }
+
 });
 </script>

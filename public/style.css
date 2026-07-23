@@ -1938,6 +1938,7 @@ progress::-moz-progress-bar { background-color: #4caf50; }
 .borderYellow { border: 0.5px solid var(--yellow); }
 .borderWhite { border: 0.5px solid rgba(255, 255, 255, 0.7); }
 .borderPrimary { border: 0.5px solid var(--tint4); }
+.borderNavy { border: 0.5px solid var(--shade10); }
 .borderDotted { border-style: dotted ; border-width: 5px !important; }
 .borderDashed { border-style: dashed ; border-width: 5px !important; }
 .borderDouble { border-style: double ; border-width: 5px !important; }

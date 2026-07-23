@@ -287,7 +287,7 @@ app.post('/login', async (req, res) => {
             return req.session.save(() => res.redirect('/'));
         }
 
-        if (!user.verify) {
+        if (user.verify === true) {
             req.session.error = "Your account is still pending admin approval. Please wait for confirmation via email.";
             return req.session.save(() => res.redirect('/'));
         }
@@ -347,11 +347,34 @@ app.get('/h', isLogin, async (req, res) => {
             .sort({ createdAt: -1 })
             .limit(3);
 
-        res.render('home', { title: 'Home', active: 'h', recentVisits });
+        // Check kung may pending pa (hindi pa Attended) na request ngayong araw
+        const startOfDay = dayjs().startOf('day').toDate();
+        const endOfDay = dayjs().endOf('day').toDate();
+
+        const activeVisit = await Visits.findOne({
+            patient: req.session.user._id,
+            archive: false,
+            status: { $ne: 'Attended' },
+            createdAt: { $gte: startOfDay, $lte: endOfDay }
+        });
+
+        // Check kung bukas ang clinic ngayon (7:30 AM - 5:30 PM)
+        const now = dayjs();
+        const openTime = dayjs().hour(7).minute(30).second(0);
+        const closeTime = dayjs().hour(17).minute(30).second(0);
+        const isClinicOpen = now.isAfter(openTime) && now.isBefore(closeTime);
+
+        res.render('home', {
+            title: 'Home',
+            active: 'h',
+            recentVisits,
+            hasActiveVisit: !!activeVisit,
+            isClinicOpen
+        });
 
     } catch (err) {
         console.error('Home Fetch Error:', err.message);
-        res.render('home', { title: 'Home', active: 'h', recentVisits: [] });
+        res.render('home', { title: 'Home', active: 'h', recentVisits: [], hasActiveVisit: false, isClinicOpen: false });
     }
 });
 
@@ -430,7 +453,7 @@ app.get('/p', isLogin, async (req, res) => {
     res.render('profile', { title: 'Profile', active: 'p' });
 });
 
-app.get('/v2', isVisit, isLogin, async (req, res) => {
+app.get('/v2', isVisit, isLogin, isUsers, async (req, res) => {
     res.render('visit2', { title: 'Visit2', active: 'v2' });
 });
 
@@ -462,8 +485,34 @@ app.get('/um', isUsers, isLogin, async (req, res) => {
     res.render('UserManagement', { title: 'User Management', active: 'um' });
 });
 
-app.get('/uv', async (req, res) => {
-    res.render('userView', { title: 'userView', active: 'um' });
+app.get('/uv/:id', isLogin, async (req, res) => {
+    try {
+        const patient = await Users.findOne({
+            _id: req.params.id,
+            archive: false
+        }).lean();
+
+        if (!patient) {
+            req.session.error = "User not found.";
+            return req.session.save(() => res.redirect('/um'));
+        }
+
+        const dob = (patient.bMonth && patient.bDay && patient.bYear)
+            ? `${patient.bMonth}/${patient.bDay}/${patient.bYear}`
+            : 'N/A';
+
+        res.render('userView', {
+            title: 'userView',
+            active: 'um',
+            patient,
+            dob
+        });
+
+    } catch (err) {
+        console.error('UserView Fetch Error:', err.message);
+        req.session.error = "Failed to load user details.";
+        res.redirect('/um');
+    }
 });
 
 app.get('/ua', isArchiveUser, isLogin, async (req, res) => {
@@ -488,7 +537,7 @@ app.get('/ih', async (req, res) => {
 
 app.get('/pd', isLogin, async (req, res) => {
     try {
-        const pendingUsers = await Users.find({ verify: false, archive: false }).sort({ createdAt: -1 });
+        const pendingUsers = await Users.find({ verify: true, archive: false }).sort({ createdAt: -1 });
         res.render('pending', { title: 'Pending Accounts', active: 'pd', pendingUsers });
     } catch (err) {
         console.error('Pending Fetch Error:', err.message);
@@ -536,6 +585,82 @@ app.post('/api/notifications/read/:id', isLogin, async (req, res) => {
     }
 });
 
+app.post('/new-employee', isLogin, async (req, res) => {
+    try {
+
+        console.log('BODY RECEIVED:', req.body); // TEMPORARY DEBUG LINE
+
+        const { role, fName, mName, lName, xName, email, schoolId, eName, eAddress, ePhone } = req.body;
+
+        if (!role || !fName || !lName || !email) {
+            req.session.error = "Please fill in all required fields.";
+            return req.session.save(() => res.redirect('/ne'));
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+
+        const emailExist = await Users.findOne({ email: normalizedEmail });
+        if (emailExist) {
+            req.session.error = "That email is already registered.";
+            return req.session.save(() => res.redirect('/ne'));
+        }
+
+        const tempPassword = crypto.randomBytes(4).toString('hex');
+
+        const newEmployee = await Users.create({
+            fName, mName, lName, xName,
+            role,
+            email: normalizedEmail,
+            username: normalizedEmail,
+            schoolId,
+            eName,
+            ePhone,
+            eAddress,
+            password: tempPassword,
+            archive: false,
+            verify: false,
+            verifyAt: Date.now(),
+            isVerify: req.session.user.username,
+            suspend: false,
+            access: 0,
+            reset: true,
+            dump: false
+        });
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Created new employee account: ${newEmployee.username} (${newEmployee.fName} ${newEmployee.lName})`,
+            archive: false
+        });
+
+        const mailOptions = {
+            from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+            to: newEmployee.email,
+            subject: "Your AuCare Employee Account",
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                    <h2 style="color: #0056b3; text-align: center;">Account Created</h2>
+                    <p>Hello ${newEmployee.fName},</p>
+                    <p>An AuCare employee account has been created for you. Log in using your email and the temporary password below:</p>
+                    <p><strong>Email (Username):</strong> ${newEmployee.email}</p>
+                    <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 4px;">
+                        ${tempPassword}
+                    </div>
+                    <p style="color: red;">You'll be required to set a new password immediately after logging in.</p>
+                </div>`
+        };
+        await transporter.sendMail(mailOptions);
+
+        req.session.success = `Employee account for "${newEmployee.fName} ${newEmployee.lName}" has been created.`;
+        req.session.save(() => res.redirect('/e'));
+
+    } catch (err) {
+        console.error('New Employee Error:', err.message);
+        req.session.error = "Failed to create employee account. " + err.message;
+        req.session.save(() => res.redirect('/e'));
+    }
+});
+
 
 
 
@@ -554,7 +679,7 @@ app.get('/seed-admins', async (req, res) => {
                 role: "Super Admin",
                 dump: true,
                 archive: false,
-                verify: true,
+                verify: false,
                 suspend: false
             },
             {
@@ -567,7 +692,7 @@ app.get('/seed-admins', async (req, res) => {
                 role: "Student",
                 dump: true,
                 archive: false,
-                verify: true,
+                verify: false,
                 suspend: false
             },
             {
@@ -580,7 +705,7 @@ app.get('/seed-admins', async (req, res) => {
                 role: "Admin",
                 dump: true,
                 archive: false,
-                verify: true,
+                verify: false,
                 suspend: false
             },
             {
@@ -593,7 +718,7 @@ app.get('/seed-admins', async (req, res) => {
                 role: "Sub Admin",
                 dump: true,
                 archive: false,
-                verify: true,
+                verify: false,
                 suspend: false
             }
         ];
@@ -1087,6 +1212,32 @@ app.post('/visitnow', async (req, res) => {
         const userId = req.session.user._id;
         const { concern, complaint, item, qty } = req.body;
 
+        // 0a. I-check kung bukas pa ang clinic (7:30 AM - 5:30 PM)
+        const now = dayjs();
+        const openTime = dayjs().hour(7).minute(30).second(0);
+        const closeTime = dayjs().hour(17).minute(30).second(0);
+
+        if (now.isBefore(openTime) || now.isAfter(closeTime)) {
+            req.session.error = "The clinic is currently closed. Clinic hours are 7:30 AM to 5:30 PM.";
+            return req.session.save(() => res.redirect('/h'));
+        }
+
+        // 0b. I-check kung may pending pa (hindi Attended) na request ngayong araw
+        const startOfDay = dayjs().startOf('day').toDate();
+        const endOfDay = dayjs().endOf('day').toDate();
+
+        const existingVisit = await Visits.findOne({
+            patient: userId,
+            archive: false,
+            status: { $ne: 'Attended' },
+            createdAt: { $gte: startOfDay, $lte: endOfDay }
+        });
+
+        if (existingVisit) {
+            req.session.error = "You already have a pending visit request today. Please wait until it's attended before submitting another.";
+            return req.session.save(() => res.redirect('/h'));
+        }
+
         // 1. I-save ang Visit (Mother Record)
         // Gumamit tayo ng default string kung sakaling walang complaint para hindi mag-error ang model validation
         const newVisit = new Visits({
@@ -1123,7 +1274,6 @@ app.post('/visitnow', async (req, res) => {
         }
 
         // 4. Set success message sa session
-        // Lalabas na ito sa <%= success %> dahil dadaan ang code dito kahit walang gamot
         req.session.success = "Request Submitted Successfully!";
         res.redirect('/h');
 
@@ -1131,6 +1281,79 @@ app.post('/visitnow', async (req, res) => {
         console.error('Submission Error:', err.message);
         req.session.error = "An error occurred while submitting.";
         res.redirect('/h');
+    }
+});
+
+app.post('/visitnow2', async (req, res) => {
+    try {
+        const sessionUserId = req.session.user._id;
+
+        const {
+            patient,
+            concern,
+            complaint,
+            item,
+            qty
+        } = req.body;
+
+        // If admin selected a patient, use that.
+        // Otherwise use the logged in user.
+        const patientId = patient || sessionUserId;
+
+        // ==========================
+        // Create Visit
+        // ==========================
+        const newVisit = new Visits({
+            patient: patientId,
+            concern: concern || "Health Consultation",
+            complaint: complaint || "No specific complaint",
+            status: "Proceed",
+            archive: false,
+            verify: false
+        });
+
+        const savedVisit = await newVisit.save();
+
+        // ==========================
+        // Save Complaint
+        // ==========================
+        if (complaint && complaint.trim() !== "") {
+            await new Complaint({
+                visitId: savedVisit._id,
+                type: complaint
+            }).save();
+        }
+
+        // ==========================
+        // Save Medicine Request
+        // ==========================
+        if (
+            item &&
+            item.trim() !== "" &&
+            qty &&
+            Number(qty) > 0
+        ) {
+            await new Dispense({
+                visitId: savedVisit._id,
+                who: patientId,
+                type: "medicine",
+                item,
+                qty: Number(qty),
+                unit: "pcs"
+            }).save();
+        }
+
+        // ==========================
+        // Success
+        // ==========================
+        req.session.success = "Request Submitted Successfully!";
+        res.redirect("/v2");
+
+    } catch (err) {
+        console.error("Submission Error:", err);
+
+        req.session.error = "An error occurred while submitting.";
+        res.redirect("/v2");
     }
 });
 
@@ -1195,23 +1418,93 @@ app.post('/visit/vitals/delete/:id', async (req, res) => {
     }
 });
 
+app.post('/successVisit/:id', async (req, res) => {
+    try {
+
+        const visitId = req.params.id;
+
+        // Hanapin ang visit
+        const visit = await Visits.findById(visitId);
+
+        if (!visit) {
+            req.session.error = "Visit not found.";
+            return res.redirect('/v2');
+        }
+
+        // Kunin lahat ng na-dispense sa visit
+        const dispensedItems = await Dispense.find({ visitId });
+
+        // Bawasan ang stocks
+        for (const item of dispensedItems) {
+
+            const stock = await Stocks.findOne({
+                name: item.item,
+                type: item.type,
+                archive: false
+            });
+
+            if (stock) {
+
+                stock.remaining = Math.max(
+                    0,
+                    stock.remaining - item.qty
+                );
+
+                await stock.save();
+            }
+        }
+
+        // Mark as Attended
+        visit.status = 'Attended';
+        await visit.save();
+
+        // Notification
+        await Notification.create({
+            who: visit.patient,
+            message: 'Your visit has been attended.',
+            type: 'visit',
+            link: `/vv1/${visit._id}`
+        });
+
+        req.session.success = "Visit completed successfully.";
+
+        res.redirect(`/vv2/${visit._id}`);
+
+    } catch (err) {
+        console.error(err);
+        req.session.error = "Unable to complete visit.";
+        res.redirect('back');
+    }
+});
+
+//app.post('/successVisit/:id', async (req, res) => {
+//    try {
+//        const visit = await Visits.findByIdAndUpdate(req.params.id, {
+//            status: 'Attended',
+//        }, { new: true });
+//
+//        // ✅ Notification
+//        if (visit) {
+//            await Notification.create({
+//                who: visit.patient,
+//                message: 'Your visit has been attended.',
+//                type: 'visit',
+//                link: `/vv1/${visit._id}`
+//            });
+//        }
+//
+//        res.redirect(`/vv2/${req.params.id}`);
+//    } catch (err) {
+//        res.redirect('back');
+//    }
+//});
+
 // --- 2. TREATMENT (Update & Clear) ---
 app.post('/visit/update-treatment/:id', async (req, res) => {
     try {
         const visit = await Visits.findByIdAndUpdate(req.params.id, {
             treatment: req.body.treatment,
-            status: 'Attended',
         }, { new: true });
-
-        // ✅ Notification
-        if (visit) {
-            await Notification.create({
-                who: visit.patient,
-                message: 'Your visit has been attended.',
-                type: 'visit',
-                link: `/vv1/${visit._id}`
-            });
-        }
 
         res.redirect(`/vv2/${req.params.id}`);
     } catch (err) {

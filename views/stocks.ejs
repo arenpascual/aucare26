@@ -3,26 +3,26 @@
 <style>
 .editBtn:hover { color: white !important; }
 .summ {
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.08);
-  background-color: white !important;
+    flex-direction: column;
+    align-items: start;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.08);
+    display: flex;
+    background-color: white !important;
 }
 .mainf { display: flex; overflow: hidden; }
 .stCard { flex: 1 1 calc(24% - 10px); }
 .filterTab.active {
-  background: var(--primary) !important;
-  color: white !important;
-  border-color: var(--primary) !important;
+    color: white !important;
+    border-color: var(--primary) !important;
+    background: var(--primary) !important;
 }
 #modalBackdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  z-index: 99;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 99;
+    position: fixed;
 }
 #modalBackdrop.hidden { display: none; }
 #addCard, #editCard, #archiveCard { z-index: 100; padding: 24px; max-height: 90vh; overflow-y: auto; }
@@ -49,13 +49,13 @@
     </div>
   </div>
 
-  <div class="field">
+<div class="field">
     <label for="addName">Item / Generic Name</label>
     <input type="text" id="addName" name="name" placeholder="e.g. Paracetamol / Ethyl Alcohol" required>
-  </div>
+</div>
 
-  <!-- Medicine Fields -->
-  <div id="addMedicineFields" class="col gap10 width100 hidden">
+<!-- Medicine Fields -->
+<div id="addMedicineFields" class="col gap10 width100 hidden">
     <div class="gap10">
         <div class="checkbox-field">
         <input type="checkbox" id="addIsLocal" name="isLocal" value="true">

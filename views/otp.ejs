@@ -33,25 +33,25 @@
     <div class="right width40 col">
         <div class="up col gap10 alignStart height0 padding20">
             <a href="/" class="nav"><i class="fas fa-chevron-left"></i> Return</a>
-            <form class="bgWhite shadow1 height0 gap10 padding30 width80" action="">
-                <div class="nav cnavLG"><i class="fas fa-key"></i></div>
-                <p class="size20 str500"> Confirm Code</p>
-                <p>Please enter the OTP code sent to your email to continue.</p>
-                <p class="noteGray">This code expires in 5 minutes.</p>
-                <div class="field row gap5 padding0">
-                    <label for="" class="str500"></label>
-                    <input type="email" name="email" id="email" required>
-                    <input type="email" name="email" id="email" required>
-                    <input type="email" name="email" id="email" required>
-                    <input type="email" name="email" id="email" required>
-                    <input type="email" name="email" id="email" required>
-                    <input type="email" name="email" id="email" required>
-                </div>
-                <br>
-                <div class="field">
-                    <button class="nav pnav  width100 ">Verify</button>
-                </div>
-            </form>
+            <form id="otpForm" class="bgWhite shadow1 height0 gap10 padding30 width80" action="">
+    <div class="nav cnavLG"><i class="fas fa-key"></i></div>
+    <p class="size20 str500"> Confirm Code</p>
+    <p>Please enter the OTP code sent to your email to continue.</p>
+    <p class="noteGray">This code expires in 5 minutes.</p>
+    <div class="field row gap5 padding0">
+        <label for="" class="str500"></label>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-input" name="otp1" id="otp1" required>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-input" name="otp2" id="otp2" required>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-input" name="otp3" id="otp3" required>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-input" name="otp4" id="otp4" required>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-input" name="otp5" id="otp5" required>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-input" name="otp6" id="otp6" required>
+    </div>
+    <br>
+    <div class="field">
+        <button type="submit" class="nav pnav width100">Verify</button>
+    </div>
+</form>
         </div>
     </div>
 

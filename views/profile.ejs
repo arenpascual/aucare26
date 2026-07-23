@@ -1,5 +1,97 @@
 <% layout('layout') %>
 
+<style>
+    .password-note{
+        display:flex;
+        flex-direction:column;
+        align-items:flex-start;
+        gap:8px;
+        border:1px solid #444;
+        border-radius:12px;
+        padding:10px 15px;
+        width:100%;
+        box-sizing:border-box;
+    }
+
+    .password-note p{
+        margin:0;
+        text-align:left;
+    }
+
+    .password-list{
+        width:100%;
+        list-style: disc;
+        padding-left: 20px;
+    }
+
+    .password-item{
+        margin:4px 0;
+        text-align:left;
+    }
+
+    .password-input{
+        display:flex;
+        align-items:center;
+        border:1px solid #999;
+        border-radius:14px;
+        overflow:hidden;
+    }
+
+    .password-input input{
+        border:none;
+        flex:1;
+        padding:14px;
+        outline:none;
+    }
+
+    .password-input i{
+        padding:15px;
+        cursor:pointer;
+    }
+
+    .otp-row{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-end;
+        flex-wrap:nowrap;
+        gap:10px;
+    }
+
+    #getOtpBtn{
+        flex-shrink:0;
+        white-space:nowrap;
+    }
+
+    #getOtpBtn.disabled{
+        opacity:0.5;
+        pointer-events:none;
+        cursor:not-allowed;
+    }
+
+    .otp-resend{
+        display:flex;
+        align-items:center;
+        flex-wrap:wrap;
+        gap:6px;
+        font-size:12px;
+    }
+
+    .otp-resend p{
+        margin:0;
+    }
+
+    .otp-resend a{
+        color:#0d3b66;
+        font-weight:600;
+        text-decoration:underline;
+    }
+
+    #passError{
+        color:red;
+        display:none;
+    }
+</style>
+
 <div class="gap10 polaroid corner8">
     <section class="width30 bgWhite corner15 col padding20 shadow1 relative" id="infoCard">
         <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right20 top20"><i class="fas fa-sign-out"></i></a>
@@ -74,24 +166,64 @@
 
     
     
-    <form class="width30 bgWhite corner15 col padding20 shadow1 gap10 hidden" id="passCard">
+    <form class="width40 bgWhite corner15 col padding20 shadow1 gap10 hidden" id="passCard">
         <p class="size28 str500 ">Change Password</p>
-        <p class="noteBlue width100">Please enter your current password before creating a new one.</p>
+
+        <div class="password-note">
+            <p class="size12"><strong class="size15">Take Note!</strong> Password must contain the following:</p>
+            <ul class="password-list">
+                <li class="size12 password-item">&bull; At least 1 upper case letter</li>
+                <li class="size12 password-item">&bull; At least 1 special character</li>
+                <li class="size12 password-item">&bull; Combination of letter and number</li>
+                <li class="size12 password-item">&bull; Minimum of 8 characters</li>
+            </ul>
+        </div>
+
         <div class="field">
             <label for="">Current Password</label>
-            <input type="password">
-        </div>
-        <div class="field">
-            <label for="">Create Password</label>
-            <input type="password">
+            <div class="password-input">
+                <input type="password" id="currentPassword">
+                <i class="far fa-eye toggle-password"></i>
+            </div>
         </div>
         <div class="field">
             <label for="">New Password</label>
-            <input type="password">
+            <div class="password-input">
+                <input type="password" id="newPassword">
+                <i class="far fa-eye toggle-password"></i>
+            </div>
         </div>
+        <div class="field">
+            <label for="">Confirm Password</label>
+            <div class="password-input">
+                <input type="password" id="confirmPassword">
+                <i class="far fa-eye toggle-password"></i>
+            </div>
+        </div>
+
+        <div class="col padding10 borderGray corner10 gap5">
+            <div class="otp-row">
+                <a href="javascript:void(0)" id="getOtpBtn" class="nav pnav size12">Get OTP</a>
+                <div class="field otp-field">
+                    <input type="text" id="otpCode" maxlength="6" placeholder="Enter OTP code here">
+                </div>
+            </div>
+
+            <div id="otpStatus" class="size13 gray"></div>
+
+            <p id="otpTimer" class="size12 gray hidden"></p>
+
+            <div class="otp-resend hidden" id="otpResendRow">
+                <p class="alignStart">Didn't get the code?</p>
+                <a href="javascript:void(0)" id="resendOtp">Resend</a>
+            </div>
+        </div>
+
+        <p id="passError"></p>
+
         <div class="row gap10">
             <a class="nav width100" id="closePassword">Cancel</a>
-            <button class="nav pnav width100 ">Reset</button>
+            <button type="button" class="nav pnav width100" id="submitPassword">Reset</button>
         </div>
     </form>
 
@@ -104,10 +236,194 @@ document.addEventListener('DOMContentLoaded', () => {
     const pass = document.getElementById('passCard');
     const lg = document.getElementById('lgCard');
 
+    const otpStatus = document.getElementById("otpStatus");
+    const otpTimerEl = document.getElementById("otpTimer");
+    const otpResendRow = document.getElementById("otpResendRow");
+    const passError = document.getElementById("passError");
+    const getOtpBtn = document.getElementById("getOtpBtn");
+    const otpCodeInput = document.getElementById("otpCode");
+
+    const currentPasswordInput = document.getElementById("currentPassword");
+    const newPasswordInput = document.getElementById("newPassword");
+    const confirmPasswordInput = document.getElementById("confirmPassword");
+
+    let otpExpiryTimer = null;
+
+    // Palitan mo lang 'to kung ilang seconds gusto mong expiration ng OTP
+    const OTP_EXPIRY_SECONDS = 180; // 3 minutes
+
+    function showError(msg){
+        passError.textContent = msg;
+        passError.style.display = "flex";
+        passError.style.flexDirection = "row";
+        passError.style.backgroundColor = "#fef2f2";
+        passError.style.padding = "6px";
+        passError.style.borderRadius = "10px";
+
+    }
+    function clearError(){
+        passError.style.display = "none";
+        passError.textContent = "";
+    }
+
+    function validatePasswordFieldsBeforeOtp(){
+        const currentPassword = currentPasswordInput.value;
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            showError("Please fill in all password fields first before requesting an OTP!");
+            return false;
+        }
+        if (newPassword !== confirmPassword) {
+            showError("Passwords do not match.");
+            return false;
+        }
+
+        clearError();
+        return true;
+    }
+
+    function disableGetOtpBtn(){
+        getOtpBtn.classList.add("disabled");
+    }
+    function enableGetOtpBtn(){
+        getOtpBtn.classList.remove("disabled");
+    }
+
+    function startOtpExpiryCountdown(){
+        clearInterval(otpExpiryTimer);
+
+        disableGetOtpBtn();
+        otpResendRow.classList.add("hidden");
+        otpTimerEl.classList.remove("hidden");
+
+        let remaining = OTP_EXPIRY_SECONDS;
+
+        function render(){
+            const m = Math.floor(remaining / 60);
+            const s = String(remaining % 60).padStart(2, "0");
+            otpTimerEl.textContent = `Code expires in ${m}:${s}`;
+        }
+
+        render();
+
+        otpExpiryTimer = setInterval(() => {
+            remaining--;
+            if (remaining <= 0){
+                clearInterval(otpExpiryTimer);
+                otpTimerEl.textContent = "Code expired.";
+                otpResendRow.classList.remove("hidden");
+                enableGetOtpBtn();
+            } else {
+                render();
+            }
+        }, 1000);
+    }
+
+    function resetOtpUI(){
+        clearInterval(otpExpiryTimer);
+        otpTimerEl.classList.add("hidden");
+        otpTimerEl.textContent = "";
+        otpResendRow.classList.add("hidden");
+        otpStatus.textContent = "";
+        enableGetOtpBtn();
+    }
+
+    async function sendOtp(){
+        if (getOtpBtn.classList.contains("disabled")) return;
+
+        if (!validatePasswordFieldsBeforeOtp()) return;
+
+        disableGetOtpBtn();
+        otpStatus.textContent = "Sending code...";
+
+        try {
+            const res = await fetch('/api/account/send-password-otp', { method: 'POST' });
+            const data = await res.json();
+
+            if (data.success) {
+                otpStatus.textContent = "Code sent to your email.";
+                startOtpExpiryCountdown();
+            } else {
+                otpStatus.textContent = data.message || "Failed to send code.";
+                enableGetOtpBtn();
+            }
+        } catch (err) {
+            otpStatus.textContent = "Failed to send code. Check your connection.";
+            enableGetOtpBtn();
+        }
+    }
+
+    getOtpBtn.onclick = (e) => { e.stopPropagation(); sendOtp(); };
+
+    document.getElementById("resendOtp").onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        sendOtp();
+    };
+
+    document.getElementById("submitPassword").onclick = async (e) => {
+        e.stopPropagation();
+        clearError();
+
+        const currentPassword = currentPasswordInput.value;
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const otp = otpCodeInput.value;
+
+        if (!currentPassword || !newPassword || !confirmPassword || !otp) {
+            return showError("Please fill in all fields, including the OTP.");
+        }
+        if (newPassword !== confirmPassword) {
+            return showError("Passwords do not match.");
+        }
+
+        try {
+            const res = await fetch('/api/account/verify-password-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentPassword, newPassword, confirmPassword, otp })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert("Password updated successfully!");
+                show(info);
+            } else {
+                showError(data.message || "Failed to update password.");
+            }
+        } catch (err) {
+            showError("Something went wrong. Please try again.");
+        }
+    };
+
+    document.querySelectorAll(".toggle-password").forEach(icon => {
+        icon.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const input = icon.previousElementSibling;
+            const isHidden = input.type === "password";
+            input.type = isHidden ? "text" : "password";
+            icon.classList.toggle("fa-eye");
+            icon.classList.toggle("fa-eye-slash");
+        });
+    });
+
     // Simple function to switch views
     const show = (card) => {
         [info, edit, pass, lg].forEach(c => c.classList.add('hidden'));
         card.classList.remove('hidden');
+
+        if (card === pass) {
+            clearError();
+            currentPasswordInput.value = "";
+            newPasswordInput.value = "";
+            confirmPasswordInput.value = "";
+            otpCodeInput.value = "";
+            resetOtpUI();
+        } else {
+            clearInterval(otpExpiryTimer);
+        }
     };
 
     // Open Forms

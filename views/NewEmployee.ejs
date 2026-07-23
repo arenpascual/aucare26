@@ -1,45 +1,62 @@
 <% layout('layout') %>
 
-<div class="height0">
-    <div class="width0">
-        <p class="size40 str400"> New Employee</p>
-    </div>
-</div>
+<a href="/e" class="absolute left20 top20 nav"><i class="fas fa-chevron-left"></i> Return</a>
 
 <div class="right col">
-        <div class="up height0 padding20 width50">
+        <div class="up height0 padding20 width50 col">
+        <p class="size40 str400"> New Employee</p>
             <br>
-            <form class="bgWhite shadow1 height0 gap10 padding30 justifyStart" action="">
-                <p class="size20 str500">Details</p>
+            <form class="bgWhite shadow1 height0 gap10 padding30 justifyStart" action="/new-employee" method="POST">
                 <div class="field">
                     <label for="">Role</label>
-                    <input type="text">
+                    <div class="selectBar">
+                        <select name="role" id="">
+                            <option value="" selected disabled>Select Role</option>
+                            <option value="Super Admin">Super Admin</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Sub Admin">Sub Admin</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="field">
                     <label for="">First Name</label>
-                    <input type="text">
+                    <input type="text" name="fName">
                 </div>
                 <div class="field">
                     <label for="">Middle Name</label>
-                    <input type="text">
+                    <input type="text" name="mName">
                 </div>
                 <div class="field">
                     <label for="">Last Name</label>
-                    <input type="text">
+                    <input type="text" name="lName">
                 </div>
                 <div class="field">
                     <label for="">Extension Name</label>
-                    <input type="text">
+                    <input type="text" name="xName">
                 </div>
                 <div class="field">
                     <label for="">Email</label>
-                    <input type="text">
+                    <input type="text" name="email">
                 </div>
                 <div class="field">
                     <label for="">School ID</label>
-                    <input type="text"></div>
+                    <input type="text" name="schoolId"></div>
                 <div class="justifyEnd height0">
-                    <button class="nav pnav ">Record</button>
+                </div>
+                <div class="field hidden">
+                    <label for="">eName</label>
+                    <input type="text" value="none" name="eName">
+                </div>
+                <div class="field hidden">
+                    <label for="">ePhone</label>
+                    <input type="text" value="none" name="ePhone">
+                </div>
+                <div class="field hidden">
+                    <label for="">eAddress</label>
+                    <input type="text" value="none" name="eAddress">
+                </div>
+                <div class="justifyEnd height0">
+                    <button type="submit" class="nav pnav "><i class="fas fa-check-circle"></i> Add to Record</button>
                 </div>
             </form>
         </div>
