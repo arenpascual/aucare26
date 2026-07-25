@@ -19,18 +19,17 @@
     }
 
     .modal{
-        position: fixed;
-        inset: 0;
-        width:100vw;
-        height:100vh;
-        background:rgba(0,0,0,.45);
-        display:block;
-        justify-content:center;
-        align-items:center;
-        z-index:99999;
-        overflow-y: auto;
-    }
-
+    position: fixed;
+    inset: 0;
+    width:100vw;
+    height:100vh;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:99999;
+    overflow-y: auto;
+}
     .hidden{
         display:none;
     }
@@ -240,119 +239,91 @@
     </div>
 
     <div id="modal" class="modal hidden">
-    <div class="width100 height0 padding10">
-        <form id="passCard" class="password-card bgWhite corner15 shadow1 col padding5">
 
-            <p class="size24 str500">Change Password</p>
+    <!-- PASSWORD CARD -->
+    <form id="passCard" class="password-card bgWhite corner15 shadow1 col padding5 hidden">
+        <p class="size24 str500">Change Password</p>
 
-            <div class="password-note padding0">
-                <p class="size12"><strong class="str500">Take Note!</strong> Password must contain the following:</p>
-
-                <ul class="password-list padding0">
-                    <li class="size12 password-item">At least 1 upper case letter</li>
-                    <li class="size12 password-item">At least 1 special character</li>
-                    <li class="size12 password-item">Combination of letter and number</li>
-                    <li class="size12 password-item">Minimum of 8 characters</li>
-                </ul>
-            </div>
-
-            <div class="field">
-                <label>Current Password</label>
-
-                <div class="password-input">
-                    <input type="password" id="currentPassword">
-                    <i class="far fa-eye toggle-password"></i>
-                </div>
-            </div>
-
-            <div class="field">
-                <label>New Password</label>
-
-                <div class="password-input">
-                    <input type="password" id="newPassword">
-                    <i class="far fa-eye toggle-password"></i>
-                </div>
-            </div>
-
-            <div class="field">
-                <label>Confirm Password</label>
-
-                <div class="password-input">
-                    <input type="password" id="confirmPassword">
-                    <i class="far fa-eye-slash toggle-password"></i>
-                </div>
-            </div>
-
-            <div class="col padding10 borderGray corner10 gap5">
-                <div class="otp-row justifyBetween gap10">
-
-                    <a href="javascript:void(0)" id="getOtpBtn" class="nav pnav size12">Get OTP</a>
-
-                    <div class="field otp-field">
-                        <input type="text" id="otpCode" maxlength="6" placeholder="Enter OTP code here">
-                    </div>
-
-                </div>
-
-                <div id="otpStatus" class="size13 gray"></div>
-
-                <p id="otpTimer" class="size12 gray hidden"></p>
-
-                <div class="otp-resend hidden" id="otpResendRow">
-                    <p class="alignStart">Didn't get the code?</p>
-                    <a href="javascript:void(0)" id="resendOtp">Resend</a>
-                </div>
-            </div>
-
-            <p id="passError" class="size13" style="color:red; display:none;"></p>
-
-            <div class="button-row">
-
-                <button type="button" class="nav" id="closePassword">
-                    Cancel
-                </button>
-
-                <button type="button" class="nav pnav" id="submitPassword">
-                    Update
-                </button>
-
-            </div>
-
-        </form>
+        <div class="password-note padding0">
+            <p class="size12"><strong class="str500">Take Note!</strong> Password must contain the following:</p>
+            <ul class="password-list padding0">
+                <li class="size12 password-item">At least 1 upper case letter</li>
+                <li class="size12 password-item">At least 1 special character</li>
+                <li class="size12 password-item">Combination of letter and number</li>
+                <li class="size12 password-item">Minimum of 8 characters</li>
+            </ul>
         </div>
-    </div>
 
-
-        <!-- LOGOUT -->
-        <section class="width30 bgWhite corner15 col padding20 shadow1 relative hidden" id="lgCard">
-
-            <div class="nav cnavLG">
-                <i class="fas fa-sign-out-alt"></i>
+        <div class="field">
+            <label>Current Password</label>
+            <div class="password-input">
+                <input type="password" id="currentPassword">
+                <i class="far fa-eye toggle-password"></i>
             </div>
+        </div>
 
-            <br>
+        <div class="field">
+            <label>New Password</label>
+            <div class="password-input">
+                <input type="password" id="newPassword">
+                <i class="far fa-eye toggle-password"></i>
+            </div>
+        </div>
 
-            <p class="size18 textCenter textBalance">
-                Are you sure you want to Log Out?
-            </p>
+        <div class="field">
+            <label>Confirm Password</label>
+            <div class="password-input">
+                <input type="password" id="confirmPassword">
+                <i class="far fa-eye-slash toggle-password"></i>
+            </div>
+        </div>
 
-            <br>
+        <div class="col padding10 borderGray corner10 gap5">
+            <div class="otp-row justifyBetween gap10">
+                <a href="javascript:void(0)" id="getOtpBtn" class="nav pnav size12">Get OTP</a>
+                <div class="field otp-field">
+                    <input type="text" id="otpCode" maxlength="6" placeholder="Enter OTP code here">
+                </div>
+            </div>
+            <div id="otpStatus" class="size13 gray"></div>
+            <p id="otpTimer" class="size12 gray hidden"></p>
+            <div class="otp-resend hidden" id="otpResendRow">
+                <p class="alignStart">Didn't get the code?</p>
+                <a href="javascript:void(0)" id="resendOtp">Resend</a>
+            </div>
+        </div>
 
-            <section class="padding0 justifyBetween gap10">
+        <p id="passError" class="size13" style="color:red; display:none;"></p>
 
-                <a href="javascript:void(0)" class="nav width100" id="closeLogout">
-                    Cancel
-                </a>
+        <div class="button-row">
+            <button type="button" class="nav" id="closePassword">Cancel</button>
+            <button type="button" class="nav pnav" id="submitPassword">Update</button>
+        </div>
+    </form>
 
-                <a href="/" class="nav pnav width100">
-                    Log Out
-                </a>
+    <!-- LOGOUT CARD -->
+    <section class="width25 bgWhite corner15 col padding20 shadow1 relative hidden" id="lgCard">
 
-            </section>
+        <div class="nav cnavLG">
+            <i class="fas fa-sign-out-alt"></i>
+        </div>
 
+        <br>
+
+        <p class="size18 textCenter textBalance">
+            Are you sure you want to Log Out?
+        </p>
+
+        <br>
+
+        <section class="padding0 justifyBetween gap10">
+            <a href="javascript:void(0)" class="nav width100" id="closeLogout">Cancel</a>
+            <a href="/" class="nav pnav width100">Log Out</a>
         </section>
 
-    </div>
+    </section>
+
+</div>
 
     <script>
 
@@ -577,5 +548,7 @@
         clearInterval(otpExpiryTimer);
 
     }
+
+    
 
     </script>

@@ -9,106 +9,303 @@
 }
 </style>
 <div class="polaroid col">
-    <div class="up height10 justifyStart padding10">
-        <div class="width0">
-            <a href="/um" class="nav w100"><i class="fas fa-chevron-left"></i> Return</a>
+    <style>
+    /* Pagination Circle Styles */
+    .pagination-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex: 2;
+    }
+    label{
+        margin-top: 5px;
+    }
+    .step-circle {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #777;
+        background-color: #fff;
+        transition: all 0.3s ease;
+    }
+    .step-circle.active {
+        background-color: #1f6aba;
+        color: white;
+        border-color: #1f6aba;
+    }
+    .nav-arrow {
+        color: #ccc;
+        font-size: 18px;
+        padding: 0 5px;
+    }
+
+    /* Core Logic Styles */
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+    .pagination-buttons { 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        margin-top: 20px; 
+        width: 100%;
+    }
+    .pagination-buttons button { padding: 8px 16px; cursor: pointer; }
+    .side-spacer { flex: 1; display: flex; }
+    #notificationBox{
+        z-index: 1000;
+    }
+</style>
+</head>
+    <div class="right width40 col alignStart">
+        <div class="up height0 padding10 block width90">
+        <br>
+        <form id="registrationForm"
+      action="/signup"
+      method="POST"
+      class="bgWhite shadow1 height0 gap10 padding15 width100 justifyStart">
+            <p class="size20 str500">Sign Up</p>
+
+            <div class="form-section active" id="step-1">
+                <div class="field">
+                    <label>Role</label>
+                    <div class="selectBar">
+                        <select name="role" required>
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="Student">Student</option>
+                            <option value="Staff">Staff</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field"><label>First Name</label><input type="text" name="fName" required></div>
+                <div class="field"><label>Middle Name</label><input type="text" name="mName" ></div>
+                <div class="field"><label>Last Name</label><input type="text" name="lName" required></div>
+                <div class="field"><label>Extension Name</label><input type="text"name="xName" ></div>
+                <div class="field"><label>Date of Birth</label>
+    <div class="row gap5">
+        <div class="selectBar">
+            <select name="bMonth" required>
+            <option value="" selected disabled>--Month--</option>
+            <option value="1">01</option>
+            <option value="2">02</option>
+            <option value="3">03</option>
+            <option value="4">04</option>
+            <option value="5">05</option>
+            <option value="6">06</option>
+            <option value="7">07</option>
+            <option value="8">08</option>
+            <option value="9">09</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            </select>
         </div>
-    </div>
-
-    <div class="col justifyCenter alignCenter height0">
-        <div class="height0 padding20" style="width: 700px; max-width: 90%;">
-            <form class="bgWhite shadow1 height0 gap10 padding30 justifyStart" action="">
-                <p class="size20 str500 width100 textLeft">Personal Information:</p>
-
-                <div class="row gap20 alignStart">
-                    <div class="col width50">
-                        <div class="field">
-                            <label for="">First Name</label>
-                            <input type="text" name="firstName">
-                        </div>
-                        <div class="field">
-                            <label for="">Last Name</label>
-                            <input type="text" name="lastName">
-                        </div>
-                        <div class="field">
-                            <label for="">Middle Name</label>
-                            <input type="text" name="middleName">
-                        </div>
-                        <div class="field">
-                            <label for="">Ext Name (optional)</label>
-                            <input type="text" name="extName">
-                        </div>
-                        <div class="field">
-                            <label for="">Gender</label>
-                            <input type="text" name="gender">
-                        </div>
-                        <div class="field">
-                            <label for="">Contact Number</label>
-                            <input type="text" name="contactNumber">
-                        </div>
-                        <div class="field">
-                            <label for="">Address</label>
-                            <input type="text" name="address">
-                        </div>
-                        <div class="field">
-                            <label for="">Birthday</label>
-                            <input type="date" name="birthday">
-                        </div>
-                    </div>
-
-                    <div class="col width50">
-                        <div class="field">
-                            <label for="">School ID</label>
-                            <input type="text" name="schoolId">
-                        </div>
-                        <div class="field">
-                            <label for="">Course</label>
-                            <input type="text" name="course">
-                        </div>
-                        <div class="field">
-                            <label for="">Year Level</label>
-                            <input type="text" name="yearLevel">
-                        </div>
-                        <div class="field">
-                            <label for="">Section</label>
-                            <input type="text" name="section">
-                        </div>
-                        <div class="field">
-                            <label for="">Email</label>
-                            <input type="text" name="email">
-                        </div>
-                        <div class="field">
-                            <label for="">Any Food Allergies:</label>
-                            <div class="selectBar">
-                                <select name="foodAllergies">
-                                    <option value="none">None</option>
-                                    <option value="peanuts">Peanuts</option>
-                                    <option value="seafood">Seafood</option>
-                                    <option value="dairy">Dairy</option>
-                                    <option value="others">Others</option>
-                                    <option value="">--Select--</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="field">
-                            <label for="">Any Allergies to Medicine:</label>
-                            <div class="selectBar">
-                            <select name="medicineAllergies">
-                                <option value="">--Select--</option>
-                                <option value="none">None</option>
-                                <option value="penicillin">Penicillin</option>
-                                <option value="aspirin">Aspirin</option>
-                                <option value="others">Others</option>
-                            </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="justifyEnd height0">
-                    <button class="nav pnav">Add Record</button>
-                </div>
-            </form>
+        <input type="text" name="bDay" placeholder="Day" required>
+        <div class="selectBar">
+            <select name="bYear" required>
+            <option value="" selected disabled>--Year--</option>
+            <option value="2005">2005</option>
+            </select>
         </div>
     </div>
 </div>
+                <div class="field"><label>Contact Number</label><input type="text"name="phone" required></div>
+                <div class="field">
+                    <label>Gender</label>
+                    <div class="selectBar">
+                        <select name="gender" required>
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pagination-buttons">
+                    <div class="side-spacer"></div> <div class="pagination-wrapper">
+                        <span class="nav-arrow">&lt;</span>
+                        <div class="step-circle active">1</div>
+                        <div class="step-circle">2</div>
+                        <div class="step-circle">3</div>
+                        <span class="nav-arrow">&gt;</span>
+                    </div>
+                    <div class="side-spacer" style="justify-content: flex-end;">
+                        <button type="button" id="next1" class="nav pnav width100">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section" id="step-2">
+                <div class="field"><label>Address</label><input type="text" name="address" required></div>
+                <div class="field"><label>Email</label><input type="text" name="email" required></div>
+                <div class="field"><label>School ID</label><input type="text" name="schoolId" required></div>
+                <div class="field">
+                    <label>Campus</label>
+                    <div class="selectBar">
+                        <select name="campus" required>
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="Main">Main</option>
+                            <option value="South">South</option>
+                            <option value="San Jose">San Jose</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Year Level</label>
+                    <div class="selectBar">
+                        <select name="yearLevel" required>
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="4th Year">4th Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="1st Year">1st Year</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field"><label>Course</label><input type="text" name="course"></div>
+                <div class="field"><label>Section</label><input type="text" name="section"></div>
+
+                <div class="pagination-buttons">
+                    <div class="side-spacer">
+                        <button type="button" id="prev2" class="nav pnav width100">Previous</button>
+                    </div>
+                    <div class="pagination-wrapper">
+                        <span class="nav-arrow">&lt;</span>
+                        <div class="step-circle">1</div>
+                        <div class="step-circle active">2</div>
+                        <div class="step-circle">3</div>
+                        <span class="nav-arrow">&gt;</span>
+                    </div>
+                    <div class="side-spacer" style="justify-content: flex-end;">
+                        <button type="button" id="next2" class="nav pnav width100">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section" id="step-3">
+                <div class="field">
+                    <label>Any Allergies to Medicines?</label>
+                    <div class="selectBar">
+                        <select name="mAllergy">
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Any Food Allergies?</label>
+                    <div class="selectBar">
+                        <select name="fAllergy">
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
+                <br>
+                <div class="field"><label>Emergency Name</label><input type="text" name="eName" required></div>
+                <div class="field"><label>Emergency Contact</label><input type="text" name="ePhone" required></div>
+                <div class="field"><label>Emergency Address</label><input type="text" name="eAddress" required></div>
+
+
+                <div class="pagination-buttons">
+                    <div class="side-spacer">
+                        <button type="button" id="prev3" class="nav pnav width100">Previous</button>
+                    </div>
+                    <div class="pagination-wrapper">
+                        <span class="nav-arrow">&lt;</span>
+                        <div class="step-circle">1</div>
+                        <div class="step-circle">2</div>
+                        <div class="step-circle active">3</div>
+                        <span class="nav-arrow">&gt;</span>
+                    </div>
+                    <div class="side-spacer" style="justify-content: flex-end;">
+                        <button type="submit" class="nav pnav width100">Submit</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+    
+    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="notificationBox">
+        <img class="h100 w100" src="/images/like.png" alt="">
+            <section class="padding0 col alignCenter">
+        <p class="size23 str500">Request Submitted</p>
+        <p class="size17">Wait for the admin's approval within this day.</p>
+            </section>
+        <a class="nav w120 size15" href="/" id="gotItBtn">Got It!</a>
+    </section>
+
+</div>
+</div>
+<script>
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+    const step3 = document.getElementById('step-3');
+
+    document.getElementById('next1').onclick = () => {
+        step1.classList.remove('active');
+        step2.classList.add('active');
+    };
+    document.getElementById('next2').onclick = () => {
+        step2.classList.remove('active');
+        step3.classList.add('active');
+    };
+    document.getElementById('prev2').onclick = () => {
+        step2.classList.remove('active');
+        step1.classList.add('active');
+    };
+    document.getElementById('prev3').onclick = () => {
+        step3.classList.remove('active');
+        step2.classList.add('active');
+    };
+
+    // 🔔 Notification Box Trigger Logic
+    const loginForm = document.getElementById('registrationForm');
+    const notificationBox = document.getElementById('notificationBox');
+    const gotItBtn = document.getElementById('gotItBtn');
+
+    loginForm.addEventListener('submit', async function (e) {
+        e.preventDefault(); // laging pigilan muna, AJAX na tayo
+
+        if (!loginForm.checkValidity()) {
+            loginForm.reportValidity();
+            return;
+        }
+
+        try {
+            const formData = new URLSearchParams(new FormData(loginForm));
+
+            const response = await fetch('/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                notificationBox.classList.remove('hidden');
+            } else {
+                alert(data.message || "Hindi na-submit ang registration. Subukan ulit.");
+            }
+
+        } catch (err) {
+            console.error('Signup fetch error:', err);
+            alert("May error habang nagsu-submit. Subukan ulit.");
+        }
+    });
+
+    gotItBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        window.location.href = '/'; // saka lang siya mag-navigate paalis
+    });
+</script>
+</script>

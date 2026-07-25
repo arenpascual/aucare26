@@ -90,79 +90,160 @@
         color:red;
         display:none;
     }
+    .profile-name{
+    width:100%;
+    text-align:center !important;
+    overflow: hidden;
+    font-weight:500;
+    margin-top:10px;
+    line-height:1.3;
+}
 </style>
 
-<div class="gap10 polaroid corner8">
-    <section class="width30 bgWhite corner15 col padding20 shadow1 relative" id="infoCard">
-        <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right20 top20"><i class="fas fa-sign-out"></i></a>
-        <img src="/images/profile.png" alt="" class="h130 w130 corner500">
-        <p class="size28 str500"><%= user.fName %> <%= user.lName %></p>
-        <p class="size16 str400"><%= user.role %> </p>
-        <br>
-        <section class="col  bgWhite corner10">
-            <p class="size16 str400 alignStart"><%= user.email %></p>
-            <p class="size16 str400"><%= user.phone %></p>
-            <p class="size16 str400"><%= user.Department %></p>
-        </section>
-        <br>
-        <section class="gap10 padding0">
-            <a href="javascript:void(0)" class="nav width100 borderPrimary editBtn" id="editBtn"><i class="fas fa-pen"></i>Edit Info</a>
-            <a href="javascript:void(0)" class="nav width100 borderPrimary keyBtn" id="keyBtn"><i class="fas fa-key"></i>Change Password</a>
-        </section>
-    </section>
-    
-    <section class="width30 bgWhite corner15 col padding20 shadow1 relative hidden" id="lgCard">
-        <div href="" class="nav cnavLG"><i class="fas fa-sign-out"></i></div>
-        <br>
-        <p class="size18 textCenter textBalance">Are you sure you want to Log Out?</p>
-        <br>
-        <section class="padding0 justifyBetween gap10">
-            <a href="javascript:void(0)" class="nav width100">Cancel</a>
-            <a href="/" class="nav pnav width100">Log Out</a>
-        </section>
-    </section>
-
-    
-    <form class="width30 bgWhite corner15 col padding20 shadow1 gap10 hidden" id="editCard">
-        <p class="size28 str500">Edit Information</p>
-        <div class="field">
-            <label for="">First Name</label>
-            <input type="text">
-        </div>
-        <div class="field">
-            <label for="">Middle Name</label>
-            <input type="text">
-        </div>
-        <div class="field">
-            <label for="">Last Name</label>
-            <input type="text">
-        </div>
-        <div class="field">
-            <label for="">Ext Name</label>
-            <input type="text">
-        </div>
-        <br>
-        <div class="field">
-            <label for="">Email</label>
-            <input type="text">
-        </div>
-        <div class="field">
-            <label for="">School ID</label>
-            <input type="text">
-        </div>
-        <div class="field">
-            <label for="">Department</label>
-            <div class="selectBar">
-                <select name="" id="">
-                    <option value="">CSDL</option>
-                </select>
+<div class=" gap10 polaroid alignStart">
+        <div class="padding10 width25 height100 col alignStart gap15">
+            <a href="/p" class="nav hidden"><i class="fas fa-chevron-left"></i> Return</a> 
+            <div class="bgWhite corner15 justifyStart col padding20">
+                <section class="col ">
+                    <img class="h100 w100 bura corner500" src="/images/profile.png" alt="">
+                    <p class="size28 colorPrimary profile-name">
+                        Christel Dela Cruz
+                    </p>
+                    <p class="size16 blue">0910290</p>
+                    <p class="size16 gray">mark@gmail.com</p>
+                </section>
+                <section class="col gap5">
+                    <a href="javascript:void(0)" id="openPassword" class="nav pnav width100">
+                        Change Password
+                    </a>
+                    <a href="javascript:void(0)" id="openLogout" class="nav pnav width100">
+                        Log Out
+                    </a>
+                </section>
             </div>
+        </div><div class="width75 col justifyStart padding15 gap15 ">
+        
+                
+            <div class="height0 gap10 ">
+                <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
+                    <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                    <p class="size20 str400">Personal Details</p>
+                    <p class="size14 gray">Gender: </p>
+                    <p class="size14 gray">Address: </p>
+                    <p class="size14 gray">Date of Birth:</p>
+
+                </section>
+                <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
+                    <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                    <p class="size20 str400">School Information</p>
+                    <p class="size14 gray">School ID: </p>
+                    <p class="size14 gray">Year Level: </p>
+                    <p class="size14 gray">Course: </p>
+                </section>
+            </div>
+            
+            <div class="height0 justifyStart gap10 padding0 ">
+                <section class="left width100 bgWhite corner14 col alignStart padding15 borderGray relative height0">
+                    <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                    <p class="size20 str400">Emergency Contact</p>
+                    <p class="size14 gray">Name: </p>
+                    <p class="size14 gray">Contact:</p>
+                    <p class="size14 gray">Address:</p>
+                </section>
+            </div>
+            
+                <section class="left width100 bgWhite corner14 col alignStart gap5 padding10 borderGray relative height0">
+                    <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                    <p class="size20 str400">Allergies</p>
+                    <p class="size14 gray">Food Allergies:</p>
+                    <p class="size14 gray">Medicines Allergies: </p>
+                    <p class="size14 gray">Other Allergies:</p>
+
+                </section>
         </div>
-        <div class="row gap10">
-            <a class="nav width100" id="closeEdit">Cancel</a>
-            <button class="nav pnav width100 ">Update</button>
+    </div>
+
+    <div id="modal" class="modal hidden">
+    <div class="width100 height0 padding10">
+        <form id="passCard" class="password-card bgWhite corner15 shadow1 col padding5">
+
+            <p class="size24 str500">Change Password</p>
+
+            <div class="password-note padding0">
+                <p class="size12"><strong class="str500">Take Note!</strong> Password must contain the following:</p>
+
+                <ul class="password-list padding0">
+                    <li class="size12 password-item">At least 1 upper case letter</li>
+                    <li class="size12 password-item">At least 1 special character</li>
+                    <li class="size12 password-item">Combination of letter and number</li>
+                    <li class="size12 password-item">Minimum of 8 characters</li>
+                </ul>
+            </div>
+
+            <div class="field">
+                <label>Current Password</label>
+
+                <div class="password-input">
+                    <input type="password" id="currentPassword">
+                    <i class="far fa-eye toggle-password"></i>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>New Password</label>
+
+                <div class="password-input">
+                    <input type="password" id="newPassword">
+                    <i class="far fa-eye toggle-password"></i>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Confirm Password</label>
+
+                <div class="password-input">
+                    <input type="password" id="confirmPassword">
+                    <i class="far fa-eye-slash toggle-password"></i>
+                </div>
+            </div>
+
+            <div class="col padding10 borderGray corner10 gap5">
+                <div class="otp-row justifyBetween gap10">
+
+                    <a href="javascript:void(0)" id="getOtpBtn" class="nav pnav size12">Get OTP</a>
+
+                    <div class="field otp-field">
+                        <input type="text" id="otpCode" maxlength="6" placeholder="Enter OTP code here">
+                    </div>
+
+                </div>
+
+                <div id="otpStatus" class="size13 gray"></div>
+
+                <p id="otpTimer" class="size12 gray hidden"></p>
+
+                <div class="otp-resend hidden" id="otpResendRow">
+                    <p class="alignStart">Didn't get the code?</p>
+                    <a href="javascript:void(0)" id="resendOtp">Resend</a>
+                </div>
+            </div>
+
+            <p id="passError" class="size13" style="color:red; display:none;"></p>
+
+            <div class="button-row">
+
+                <button type="button" class="nav" id="closePassword">
+                    Cancel
+                </button>
+
+                <button type="button" class="nav pnav" id="submitPassword">
+                    Update
+                </button>
+
+            </div>
+
+        </form>
         </div>
-    </form>
 
     
     
@@ -226,7 +307,7 @@
             <button type="button" class="nav pnav width100" id="submitPassword">Reset</button>
         </div>
     </form>
-
+    </div>
 </div>
 
 <script>

@@ -122,7 +122,15 @@
             <a href="/d" class="nav mnav <% if ( active === 'd' ) { %> active <% } %>"><i class="bi bi-grid-fill"></i>Dashboard</a>
             <% } %>
 
-            <a href="/r" class="nav mnav <% if ( active === 'r' ) { %> active <% } %>"><i class="fa-solid fa-file"></i>Requests</a>
+            <a href="/r" class="nav mnav relative <% if ( active === 'r' ) { %> active <% } %>">
+                <i class="fa-solid fa-file"></i>Requests
+                <% if (requestCount > 0) { %>
+                <div class="h20 w20 corner500 bgWhite absolute" style="right:15px; top:50%; transform:translateY(-50%); border: 0.5px rgb(9, 27, 163) solid; display:flex; align-items:center; justify-content:center;">
+                    <p class="size12 str600" style="color: rgb(9, 27, 163); margin:0;"><%= requestCount > 9 ? '9+' : requestCount %></p>
+                </div>
+                <% } %>
+            </a>
+
             <a href="/v2" class="nav mnav <% if ( active === 'v2' ) { %> active <% } %>"><i class="fa-solid fa-stethoscope"></i>Visits</a>
 
 

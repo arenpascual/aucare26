@@ -54,18 +54,18 @@
     </section>
 <% layout('template') %>
 
-<div class="width35 col padding10 gap10 justifyStart alignStart">
+<div class="width35 col padding10 gap10 justifyStart alignStart  height0">
     <a href="/h" class="nav"><i class="fas fa-chevron-left"></i> Back</a>
-    <div class="shadow1 col porcelain gap15 corner10 padding20 index100 height0 alignStart bgSoft justifyStart">
+    <div class="shadow1 col porcelain gap15 corner10 padding20 index100 alignStart bgSoft justifyStart overflow-y2">
         <p class="size20 str500">Notifications</p>
 
         <% if (notifications && notifications.length > 0) { %>
             <% notifications.forEach(n => { %>
                 <a class="notif-item <%= n.read ? 'bgSoft' : 'bgWhite' %> width100 padding10 corner10 justifyStart gap10 relative"
-                   href="javascript:void(0)"
-                   data-id="<%= n._id %>"
-                   data-link="<%= n.link || '/h' %>"
-                   style="cursor:pointer;">
+                    href="javascript:void(0)"
+                    data-id="<%= n._id %>"
+                    data-link="<%= n.link || '/h' %>"
+                    style="cursor:pointer;">
                     <% if (!n.read) { %>
                         <div class="bgBlue200 absolute top5 right5 height0 width0 corner10 padding5">New!</div>
                     <% } %>

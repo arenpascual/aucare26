@@ -207,6 +207,24 @@ app.use((req, res, next) => {
     console.log(`🌀 Global variables ready `);
     next();
 });
+// Request Count Badge (para sa bilog sa sidebar)
+app.use(async (req, res, next) => {
+    try {
+        if (req.session && req.session.user) {
+            res.locals.requestCount = await Visits.countDocuments({
+                archive: false,
+                verify: true,
+                status: 'Pending'
+            });
+        } else {
+            res.locals.requestCount = 0;
+        }
+    } catch (err) {
+        console.error('Request Count Error:', err.message);
+        res.locals.requestCount = 0;
+    }
+    next();
+});
 
 // Configure Cloudinary
 cloudinary.config({
@@ -1367,14 +1385,36 @@ app.get('/proceed-request/:id', async (req, res) => {
             verify: false
         }, { new: true });
 
-        // ✅ Notification
+        // ✅ Notification (in-app)
         if (visit) {
             await Notification.create({
                 who: visit.patient,
                 message: 'You may now proceed to the clinic.',
                 type: 'visit',
-                link: `/vv1/${visit._id}`   // <-- IDAGDAG
+                link: `/vv1/${visit._id}`
             });
+
+            // ✅ Email Notification
+            try {
+                const patient = await Users.findById(visit.patient);
+                if (patient && patient.email) {
+                    const mailOptions = {
+                        from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+                        to: patient.email,
+                        subject: "AuCare: You May Now Proceed to the Clinic",
+                        html: `
+                            <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                                <h2 style="color: #0056b3; text-align: center;">Visit Update</h2>
+                                <p>Hello ${patient.fName},</p>
+                                <p>Your clinic visit request has been reviewed. You may now proceed to the clinic.</p>
+                                <p style="color: red;">Please head to the clinic at your earliest convenience.</p>
+                            </div>`
+                    };
+                    await transporter.sendMail(mailOptions);
+                }
+            } catch (mailErr) {
+                console.error('Proceed Request Email Error:', mailErr.message);
+            }
         }
         res.redirect('/r');
     } catch (err) {
@@ -1458,13 +1498,34 @@ app.post('/successVisit/:id', async (req, res) => {
         visit.status = 'Attended';
         await visit.save();
 
-        // Notification
+        // Notification (in-app)
         await Notification.create({
             who: visit.patient,
             message: 'Your visit has been attended.',
             type: 'visit',
             link: `/vv1/${visit._id}`
         });
+
+        // ✅ Email Notification
+        try {
+            const patient = await Users.findById(visit.patient);
+            if (patient && patient.email) {
+                const mailOptions = {
+                    from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+                    to: patient.email,
+                    subject: "AuCare: Your Visit Has Been Attended",
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                            <h2 style="color: #0056b3; text-align: center;">Visit Completed</h2>
+                            <p>Hello ${patient.fName},</p>
+                            <p>Your clinic visit has been marked as attended. Thank you for visiting AuCare.</p>
+                        </div>`
+                };
+                await transporter.sendMail(mailOptions);
+            }
+        } catch (mailErr) {
+            console.error('Success Visit Email Error:', mailErr.message);
+        }
 
         req.session.success = "Visit completed successfully.";
 
@@ -1476,28 +1537,6 @@ app.post('/successVisit/:id', async (req, res) => {
         res.redirect('back');
     }
 });
-
-//app.post('/successVisit/:id', async (req, res) => {
-//    try {
-//        const visit = await Visits.findByIdAndUpdate(req.params.id, {
-//            status: 'Attended',
-//        }, { new: true });
-//
-//        // ✅ Notification
-//        if (visit) {
-//            await Notification.create({
-//                who: visit.patient,
-//                message: 'Your visit has been attended.',
-//                type: 'visit',
-//                link: `/vv1/${visit._id}`
-//            });
-//        }
-//
-//        res.redirect(`/vv2/${req.params.id}`);
-//    } catch (err) {
-//        res.redirect('back');
-//    }
-//});
 
 // --- 2. TREATMENT (Update & Clear) ---
 app.post('/visit/update-treatment/:id', async (req, res) => {
