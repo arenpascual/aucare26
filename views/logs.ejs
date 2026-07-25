@@ -6,35 +6,108 @@
         <p class="size40 str400">Activity Logs</p>
     </div>
         <div class="width0 gap5">
-            <div class="selectBar w190"><i class="fas fa-filter"></i><select name="" id="">
-                <option value=""></i> Filter By</option>
-            </select></div>
+            <div class="selectBar w190"><i class="fas fa-filter"></i>
+                <select name="" id="dateFilter">
+                    <option value="all">Filter By</option>
+                    <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="thisWeek">This Week</option>
+                <option value="lastWeek">Last Week</option>
+                <option value="thisMonth">This Month</option>
+                <option value="lastMonth">Last Month</option>
+                <option value="thisYear">This Year</option>
+                <option value="lastYear">Last Year</option>
+                </select>
+            </div>
             <div class="searchBar">
                 <i class="fas fa-search"></i>
-                <input type="search" name="" id="">
+                <input type="search" id="logSearch" placeholder="Search name or activity...">
             </div>
         </div>
 </div>
 
-<div class="height90 col justifyStart padding10">
+<div class="height90 col justifyStart padding10 overflow-y1 block">
     <table>
-        <tbody>
-            <tr>
-                <td class="width15">Jan 25, 2025 8:00 AM</td>
-                <td class="width85">Kristel edit Mark Jess Information</td>
-            </tr>
-            <tr>
-                <td>July 25, 2025 8:00 AM</td>
-                <td>Lalaine edit Ryan Information</td>
-            </tr>
-            <tr>
-                <td>Dec 25, 2025 8:00 AM</td>
-                <td>Kristel Add Medicines</td>
-            </tr>
-            <tr>
-                <td>Nov 25, 2025 8:00 AM</td>
-                <td>Jane edit Aren Information</td>
-            </tr>
+        <tbody id="logsTableBody">
+            <% if (allLogs && allLogs.length > 0) { %>
+                <% allLogs.forEach(log => { %>
+                    <%
+                        const logName = log.who ? `${log.who.fName} ${log.who.lName}` : 'Unknown User';
+                        const logDateRaw = log.createdAt ? new Date(log.createdAt).toISOString() : '';
+                        const logDateDisplay = log.createdAt
+                            ? new Date(log.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+                            : 'N/A';
+                        const searchText = `${logName} ${log.what || ''}`.toLowerCase();
+                    %>
+                    <tr class="logRow" data-date="<%= logDateRaw %>" data-search="<%= searchText %>">
+                        <td class="width15"><%= logDateDisplay %></td>
+                        <td class="width85"><%= logName %> — <%= log.what %></td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="2" class="textCenter">No activity logs yet.</td>
+                </tr>
+            <% } %>
         </tbody>
     </table>
+    <p id="noResultsMsg" class="textCenter padding20 hidden">No matching logs found.</p>
 </div>
+
+<script>
+    const logSearchInput = document.getElementById('logSearch');
+    const dateFilterSelect = document.getElementById('dateFilter');
+    const logRows = document.querySelectorAll('.logRow');
+    const noResultsMsg = document.getElementById('noResultsMsg');
+
+    function isWithinRange(dateStr, range) {
+        if (range === 'all') return true;
+        if (!dateStr) return false;
+
+        const logDate = new Date(dateStr);
+        const now = new Date();
+
+        if (range === 'today') {
+            return logDate.getFullYear() === now.getFullYear()
+                && logDate.getMonth() === now.getMonth()
+                && logDate.getDate() === now.getDate();
+        }
+
+        if (range === 'week') {
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay());
+            startOfWeek.setHours(0, 0, 0, 0);
+            return logDate >= startOfWeek;
+        }
+
+        if (range === 'month') {
+            return logDate.getFullYear() === now.getFullYear()
+                && logDate.getMonth() === now.getMonth();
+        }
+
+        return true;
+    }
+
+    function applyFilters() {
+        const searchTerm = logSearchInput.value.trim().toLowerCase();
+        const dateRange = dateFilterSelect.value;
+        let visibleCount = 0;
+
+        logRows.forEach(row => {
+            const matchesSearch = !searchTerm || row.dataset.search.includes(searchTerm);
+            const matchesDate = isWithinRange(row.dataset.date, dateRange);
+
+            if (matchesSearch && matchesDate) {
+                row.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                row.classList.add('hidden');
+            }
+        });
+
+        noResultsMsg.classList.toggle('hidden', visibleCount !== 0);
+    }
+
+    logSearchInput.addEventListener('input', applyFilters);
+    dateFilterSelect.addEventListener('change', applyFilters);
+</script>

@@ -5,11 +5,13 @@ const logSchema = new mongoose.Schema({
   type: mongoose.Schema.Types.ObjectId,
   ref: 'user',
   required: true
-
  },
   what: { type: String, trim: true },
 
  archive: { type: Boolean, default: false },
  
+}, {
+  timestamps: true
 });
+
 module.exports = mongoose.model('log', logSchema);

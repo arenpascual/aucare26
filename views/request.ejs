@@ -22,39 +22,41 @@
 <div class="height90 col justifyStart">
     <div class="height10 justifyBetween">
         <div class="width0">
-            <div class="selectBar w190"><i class="fas fa-filter"></i><select name="" id="">
-                <option value=""></i> Filter By</option>
-            </select></div>
+            <div class="selectBar w190"><i class="fas fa-filter"></i>
+                <select name="" id="dateFilter">
+                    <option value="all">Filter By Date</option>
+                    <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="thisWeek">This Week</option>
+                <option value="lastWeek">Last Week</option>
+                <option value="thisMonth">This Month</option>
+                <option value="lastMonth">Last Month</option>
+                <option value="thisYear">This Year</option>
+                <option value="lastYear">Last Year</option>
+                </select>
+            </div>
         </div>
         <div class="width0 gap8 ">
-            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id=""></div>
+            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" id="requestSearch" placeholder="Search name, ID, complaint..."></div>
         </div>
     </div>
 
-    <section class="height90 bgGray200 corner12 col gap10 block overflow-y1 hidden">
-        <div class="height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10">
-                <p class="size14 absolute right15 top15">August 20, 2025</p>
-                <p class="size18 str500">Arenvie Pascual <span class="size12 border0 bgGreen100">Pending</span></p>
-                <p class="size14">01-2223-037426</p>
-                <p class="size14">4th Year &bull; Bachelor of Science in Information Technology</p>
-                <p class="size14">arbo.pascual.au@phinmaed.com</p>
-                <p class="size14 str500">Complaint: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">Headache</span></p>
-                <p class="size14 str500">Medicines: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">Paracetamol</span></p>
-                <div class="area0 absolute bottom15 right15 width0 height0 gap10">
-                <button href="javascript:void(0)" class="appBtn nav pnav w150">Proceed</button>
-                </div>
-        </div>
-    </section>
-
-<section class="height90 bgGray200 corner12 col gap10 block overflow-y1">
+<section class="height90 bgGray200 corner12 col gap10 block overflow-y1" id="requestList">
     <% if (allRequest && allRequest.length > 0) { %>
-        <% 
-           const pendingRequests = allRequest.filter(r => r.status.toLowerCase() === 'pending'); 
+        <%
+           const pendingRequests = allRequest.filter(r => r.status.toLowerCase() === 'pending');
         %>
 
         <% if (pendingRequests.length > 0) { %>
             <% pendingRequests.forEach(request => { %>
-                <div class="height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10">
+                <%
+                    const reqDateRaw = request.createdAt ? new Date(request.createdAt).toISOString() : '';
+                    const complaintText = request.complaints && request.complaints.length > 0
+                        ? request.complaints.map(c => c.type).join(', ')
+                        : (request.complaint || '');
+                    const searchText = `${request.patient.fName} ${request.patient.lName} ${request.patient.schoolId || ''} ${request.patient.email || ''} ${complaintText} ${request.concern || ''}`.toLowerCase();
+                %>
+                <div class="height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10 requestCard" data-date="<%= reqDateRaw %>" data-search="<%= searchText %>">
                     
                     <p class="size14 absolute right15 top15">
                         <%= request.createdAt ? new Date(request.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'No Date' %>
@@ -81,9 +83,7 @@
 
                     <p class="size14 str500" style="margin-top: 10px;">Complaint: 
                         <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">
-                            <%= request.complaints && request.complaints.length > 0 
-                                ? request.complaints.map(c => c.type).join(', ') 
-                                : request.complaint %> </span>
+                            <%= complaintText %> </span>
                     </p>
 
                     <p class="size14 str500" style="margin-top: 10px;">Concern: 
@@ -110,15 +110,75 @@
     <% } else { %>
         <div class="padding20 textCenter size16 colorPrimary">No requests found.</div>
     <% } %>
+    <p id="noResultsMsg" class="padding20 textCenter size16 colorPrimary hidden">No matching requests found.</p>
 </section>
 
 </div>
 
 
-
-
-
 <script>
+    const requestSearchInput = document.getElementById('requestSearch');
+    const dateFilterSelect = document.getElementById('dateFilter');
+    const requestCards = document.querySelectorAll('.requestCard');
+    const noResultsMsg = document.getElementById('noResultsMsg');
+
+    function isWithinRange(dateStr, range) {
+        if (range === 'all') return true;
+        if (!dateStr) return false;
+
+        const cardDate = new Date(dateStr);
+        const now = new Date();
+
+        if (range === 'today') {
+            return cardDate.getFullYear() === now.getFullYear()
+                && cardDate.getMonth() === now.getMonth()
+                && cardDate.getDate() === now.getDate();
+        }
+
+        if (range === 'week') {
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay());
+            startOfWeek.setHours(0, 0, 0, 0);
+            return cardDate >= startOfWeek;
+        }
+
+        if (range === 'month') {
+            return cardDate.getFullYear() === now.getFullYear()
+                && cardDate.getMonth() === now.getMonth();
+        }
+
+        return true;
+    }
+
+    function applyFilters() {
+        const searchTerm = requestSearchInput.value.trim().toLowerCase();
+        const dateRange = dateFilterSelect.value;
+        let visibleCount = 0;
+
+        requestCards.forEach(card => {
+            const matchesSearch = !searchTerm || card.dataset.search.includes(searchTerm);
+            const matchesDate = isWithinRange(card.dataset.date, dateRange);
+
+            if (matchesSearch && matchesDate) {
+                card.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+
+        if (noResultsMsg) {
+            noResultsMsg.classList.toggle('hidden', visibleCount !== 0);
+        }
+    }
+
+    if (requestSearchInput) {
+        requestSearchInput.addEventListener('input', applyFilters);
+    }
+    if (dateFilterSelect) {
+        dateFilterSelect.addEventListener('change', applyFilters);
+    }
+
     const editCard = document.getElementById('editCard');
     const editBtns = document.querySelectorAll('.editBtn');
     const closeBtn = document.querySelector('.closeBtn');
@@ -131,7 +191,9 @@
     });
 
     // Hide edit card when close button is clicked
-    closeBtn.addEventListener('click', () => {
-        editCard.classList.add('hidden');
-    });
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            editCard.classList.add('hidden');
+        });
+    }
 </script>

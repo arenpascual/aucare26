@@ -7,7 +7,11 @@
     <div class="width0 gap8 ">
         <div class="width0 relative height0 paddingTop5">
             <a href="/pd" class="nav pnav w140"> Pending Account </a>
-            <div class="h20 w20 corner500 bgWhite absolute right0 top0" style="border: 0.5px rgb(9, 27, 163) solid;"></div>
+            <% if (pendingCount > 0) { %>
+            <div class="h20 w20 corner500 bgWhite absolute right0 top0" style="border: 0.5px rgb(9, 27, 163) solid; display:flex; align-items:center; justify-content:center;">
+                <p class="size12 str600" style="color: rgb(9, 27, 163); margin:0;"><%= pendingCount > 9 ? '9+' : pendingCount %></p>
+            </div>
+            <% } %>
         </div>
         |
         <a href="/nu" class="nav pnav w100 marginTop5"> <i class="fas fa-plus"></i> New User</a>
@@ -23,11 +27,11 @@
             </select></div>
         </div>
         <div class="width0 gap8 ">
-            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id=""></div>
+            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id="userSearchInput" placeholder="Search name, ID, role, dept..."></div>
         </div>
     </div>
     <br>
-    <table>
+    <table id="userTable">
         <thead>
             <tr>
                 <th class="width10 bgTint10">#</th>
@@ -37,7 +41,7 @@
                 <th class="width25 bgTint10"><i class="marginRight5 fa-solid fa-building"></i>Department</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="userTableBody">
             <% if (allUsers && allUsers.length > 0) { %>
                 <% allUsers.forEach((user, index) => { %>
                     <tr>
@@ -55,4 +59,34 @@
             <% } %>
         </tbody>
     </table>
+    <p id="noResultsMsg" class="size14 gray hidden" style="padding: 15px 0;">No matching users found.</p>
 </div>
+
+<script>
+// =============================
+// LIVE SEARCH (User Management)
+// =============================
+const userSearchInput = document.getElementById('userSearchInput');
+const userTableBody = document.getElementById('userTableBody');
+const noResultsMsg = document.getElementById('noResultsMsg');
+
+if (userSearchInput && userTableBody) {
+    const allRows = Array.from(userTableBody.querySelectorAll('tr'));
+
+    userSearchInput.addEventListener('input', function () {
+        const query = this.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        allRows.forEach(row => {
+            const rowText = row.textContent.toLowerCase();
+            const matches = rowText.includes(query);
+            row.style.display = matches ? '' : 'none';
+            if (matches) visibleCount++;
+        });
+
+        if (noResultsMsg) {
+            noResultsMsg.classList.toggle('hidden', visibleCount > 0);
+        }
+    });
+}
+</script>

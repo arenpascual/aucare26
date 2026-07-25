@@ -18,12 +18,12 @@
             </select></div>
         </div>
         <div class="width0 gap8 ">
-            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id=""></div>
+            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id="pendingSearchInput" placeholder="Search name, ID, role, dept..."></div>
         </div>
     
     </div>
     <br>
-    <table>
+    <table id="pendingTable">
         <thead>
             <tr>
                 <th class="width10 bgTint10">#</th>
@@ -60,9 +60,36 @@
             <% } %>
         </tbody>
     </table>
+    <p id="noResultsMsg" class="size14 gray hidden" style="padding: 15px 0;">No matching pending accounts found.</p>
 </div>
 
 <script>
+// =============================
+// LIVE SEARCH (Pending Accounts)
+// =============================
+const pendingSearchInput = document.getElementById('pendingSearchInput');
+const pendingTableBody = document.getElementById('pendingTableBody');
+const noResultsMsg = document.getElementById('noResultsMsg');
+
+if (pendingSearchInput && pendingTableBody) {
+    pendingSearchInput.addEventListener('input', function () {
+        const query = this.value.trim().toLowerCase();
+        const rows = Array.from(pendingTableBody.querySelectorAll('tr'));
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const rowText = row.textContent.toLowerCase();
+            const matches = rowText.includes(query);
+            row.style.display = matches ? '' : 'none';
+            if (matches) visibleCount++;
+        });
+
+        if (noResultsMsg) {
+            noResultsMsg.classList.toggle('hidden', visibleCount > 0);
+        }
+    });
+}
+
 document.querySelectorAll('.approveBtn').forEach(btn => {
     btn.addEventListener('click', async function () {
         const id = this.dataset.id;

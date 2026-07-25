@@ -207,7 +207,6 @@ app.use((req, res, next) => {
     console.log(`🌀 Global variables ready `);
     next();
 });
-
 // Request Count Badge (para sa bilog sa sidebar)
 app.use(async (req, res, next) => {
     try {
@@ -1020,7 +1019,7 @@ app.post('/api/account/verify-password-otp', isLogin, async (req, res) => {
             return res.status(400).json({ success: false, message: "Current password is incorrect." });
         }
 
-        user.password = newPassword;
+        user.password = newPassword; s
         user.reset = false;
         await user.save();
 
@@ -1285,7 +1284,7 @@ app.post('/visitnow', async (req, res) => {
         const userId = req.session.user._id;
         const { concern, complaint, item, qty } = req.body;
 
-        // 0a. I-check kung bukas pa ang clinic (7:30 AM - 5:30 PM)
+         //0a. I-check kung bukas pa ang clinic (7:30 AM - 5:30 PM)
         const now = dayjs();
         const openTime = dayjs().hour(7).minute(30).second(0);
         const closeTime = dayjs().hour(17).minute(30).second(0);
@@ -1346,14 +1345,7 @@ app.post('/visitnow', async (req, res) => {
             await newDispense.save();
         }
 
-        // 4. I-record sa Activity Logs
-        await Logs.create({
-            who: userId,
-            what: `Submitted a visit request: ${concern || "Health Consultation"}`,
-            archive: false
-        });
-
-        // 5. Set success message sa session
+        // 4. Set success message sa session
         req.session.success = "Request Submitted Successfully!";
         res.redirect('/h');
 
@@ -1424,17 +1416,6 @@ app.post('/visitnow2', async (req, res) => {
         }
 
         // ==========================
-        // Log Activity
-        // ==========================
-        const patientUser = await Users.findById(patientId);
-
-        await Logs.create({
-            who: sessionUserId,
-            what: `Created a visit record for ${patientUser ? patientUser.fName + ' ' + patientUser.lName : 'a patient'}`,
-            archive: false
-        });
-
-        // ==========================
         // Success
         // ==========================
         req.session.success = "Request Submitted Successfully!";
@@ -1467,17 +1448,9 @@ app.get('/proceed-request/:id', async (req, res) => {
                 link: `/vv1/${visit._id}`
             });
 
-            // ✅ Log Activity
-            const patient = await Users.findById(visit.patient);
-
-            await Logs.create({
-                who: req.session.user._id,
-                what: `Approved visit request to proceed: ${patient ? patient.fName + ' ' + patient.lName : 'Unknown patient'}`,
-                archive: false
-            });
-
             // ✅ Email Notification
             try {
+                const patient = await Users.findById(visit.patient);
                 if (patient && patient.email) {
                     const mailOptions = {
                         from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
@@ -1516,13 +1489,6 @@ app.post('/visit/vitals/:id', async (req, res) => {
                 'temperature': temperature // Save temperature here
             }
         });
-
-        await Logs.create({
-            who: req.session.user._id,
-            what: `Updated vitals for visit ID: ${req.params.id}`,
-            archive: false
-        });
-
         res.redirect(`/vv2/${req.params.id}`);
     } catch (err) {
         console.error(err);
@@ -1540,13 +1506,6 @@ app.post('/visit/vitals/delete/:id', async (req, res) => {
                 temperature: '' // Clear temperature
             }
         });
-
-        await Logs.create({
-            who: req.session.user._id,
-            what: `Cleared vitals for visit ID: ${req.params.id}`,
-            archive: false
-        });
-
         res.redirect(`/vv2/${req.params.id}`);
     } catch (err) {
         res.redirect('back');
@@ -1601,17 +1560,9 @@ app.post('/successVisit/:id', async (req, res) => {
             link: `/vv1/${visit._id}`
         });
 
-        // ✅ Log Activity
-        const patient = await Users.findById(visit.patient);
-
-        await Logs.create({
-            who: req.session.user._id,
-            what: `Marked visit as Attended for ${patient ? patient.fName + ' ' + patient.lName : 'Unknown patient'}`,
-            archive: false
-        });
-
         // ✅ Email Notification
         try {
+            const patient = await Users.findById(visit.patient);
             if (patient && patient.email) {
                 const mailOptions = {
                     from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
@@ -1648,12 +1599,6 @@ app.post('/visit/update-treatment/:id', async (req, res) => {
             treatment: req.body.treatment,
         }, { new: true });
 
-        await Logs.create({
-            who: req.session.user._id,
-            what: `Updated treatment for visit ID: ${req.params.id}`,
-            archive: false
-        });
-
         res.redirect(`/vv2/${req.params.id}`);
     } catch (err) {
         res.redirect('back');
@@ -1663,13 +1608,6 @@ app.post('/visit/update-treatment/:id', async (req, res) => {
 app.post('/visit/treatment/delete/:id', async (req, res) => {
     try {
         await Visits.findByIdAndUpdate(req.params.id, { treatment: '', status: 'Proceed' });
-
-        await Logs.create({
-            who: req.session.user._id,
-            what: `Cleared treatment for visit ID: ${req.params.id}`,
-            archive: false
-        });
-
         res.redirect(`/vv2/${req.params.id}`);
     } catch (err) { res.redirect('back'); }
 });
@@ -1680,13 +1618,6 @@ app.post('/visit/add-medicine/:id', async (req, res) => {
         const { item, qty, unit, remarks } = req.body;
         const visit = await Visits.findById(req.params.id);
         await Dispense.create({ visitId: req.params.id, who: visit.patient, type: 'medicine', item, qty, unit, remarks });
-
-        await Logs.create({
-            who: req.session.user._id,
-            what: `Added medicine "${item}" (${qty} ${unit}) to visit ID: ${req.params.id}`,
-            archive: false
-        });
-
         res.redirect(`/vv2/${req.params.id}`);
     } catch (err) { res.redirect('back'); }
 });
@@ -1694,13 +1625,6 @@ app.post('/visit/add-medicine/:id', async (req, res) => {
 app.post('/visit/medicine/delete/:id', async (req, res) => {
     try {
         const item = await Dispense.findByIdAndDelete(req.params.id);
-
-        await Logs.create({
-            who: req.session.user._id,
-            what: `Removed medicine "${item ? item.item : 'Unknown'}" from visit ID: ${item ? item.visitId : req.params.id}`,
-            archive: false
-        });
-
         res.redirect(`/vv2/${item.visitId}`);
     } catch (err) { res.redirect('back'); }
 });
@@ -1709,13 +1633,6 @@ app.post('/visit/medicine/delete/:id', async (req, res) => {
 app.post('/visit/complaint/add/:id', async (req, res) => {
     try {
         await Complaint.create({ visitId: req.params.id, type: req.body.type });
-
-        await Logs.create({
-            who: req.session.user._id,
-            what: `Added complaint "${req.body.type}" to visit ID: ${req.params.id}`,
-            archive: false
-        });
-
         res.redirect(`/vv2/${req.params.id}`);
     } catch (err) { res.redirect('back'); }
 });
@@ -1723,13 +1640,6 @@ app.post('/visit/complaint/add/:id', async (req, res) => {
 app.post('/visit/complaint/delete/:id', async (req, res) => {
     try {
         const item = await Complaint.findByIdAndDelete(req.params.id);
-
-        await Logs.create({
-            who: req.session.user._id,
-            what: `Removed complaint "${item ? item.type : 'Unknown'}" from visit ID: ${item ? item.visitId : req.params.id}`,
-            archive: false
-        });
-
         res.redirect(`/vv2/${item.visitId}`);
     } catch (err) { res.redirect('back'); }
 });
@@ -1757,7 +1667,7 @@ app.post('/signup', async (req, res) => {
         // temporary password (issued on approval below).
         const placeholderPassword = crypto.randomBytes(16).toString('hex');
 
-        const newUser = await Users.create({
+        await Users.create({
             fName, mName, lName, xName,
             role,
             phone, gender, address, email: normalizedEmail,
@@ -1773,12 +1683,6 @@ app.post('/signup', async (req, res) => {
             access: 0,
             reset: false,
             dump: false
-        });
-
-        await Logs.create({
-            who: newUser._id,
-            what: `New account registered: ${newUser.fName} ${newUser.lName} (${newUser.email})`,
-            archive: false
         });
 
         return res.status(200).json({ success: true });

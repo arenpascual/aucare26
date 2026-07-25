@@ -5,32 +5,25 @@
     <div class="height0 corner15 col alignStart padding20 relative">
         <p class="size40">Welcome</p>
         <p class="size40" style="margin-top: -24px !important;"><%= user.fName.toUpperCase() %> <%= user.lName.toUpperCase() %>!</p>
-        <br>
-        <p class="size20" style="margin-top: -15px !important;">Need Care?</p>
+        
 
         <% if (!isClinicOpen) { %>
-            <a href="javascript:void(0)" class="nav pnav absolute bottom20 right20 width25"
-               style="opacity: 0.5; pointer-events: none;"
-               title="The clinic is closed. Clinic hours are 7:30 AM - 5:30 PM.">
-               Visit Now
-            </a>
-        <% } else if (hasActiveVisit) { %>
-            <a href="javascript:void(0)" class="nav pnav absolute bottom20 right20 width25"
-               style="opacity: 0.5; pointer-events: none;"
-               title="You already have a pending request. Please wait until it's attended.">
-               Visit Now
-            </a>
-        <% } else { %>
             <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20 width25">Visit Now</a>
+            <p class="size18 str400 noteBlue"><i class="fas fa-exclamation-circle"></i> Clinic is closed. Open 7:30 AM - 5:30 PM</p>
+        <% } else if (hasActiveVisit) { %>
+            <p class="size18 str400 noteBlue"><i class="fas fa-exclamation-circle"></i> You already have a pending request. Please wait for it to be attended.</p>
+        <% } else { %>
+            <br>
+            <p class="size20" style="margin-top: -15px !important;">Need Care?</p>
         <% } %>
     </div>
 
     <% if (!isClinicOpen || hasActiveVisit) { %>
         <p class="size12 red" style="padding: 0 20px; margin-top: -10px;">
             <% if (!isClinicOpen) { %>
-                Clinic is closed. Open 7:30 AM - 5:30 PM.
+                
             <% } else { %>
-                You already have a pending request. Please wait for it to be attended.
+                
             <% } %>
         </p>
     <% } %>
@@ -44,30 +37,26 @@
     </div>
 </div>
     <!-- TERMS AND CONDITIONS -->
-    <section class="shadow1 col absolute bgWhite gap15 corner10 padding20 index100 height0 width45 alignStart hidden" id="tnc">
+    <section class="shadow1 col absolute bgWhite gap15 corner20 padding30 index100 height0 width30 textCenter justifyCenter alignCenter hidden" id="tnc">
         <a href="" id="lgBtn" class="nav cnav absolute right20 top20"><i class="fas fa-times"></i></a>
-        <p class="size29 colorPrimary str600">Magandang AraU Students!</p>
-        <p class="size12 red" style="font-style: italic;">In accordance with RA 10173 (Data Privacy Act of 2012), all information collected by AU Care will be used exclusively for PHINMA AU South Campus clinic records and inventory purposes. Your data is strictly confidential and protected.</p>
-        <p class="size12">Important: Please Review Your Request Before submitting, please ensure you have selected the correct Concern and Complaint so our clinic team can assist you effectively:</p>
-        <p class="size12 str600">Concern Selection:</p>
-        <p class="size12">Select: <span class="str600">Rest/Observation</span> if you need to use a clinic bed or require a quiet space to rest.</p>
-        <p class="size12">Select: <span class="str600">Health Concern/Request Medicine or Supply</span>  if you are seeking specific medication or basic first aid.</p>
-        <p class="size12">Select: <span class="str600">Health Consultation</span>  if you need to speak directly with a health professional for advice.</p>
-        <p class="size12 str600">Complaint Details:</p>
-        <p class="size12">Please use the Complaint dropdown to accurately describe your current symptoms or the reason for your visit.</p>
-        <p class="size12 noteBlue"> <span class="str600">Note:</span> This form is for non-emergency clinic requests. If you are experiencing a medical emergency, please seek immediate assistance from the nearest staff member.</p>
-        <p class="size12">Do you wish to proceed with this form?</p>
+        <p class="size24 colorPrimary str600">Magandang AraU <%= user.fName %></p>
+        <p class="size16 textBalance">In accordance with RA 10173 (Data Privacy Act of 2012), all information collected by AU Care will be used exclusively for PHINMA AU South Campus clinic records and inventory purposes. Your data is strictly confidential and protected.</p>
+        
         <!-- ✅ CHECKBOX -->
         <div class="row gap10 alignCenter">
             <input type="checkbox" id="agreeCheck">
-            <label for="agreeCheck" class="size13 str500" style="margin-right: 58%;">
+            <label for="agreeCheck" class="size13 str500">
                 I agree to the Terms and Conditions
             </label>
         </div>
+        
+        <p class="size12 textBalance noteBlue"> <span class="str600">Before you proceed, </span>please be informed that this form is for non-emergency clinic requests. If you are experiencing a medical emergency, please seek immediate assistance from the nearest staff member.</p>
+
+        <br>
 
         <!-- ✅ BUTTON -->
         <a id="agreeBtn" class="nav pnav" href="#"
-        style="margin-left: 73%; width: 25%; opacity: 0.5; pointer-events: none;">
+        style="width: 70%; opacity: 0.5; pointer-events: none;">
         Proceed
         </a>
     </section>
@@ -76,7 +65,7 @@
     <div class="height0 width100 corner15 col alignStart porcelain padding20 gap10">
         <section class="padding0 justifyBetween">
         <p class="size20">Recents</p>
-        <a href="" class="size18">See All</a>
+        <a href="/sa" class="size18">See All</a>
         </section>
    <% if (recentVisits && recentVisits.length > 0) { %>
         <% recentVisits.forEach(v => { %>
@@ -106,8 +95,18 @@
 </div>
 
 
-<form action="/visitnow" method="POST" class="absolute translateCenter shadow3 width30 padding30 gap10 index500 height0 hidden" id="Consultationform">
-    <p class="size24">Consultation Request Form:</p>
+<form action="/visitnow" method="POST" class="absolute translateCenter shadow3 width40 padding30 gap10 index500 height0 hidden" id="Consultationform">
+    <p class="size24">Consultation Request Form</p>
+    <section class="col height0 borderPrimary corner15 alignStart">
+        <p class="size14 str600 marginBottom10">REQUEST GUIDELINES</p>
+        <p class="size12"><span class="str600 size12">Concern:</span> Select the option that best matches the purpose of your visit.</p>
+        <p class="size12"><span class="colorPrimary str600">&bull; Rest/Observation</span> For students who need to rest or use a clinic bed.</p>
+        <p class="size12"><span class="colorPrimary str600">&bull; Health Concern/Request Medicine or Supply</span> For first aid, basic medication, or medical supplies.</p>
+        <p class="size12"><span class="colorPrimary str600">&bull; Health Consultation</span> For consultation or assessment by the clinic staff.</p>
+        <br>
+        <p class="size12"><span class="str600 size12">Complaint:</span> If applicable, select the complaint that best describes your current symptoms or reason for visiting.</p>
+    </section>
+    <br>
     <div class="field">
         <label for="">Concern</label>
         <div class="selectBar">
@@ -173,11 +172,14 @@
             </select>
         </div>
     </div>
-    <div class="noteBlue">
-        <p class="size12">
-        <i class="fas fa-info-circle"></i> &nbsp; After submitting, your request will be reviewed by the clinic admin or nurse.
-    Please wait for approval before proceeding.</p>
+    <br>
+    <div class="noteBlue col textBalance">
+        <p class="str400"><span class="str600">Before You Submit, </span>Please review your selected Concern and Complaint to ensure your request is accurate.</p>
     </div>
+    <p class="str400 textCenter textBalance"><span class="str600">What Happens Next?</span> After submission, your request will be reviewed by the clinic staff. Please wait for approval before proceeding to the clinic.</p>
+    
+
+    <br>
 <section class="justifyBetween gap70 padding0">
     <div class="nav width100" id="closeForm">Cancel</div>
     <button type="submit" class="nav pnav width100">Submit</button>

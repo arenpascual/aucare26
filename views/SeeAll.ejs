@@ -1,0 +1,129 @@
+<% layout('template') %>
+
+
+<div class="col padding10 width35 justifyStart relative">
+    <div class="height0 corner15 col alignStart padding20 relative">
+        <p class="size40">Welcome</p>
+        <p class="size40" style="margin-top: -24px !important;"><%= user.fName.toUpperCase() %> <%= user.lName.toUpperCase() %>!</p>
+    </div>
+    <div class="height0 corner15 col alignStart bgWhite padding20">
+        <p class="size20">Services</p>
+        <p class="size20"><i class="fas fa-check-circle"></i> Free Basic Medication</p>
+        <p class="size20"><i class="fas fa-check-circle"></i> First Aid & Minor Injury</p>
+        <p class="size20"><i class="fas fa-check-circle"></i> Vital Signs Monitoring</p>
+        <p class="size20"><i class="fas fa-check-circle"></i> Rest & Recovery Area</p>
+        <p class="size20"><i class="fas fa-check-circle"></i> Free Medicine</p>
+    </div>
+</div>
+
+<div class="col width35 justifyStart padding40 ">
+    <div class="height100 corner15 col alignStart porcelain padding20 gap10 overflow-y1 block">
+        <section class="padding0 justifyStart marginBottom10">
+            <a href="/h" class="nav"><i class="fas fa-chevron-left"></i> Back to Home</a>
+        </section>
+        <p class="size30 str400 marginBottom10">
+            Visitation Record
+        </p>
+   <% if (allVisits && allVisits.length > 0) { %>
+        <% allVisits.forEach(v => { %>
+            <a href="/vv1/<%= v._id %>" class="width100 gap5 bgWhite corner10 shadow1 alignStart col relative padding10 marginBottom10">
+                <p class="size16 str5"><%= v.complaint %></p>
+                <p class="size12 str4 <%= v.status === 'Attended' ? 'noteGreen' : 'noteBlue' %>"><%= v.status %></p>
+                <p class="size12 gray absolute right10 top10">
+                    <%= new Date(v.createdAt).toLocaleString('en-US', { 
+                        month: 'short', day: 'numeric', year: 'numeric', 
+                        hour: 'numeric', minute: '2-digit' 
+                    }) %>
+                </p>
+            </a>
+        <% }) %>
+    <% } else { %>
+        <p class="size14 gray">No visit records yet.</p>
+    <% } %>
+    </div>
+    
+</div>
+
+
+
+
+<script>
+// =============================
+// SHOW MEDICINE FIELD
+// =============================
+const concern = document.getElementById("concernSelect");
+const medicineField = document.getElementById("medicineField");
+
+concern.addEventListener("change", function() {
+    if (this.value === "Health Concern / Request Medicines") {
+        medicineField.classList.remove("hidden");
+    } else {
+        medicineField.classList.add("hidden");
+    }
+});
+
+
+// =============================
+// BUTTONS & MODALS
+// =============================
+const formBtn = document.getElementById("formBtn");
+const tnc = document.getElementById("tnc");
+const consultationForm = document.getElementById("Consultationform");
+const closeForm = document.getElementById("closeForm");
+
+const agreeBtn = document.getElementById("agreeBtn");
+const agreeCheck = document.getElementById("agreeCheck");
+
+
+// =============================
+// STEP 1: CLICK "VISIT NOW"
+// =============================
+if (formBtn) {
+    formBtn.addEventListener("click", function(){
+        tnc.classList.remove("hidden");
+    });
+}
+
+
+// =============================
+// STEP 2: ENABLE PROCEED BUTTON
+// =============================
+agreeCheck.addEventListener("change", function(){
+    if(this.checked){
+        agreeBtn.style.pointerEvents = "auto";
+        agreeBtn.style.opacity = "1";
+    } else {
+        agreeBtn.style.pointerEvents = "none";
+        agreeBtn.style.opacity = "0.5";
+    }
+});
+
+
+// =============================
+// STEP 3: PROCEED TO FORM
+// =============================
+agreeBtn.addEventListener("click", function(e){
+    e.preventDefault();
+    tnc.classList.add("hidden");
+    consultationForm.classList.remove("hidden");
+});
+
+
+// =============================
+// CLOSE FORM
+// =============================
+closeForm.addEventListener("click", function(){
+    consultationForm.classList.add("hidden");
+});
+
+
+// =============================
+// NOTIFICATION
+// =============================
+const gotItBtn = document.getElementById("gotItBtn");
+const notification = document.getElementById("notificationBox");
+
+gotItBtn.addEventListener("click", function(){
+    notification.classList.add("hidden");
+});
+</script>
