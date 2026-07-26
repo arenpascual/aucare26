@@ -303,24 +303,27 @@
 
     <!-- LOGOUT CARD -->
     <section class="width25 bgWhite corner15 col padding20 shadow1 relative hidden" id="lgCard">
-
         <div class="nav cnavLG">
             <i class="fas fa-sign-out-alt"></i>
         </div>
-
         <br>
-
         <p class="size18 textCenter textBalance">
             Are you sure you want to Log Out?
         </p>
-
         <br>
-
         <section class="padding0 justifyBetween gap10">
             <a href="javascript:void(0)" class="nav width100" id="closeLogout">Cancel</a>
             <a href="/" class="nav pnav width100">Log Out</a>
         </section>
+    </section>
 
+    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="notificationBox">
+        <img class="h100 w100" src="/images/like.png" alt="">
+            <section class="padding0 col alignCenter">
+                <p class="size23 str500">Success</p>
+                <p class="size17">Your password has been changed successfully.</p>
+            </section>
+        <a class="nav w120 size15" href="javascript:void(0)" id="gotItBtn">Got It!</a>
     </section>
 
 </div>
@@ -335,6 +338,7 @@
     const otpResendRow = document.getElementById("otpResendRow");
     const passError = document.getElementById("passError");
     const getOtpBtn = document.getElementById("getOtpBtn");
+    const notificationBox = document.getElementById("notificationBox");
 
     const currentPasswordInput = document.getElementById("currentPassword");
     const newPasswordInput = document.getElementById("newPassword");
@@ -460,6 +464,7 @@
 
         passCard.classList.remove("hidden");
         lgCard.classList.add("hidden");
+        notificationBox.classList.add("hidden");
 
         clearError();
         currentPasswordInput.value = "";
@@ -475,6 +480,7 @@
 
         lgCard.classList.remove("hidden");
         passCard.classList.add("hidden");
+        notificationBox.classList.add("hidden");
 
     };
 
@@ -512,14 +518,20 @@
             const data = await res.json();
 
             if (data.success) {
-                alert("Password updated successfully!");
-                closeModal();
+                // Itago ang password form, ipakita ang notification popup
+                passCard.classList.add("hidden");
+                notificationBox.classList.remove("hidden");
             } else {
                 showError(data.message || "Failed to update password.");
             }
         } catch (err) {
             showError("Something went wrong. Please try again.");
         }
+    };
+
+    document.getElementById("gotItBtn").onclick = () => {
+        notificationBox.classList.add("hidden");
+        closeModal();
     };
 
     document.querySelectorAll(".toggle-password").forEach(icon => {
@@ -544,6 +556,7 @@
 
         passCard.classList.add("hidden");
         lgCard.classList.add("hidden");
+        notificationBox.classList.add("hidden");
 
         clearInterval(otpExpiryTimer);
 

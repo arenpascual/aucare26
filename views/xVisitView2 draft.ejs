@@ -258,55 +258,16 @@
 <div id="medicineModal" class="modal-overlay">
     <div class="modal-content glass bgWhite padding20 corner16 col gap15">
         <p class="size20 str600 colorPrimary">Dispense Medicine</p>
-
-        <% const availableMedicines = (typeof medicines !== 'undefined' ? medicines : []).filter(m => m.remaining > 0); %>
-
-        <% if (availableMedicines.length === 0) { %>
-            <div class="padding10 corner10 bgRed size14 str500 colorWhite">
-                <i class="fas fa-exclamation-triangle"></i> No medicines currently in stock.
+        <form action="/visit/add-medicine/<%= v._id %>" method="POST" class="col gap10 alignStart widthFull">
+            <input type="text" name="item" placeholder="Medicine Name" class="input widthFull" required>
+            <div class="row gap10 widthFull">
+                <input type="number" name="qty" placeholder="Qty" class="input width50" required>
+                <input type="text" name="unit" placeholder="Unit" class="input width50" required>
             </div>
-        <% } else { %>
-            <form action="/visit/add-medicine/<%= v._id %>" method="POST" class="col gap10 alignStart widthFull" id="dispenseMedicineForm">
-
-                <div class="col alignStart gap5 width100">
-                    <label class="size12 opacity50">Medicine Name</label>
-                    <div class="selectBar width100" style="width: 100% !important; min-width: 100%;">
-                        <select name="item" id="medicineSelect" class="input" required>
-                            <option value="" disabled selected>Select Medicine</option>
-                            <% availableMedicines.forEach(m => { %>
-                                <option
-                                    value="<%= m.name %>"
-                                    data-unit="<%= m.unit %>"
-                                    data-remaining="<%= m.remaining %>">
-                                    <%= m.name %><% if (m.brandName) { %> (<%= m.brandName %>)<% } %> — <%= m.remaining %> <%= m.unit %> left
-                                </option>
-                            <% }) %>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="row gap10 width100">
-                    <div class="col width50 alignStart gap5">
-                        <label class="size12 opacity50">Qty</label>
-                        <input type="number" name="qty" id="qtyInput" placeholder="Qty" class="input widthFull" min="1" required>
-                    </div>
-                    <div class="col width50 alignStart gap5">
-                        <label class="size12 opacity50">Unit</label>
-                        <input type="text" name="unit" id="unitInput" placeholder="Unit" class="input widthFull" readonly required>
-                    </div>
-                </div>
-                <div class="section justifyStart">
-                    <p id="qtyHint" class="size12 gray"></p>
-                </div>
-
-                <textarea name="remarks" class="input widthFull" placeholder="Instructions (e.g. 1 tab after meal)"></textarea>
-
-                <p id="dispenseError" class="size13" style="color:red; display:none;"></p>
-
-                <br>
-                <button type="submit" class="nav pnav pointer borderNone width100" id="dispenseSubmitBtn"><i class="fas fa-plus"></i> Add Medicine(s)</button>
-            </form>
-        <% } %>
+            <textarea name="remarks" class="input widthFull" placeholder="Instructions (e.g. 1 tab after meal)"></textarea>
+            <br>
+            <button type="submit" class="nav  colorPrimary pointer borderNone width60 marginLeft80">Add Medicines</button>
+        </form>
     </div>
 </div>
 
@@ -356,76 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
-
-<script>
-(function(){
-    const medicineSelect = document.getElementById('medicineSelect');
-    if (!medicineSelect) return; // no available medicines, form wasn't rendered
-
-    const qtyInput = document.getElementById('qtyInput');
-    const unitInput = document.getElementById('unitInput');
-    const qtyHint = document.getElementById('qtyHint');
-    const dispenseError = document.getElementById('dispenseError');
-    const form = document.getElementById('dispenseMedicineForm');
-
-    function getSelectedOption(){
-        return medicineSelect.options[medicineSelect.selectedIndex];
-    }
-
-    function showDispenseError(msg){
-        dispenseError.textContent = msg;
-        dispenseError.style.display = "block";
-    }
-    function clearDispenseError(){
-        dispenseError.style.display = "none";
-        dispenseError.textContent = "";
-    }
-
-    medicineSelect.addEventListener('change', () => {
-        const opt = getSelectedOption();
-        clearDispenseError();
-
-        if (!opt || !opt.value) {
-            unitInput.value = "";
-            qtyHint.textContent = "";
-            qtyInput.removeAttribute('max');
-            return;
-        }
-
-        const unit = opt.getAttribute('data-unit') || "";
-        const remaining = parseInt(opt.getAttribute('data-remaining') || "0", 10);
-
-        unitInput.value = unit;
-        qtyHint.textContent = `Available: ${remaining} ${unit}`;
-        qtyInput.setAttribute('max', remaining);
-        qtyInput.value = "";
-    });
-
-    form.addEventListener('submit', (e) => {
-        clearDispenseError();
-
-        const opt = getSelectedOption();
-        if (!opt || !opt.value) {
-            e.preventDefault();
-            return showDispenseError("Please select a medicine.");
-        }
-
-        const remaining = parseInt(opt.getAttribute('data-remaining') || "0", 10);
-        const qty = parseInt(qtyInput.value || "0", 10);
-
-        if (qty <= 0) {
-            e.preventDefault();
-            return showDispenseError("Please enter a valid quantity.");
-        }
-
-        if (qty > remaining) {
-            e.preventDefault();
-            return showDispenseError(`Only ${remaining} ${unitInput.value} left in stock.`);
-        }
-    });
-})();
-</script>
-
 <script>
     const successBtn = document.getElementById("successVisit");
 const successModal = document.getElementById("successModal");

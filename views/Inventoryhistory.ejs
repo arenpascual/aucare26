@@ -2,16 +2,25 @@
 
 <div class="height0 justifyStart">
     <div class="width40 relative gap5 justifyStart">
-    <a href="/st" class="nav cnav "><i class="fas fa-chevron-left"></i></a>
+        <a href="/st" class="nav cnav"><i class="fas fa-chevron-left"></i></a>
         <p class="size40 str400">Inventory History</p>
     </div>
 </div>
+
 <div class="height90 col justifyStart">
     <div class="height10 justifyBetween">
         <div class="width0">
-            <div class="selectBar w190"><i class="fas fa-filter"></i><select name="" id="">
-                <option value=""></i> Filter By</option>
-            </select></div>
+            <div class="selectBar w190">
+                <i class="fas fa-filter"></i>
+                <select id="typeFilter">
+                    <option value="">Filter By</option>
+                    <option value="medicine">Medicines</option>
+                    <option value="supply">Supplies</option>
+                </select>
+            </div>
+        </div>
+        <div class="width0 gap8">
+            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" id="searchInput" placeholder="Search item..."></div>
         </div>
     </div>
 
@@ -19,59 +28,58 @@
         <table class="bgSoft">
             <thead>
                 <tr>
-                    <th>
-                        Date and Time
-                    </th>
-                    <th>
-                        Type
-                    </th>
-                    <th>
-                        Name
-                    </th>
-                    <th>
-                        Employee
-                    </th>
-                    <th>
-                        Stock Before
-                    </th>
-                    <th>
-                        Stock After
-                    </th>
+                    <th>Date and Time</th>
+                    <th>Action</th>
+                    <th>Type</th>
+                    <th>Name</th>
+                    <th>Employee</th>
+                    <th>Stock Before</th>
+                    <th>Stock After</th>
                 </tr>
             </thead>
-            
-        <tbody>
-            <tr>
-                <td class="width15">Jan 25, 2025 8:00 AM</td>
-                <td class="width85">Medicines</td>
-                <td>Salbutamol</td>
-                <td>Cristel Dela Cruz</td>
-                <td>35</td>
-                <td>50</td>
-            </tr>
-            <tr>
-                <td class="width15">Jan 25, 2025 8:00 AM</td>
-                <td class="width85">Medicines</td>
-                <td>Salbutamol</td>
-                <td>Cristel Dela Cruz</td>
-                <td>35</td>
-                <td>50</td>
-            </tr>
-            <tr>
-                <td class="width15">Jan 25, 2025 8:00 AM</td>
-                <td class="width85">Medicines</td>
-                <td>Salbutamol</td>
-                <td>Cristel Dela Cruz</td>
-                <td>35</td>
-                <td>50</td>
-            </tr>
-            <tr>
-                <td class="width15">Jan 25, 2025 8:00 AM</td>
-                <td class="width85">Medicines</td>
-                <td>Salbutamol</td>
-                <td>Cristel Dela Cruz</td>
-                <td>35</td>
-                <td>50</td>
-            </tr>
-    </table>
+            <tbody id="historyBody">
+                <% if (history && history.length > 0) { %>
+                    <% history.forEach(item => { %>
+                        <tr data-type="<%= item.type %>" data-name="<%= item.name.toLowerCase() %>">
+                            <td class="width15"><%= new Date(item.createdAt).toLocaleString('en-US', { year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }) %></td>
+                            <td><%= item.action %></td>
+                            <td class="width85"><%= item.type === 'medicine' ? 'Medicines' : 'Supplies' %></td>
+                            <td><%= item.name %></td>
+                            <td><%= item.employeeName || 'N/A' %></td>
+                            <td><%= item.stockBefore %> <%= item.unit %></td>
+                            <td><%= item.stockAfter %> <%= item.unit %></td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+        <div id="emptyState" class="hidden" style="text-align:center; padding:40px;">
+            <p class="size16">No inventory history records found.</p>
+        </div>
+    </section>
 </div>
+
+<script>
+const typeFilter = document.getElementById('typeFilter');
+const searchInput = document.getElementById('searchInput');
+const rows = document.querySelectorAll('#historyBody tr');
+const emptyState = document.getElementById('emptyState');
+
+function applyFilters() {
+    const type = typeFilter.value;
+    const search = searchInput.value.toLowerCase().trim();
+    let visible = 0;
+    rows.forEach(row => {
+        const matchType = !type || row.dataset.type === type;
+        const matchSearch = !search || row.dataset.name.includes(search);
+        if (matchType && matchSearch) { row.style.display = ''; visible++; }
+        else row.style.display = 'none';
+    });
+    emptyState.classList.toggle('hidden', visible > 0 || rows.length === 0);
+}
+
+typeFilter.addEventListener('change', applyFilters);
+searchInput.addEventListener('input', applyFilters);
+
+if (rows.length === 0) emptyState.classList.remove('hidden');
+</script>

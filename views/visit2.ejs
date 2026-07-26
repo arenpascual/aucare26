@@ -202,33 +202,37 @@
     </div>
     <section class="gap10 hidden" id="medicineField">
     <div class="field">
-        <label for="">Type of Medicines <span class="gray inherit">( Optional )</span></label>
+        <label for="itemSelect">Type of Medicines <span class="gray inherit">( Optional )</span></label>
         <div class="selectBar">
-            <select name="item" id="">
-                <option value="" disabled selected >--Select--</option>
-                <option value="Carbocisteine" title="Hello">Carbocisteine (SOLMUX)</option>
-                <option value="Cetirizine" title="Hello">Cetirizine</option>
-                <option value="Cinnarizine" title="Hello">Cinnarizine</option>
-                <option value="Dicycloverine" title="Hello">Dicycloverine</option>
-                <option value="Hyoscine" title="Hello">Hyoscine (BUSCOPAN)</option>
-                <option value="Kremil-S" title="Hello">Kremil-S</option>
-                <option value="Loperamide" title="Hello">Loperamide (DIATABS)</option>
-                <option value="Mefenamic" title="Hello">Mefenamic Acid</option>
-                <option value="Neozep" title="Hello">Neozep</option>
-                <option value="Paracetamol" title="Hello">Paracetamol (BIOGESIC)</option>
-                <option value="Salbutamol Neb" title="Hello">Salbutamol Neb</option>
+            <select name="item" id="itemSelect">
+                <option value="" selected>--Select--</option>
+                <% const availableMedicines = (typeof medicines !== 'undefined' ? medicines : []).filter(m => m.remaining > 0); %>
+                <% if (availableMedicines.length === 0) { %>
+                    <option value="" disabled>No medicines currently in stock</option>
+                <% } else { %>
+                    <% availableMedicines.forEach(m => { %>
+                        <option
+                            value="<%= m.name %>"
+                            data-remaining="<%= m.remaining %>"
+                            title="<%= m.remaining %> <%= m.unit %> available">
+                            <%= m.name %><% if (m.brandName) { %> (<%= m.brandName %>)<% } %>
+                        </option>
+                    <% }) %>
+                <% } %>
             </select>
         </div>
+        <% if (availableMedicines.length === 0) { %>
+            <p class="size12" style="color:red;">No medicines currently in stock.</p>
+        <% } %>
     </div>
     <div class="field">
-        <label for="">Quantity</label>
+        <label for="qtySelect">Quantity</label>
         <div class="selectBar">
-            <select name="qty" id="">
-                <option value="" >--Select--</option>
-                <option value="1" title="Minimum">1</option>
-                <option value="2" title="Maximum">2</option>
+            <select name="qty" id="qtySelect">
+                <option value="" selected>--Select--</option>
             </select>
         </div>
+        <p id="qtyStockHint" class="size12 gray"></p>
     </div>
 
     </section>
@@ -295,6 +299,42 @@ concern.addEventListener("change", function() {
         medicineField.classList.add("hidden");
     }
 });
+
+// =============================
+// MEDICINE ITEM -> DYNAMIC QTY OPTIONS BASED ON STOCK
+// =============================
+const itemSelect = document.getElementById("itemSelect");
+const qtySelect = document.getElementById("qtySelect");
+const qtyStockHint = document.getElementById("qtyStockHint");
+
+if (itemSelect && qtySelect) {
+    itemSelect.addEventListener("change", function() {
+        const opt = itemSelect.options[itemSelect.selectedIndex];
+        const remaining = parseInt(opt.getAttribute("data-remaining") || "0", 10);
+
+        // Reset ang quantity dropdown
+        qtySelect.innerHTML = '<option value="" selected>--Select--</option>';
+
+        if (!opt.value || remaining <= 0) {
+            qtyStockHint.textContent = "";
+            return;
+        }
+
+        // Max 2 per request, pero hindi lalampas sa available stock
+        const maxOption = Math.min(remaining, 2);
+
+        for (let i = 1; i <= maxOption; i++) {
+            const o = document.createElement("option");
+            o.value = i;
+            o.textContent = i;
+            if (i === 1) o.title = "Minimum";
+            if (i === maxOption) o.title = "Maximum";
+            qtySelect.appendChild(o);
+        }
+
+        qtyStockHint.textContent = `${remaining} in stock`;
+    });
+}
 </script>
 
 <script>

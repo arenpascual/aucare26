@@ -375,7 +375,7 @@ app.post('/login', async (req, res) => {
 });
 
 
-app.get('/h', isLogin, async (req, res) => {
+app.get('/h', isLogin, isStocks, async (req, res) => {
     try {
         const recentVisits = await Visits.find({
             patient: req.session.user._id,
@@ -490,11 +490,63 @@ app.get('/p', isLogin, async (req, res) => {
     res.render('profile', { title: 'Profile', active: 'p' });
 });
 
+// ============================================================
+// UPDATE PROFILE INFORMATION
+// ============================================================
+app.post('/profile/update', isLogin, async (req, res) => {
+    try {
+        const {
+            fName,
+            mName,
+            lName,
+            xName,
+            email,
+            phone,
+            gender,
+            address,
+            schoolId
+        } = req.body;
+
+        const updatedUser = await Users.findByIdAndUpdate(
+            req.session.user._id,
+            {
+                fName,
+                mName,
+                lName,
+                xName,
+                email: email.trim().toLowerCase(),
+                phone,
+                gender,
+                address,
+                schoolId
+            },
+            { new: true }
+        );
+
+        // Update session para makita agad ang changes
+        req.session.user = updatedUser;
+
+        await Logs.create({
+            who: updatedUser._id,
+            what: `Updated profile information: ${updatedUser.fName} ${updatedUser.lName}`,
+            archive: false
+        });
+
+        req.session.success = 'Profile updated successfully.';
+        req.session.save(() => res.redirect('/p'));
+
+    } catch (err) {
+        console.error('Profile Update Error:', err.message);
+        req.session.error = 'Failed to update profile.';
+        req.session.save(() => res.redirect('/p'));
+    }
+});
+
 app.get('/v2', isVisit, isLogin, isUsers, async (req, res) => {
     res.render('visit2', { title: 'Visit2', active: 'v2' });
 });
 
-app.get('/vv2/:id', isLogin, itsVisit, async (req, res) => {
+app.get('/vv2/:id', isLogin, itsVisit,  isStocks, async (req, res) => {
     res.render('VisitView2', { title: 'Visit Details', active: 'v2' });
 });
 
@@ -661,35 +713,73 @@ app.post('/api/notifications/read/:id', isLogin, async (req, res) => {
 app.post('/new-employee', isLogin, async (req, res) => {
     try {
 
-        console.log('BODY RECEIVED:', req.body); // TEMPORARY DEBUG LINE
+        console.log("BODY RECEIVED:", req.body);
 
-        const { role, fName, mName, lName, xName, email, schoolId, eName, eAddress, ePhone } = req.body;
+        const {
+            role,
+            fName,
+            mName,
+            lName,
+            xName,
+            email,
+            schoolId,
+            phone,
+            gender,
+            address,
+            eName,
+            ePhone,
+            eAddress
+        } = req.body;
 
-        if (!role || !fName || !lName || !email) {
+        // Required Fields
+        if (
+            !role ||
+            !fName ||
+            !lName ||
+            !email ||
+            !phone ||
+            !gender ||
+            !address ||
+            !schoolId
+        ) {
             req.session.error = "Please fill in all required fields.";
             return req.session.save(() => res.redirect('/ne'));
         }
 
+        // Check existing email
         const normalizedEmail = email.trim().toLowerCase();
 
-        const emailExist = await Users.findOne({ email: normalizedEmail });
+        const emailExist = await Users.findOne({
+            email: normalizedEmail
+        });
+
         if (emailExist) {
             req.session.error = "That email is already registered.";
             return req.session.save(() => res.redirect('/ne'));
         }
 
+        // Generate temporary password
         const tempPassword = crypto.randomBytes(4).toString('hex');
 
+        // Create employee
         const newEmployee = await Users.create({
-            fName, mName, lName, xName,
             role,
+            fName,
+            mName,
+            lName,
+            xName,
             email: normalizedEmail,
             username: normalizedEmail,
             schoolId,
-            eName,
-            ePhone,
-            eAddress,
+            phone,
+            gender,
+            address,
+            eName: eName || "none",
+            ePhone: ePhone || "none",
+            eAddress: eAddress || "none",
+
             password: tempPassword,
+
             archive: false,
             verify: false,
             verifyAt: Date.now(),
@@ -700,43 +790,71 @@ app.post('/new-employee', isLogin, async (req, res) => {
             dump: false
         });
 
+        // Save Logs
         await Logs.create({
             who: req.session.user._id,
             what: `Created new employee account: ${newEmployee.username} (${newEmployee.fName} ${newEmployee.lName})`,
             archive: false
         });
 
-        const mailOptions = {
+        // Send Email
+        await transporter.sendMail({
             from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
             to: newEmployee.email,
             subject: "Your AuCare Employee Account",
             html: `
-                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
-                    <h2 style="color: #0056b3; text-align: center;">Account Created</h2>
-                    <p>Hello ${newEmployee.fName},</p>
-                    <p>An AuCare employee account has been created for you. Log in using your email and the temporary password below:</p>
-                    <p><strong>Email (Username):</strong> ${newEmployee.email}</p>
-                    <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 4px;">
+                <div style="font-family:Arial;padding:20px;max-width:600px;margin:auto">
+                    <h2>Welcome to AuCare!</h2>
+
+                    <p>Hello <b>${newEmployee.fName}</b>,</p>
+
+                    <p>Your employee account has been created successfully.</p>
+
+                    <p><b>Email:</b> ${newEmployee.email}</p>
+
+                    <p><b>Temporary Password:</b></p>
+
+                    <div style="
+                        background:#f5f5f5;
+                        padding:15px;
+                        text-align:center;
+                        font-size:28px;
+                        font-weight:bold;
+                        letter-spacing:5px;
+                        border-radius:8px;
+                    ">
                         ${tempPassword}
                     </div>
-                    <p style="color: red;">You'll be required to set a new password immediately after logging in.</p>
-                </div>`
-        };
-        await transporter.sendMail(mailOptions);
 
-        req.session.success = `Employee account for "${newEmployee.fName} ${newEmployee.lName}" has been created.`;
-        req.session.save(() => res.redirect('/e'));
+                    <br>
+
+                    <p style="color:red">
+                        You will be required to change your password after your first login.
+                    </p>
+
+                    <p>Thank you.</p>
+                </div>
+            `
+        });
+
+        req.session.success = `${newEmployee.fName} ${newEmployee.lName} has been added successfully.`;
+
+        return req.session.save(() => {
+            res.redirect('/e');
+        });
 
     } catch (err) {
-        console.error('New Employee Error:', err.message);
-        req.session.error = "Failed to create employee account. " + err.message;
-        req.session.save(() => res.redirect('/e'));
+
+        console.error(err);
+
+        req.session.error = err.message;
+
+        return req.session.save(() => {
+            res.redirect('/ne');
+        });
+
     }
 });
-
-
-
-
 
 
 app.get('/seed-admins', async (req, res) => {
@@ -1311,56 +1429,101 @@ app.post('/visitnow', async (req, res) => {
             return req.session.save(() => res.redirect('/h'));
         }
 
-        // 1. I-save ang Visit (Mother Record)
-        // Gumamit tayo ng default string kung sakaling walang complaint para hindi mag-error ang model validation
-        const newVisit = new Visits({
-            patient: userId,
-            concern: concern || "Health Consultation",
-            complaint: complaint || "No specific complaint",
-            status: 'Pending',
-            archive: false,
-            verify: true
-        });
-        const savedVisit = await newVisit.save();
+        // 0c. Kung may piniling gamot, i-check at i-deduct MUNA ang stock
+        // bago pa gumawa ng Visit record, para hindi tayo maiwan ng
+        // Visit na walang katumbas na na-deduct na stock kapag nabigo ito
+        let updatedStock = null;
+        const hasMedicineRequest = item && qty && item.trim() !== "" && Number(qty) > 0;
 
-        // 2. I-save ang Complaint sa sariling collection (kung may input ang user)
-        if (complaint && complaint.trim() !== "") {
-            const newComplaint = new Complaint({
-                visitId: savedVisit._id,
-                type: complaint
-            });
-            await newComplaint.save();
+        if (hasMedicineRequest) {
+            const quantity = Number(qty);
+
+            updatedStock = await Stocks.findOneAndUpdate(
+                {
+                    name: item,
+                    type: 'medicine',
+                    archive: false,
+                    remaining: { $gte: quantity } // dapat sapat ang stock
+                },
+                {
+                    $inc: { remaining: -quantity }
+                },
+                { new: true }
+            );
+
+            if (!updatedStock) {
+                const stockCheck = await Stocks.findOne({ name: item, type: 'medicine', archive: false });
+
+                if (!stockCheck) {
+                    req.session.error = `Medicine "${item}" is no longer available.`;
+                } else {
+                    req.session.error = `Not enough stock for "${item}". Only ${stockCheck.remaining} ${stockCheck.unit} left.`;
+                }
+
+                return req.session.save(() => res.redirect('/h'));
+            }
         }
 
-        // 3. I-save sa Dispense collection kung may piniling gamot at quantity
-        // Ginamit ang trim() para masigurong hindi lang spaces ang laman
-        if (item && qty && item.trim() !== "") {
-            const newDispense = new Dispense({
-                visitId: savedVisit._id,
+        try {
+            // 1. I-save ang Visit (Mother Record)
+            const newVisit = new Visits({
+                patient: userId,
+                concern: concern || "Health Consultation",
+                complaint: complaint || "No specific complaint",
+                status: 'Pending',
+                archive: false,
+                verify: true
+            });
+            const savedVisit = await newVisit.save();
+
+            // 2. I-save ang Complaint sa sariling collection (kung may input ang user)
+            if (complaint && complaint.trim() !== "") {
+                const newComplaint = new Complaint({
+                    visitId: savedVisit._id,
+                    type: complaint
+                });
+                await newComplaint.save();
+            }
+
+            // 3. I-save sa Dispense collection kung may piniling gamot at quantity
+            if (hasMedicineRequest && updatedStock) {
+                const newDispense = new Dispense({
+                    visitId: savedVisit._id,
+                    who: userId,
+                    type: 'medicine',
+                    item: item,
+                    qty: Number(qty),
+                    unit: updatedStock.unit // galing sa stock record, hindi sa hardcoded 'pcs'
+                });
+                await newDispense.save();
+            }
+
+            // 4. I-record sa Activity Logs
+            await Logs.create({
                 who: userId,
-                type: 'medicine',
-                item: item,
-                qty: Number(qty),
-                unit: 'pcs'
+                what: hasMedicineRequest
+                    ? `Submitted a visit request: ${concern || "Health Consultation"} (with ${qty} ${updatedStock.unit} of "${item}")`
+                    : `Submitted a visit request: ${concern || "Health Consultation"}`,
+                archive: false
             });
-            await newDispense.save();
+
+            // 5. Set success message sa session
+            req.session.success = "Request Submitted Successfully!";
+            res.redirect('/h');
+
+        } catch (innerErr) {
+            // Kung nabigo ang pag-save ng Visit/Complaint/Dispense PAGKATAPOS na-deduct na ang stock,
+            // ibalik ang stock para hindi mapunta sa limbo ang bawas
+            if (hasMedicineRequest && updatedStock) {
+                await Stocks.findByIdAndUpdate(updatedStock._id, { $inc: { remaining: Number(qty) } });
+            }
+            throw innerErr;
         }
-
-        // 4. I-record sa Activity Logs
-        await Logs.create({
-            who: userId,
-            what: `Submitted a visit request: ${concern || "Health Consultation"}`,
-            archive: false
-        });
-
-        // 5. Set success message sa session
-        req.session.success = "Request Submitted Successfully!";
-        res.redirect('/h');
 
     } catch (err) {
         console.error('Submission Error:', err.message);
         req.session.error = "An error occurred while submitting.";
-        res.redirect('/h');
+        req.session.save(() => res.redirect('/h'));
     }
 });
 
@@ -1381,64 +1544,106 @@ app.post('/visitnow2', async (req, res) => {
         const patientId = patient || sessionUserId;
 
         // ==========================
-        // Create Visit
+        // Check & Deduct Stock (kung may piniling gamot)
         // ==========================
-        const newVisit = new Visits({
-            patient: patientId,
-            concern: concern || "Health Consultation",
-            complaint: complaint || "No specific complaint",
-            status: "Proceed",
-            archive: false,
-            verify: false
-        });
+        let updatedStock = null;
+        const hasMedicineRequest = item && item.trim() !== "" && qty && Number(qty) > 0;
 
-        const savedVisit = await newVisit.save();
+        if (hasMedicineRequest) {
+            const quantity = Number(qty);
 
-        // ==========================
-        // Save Complaint
-        // ==========================
-        if (complaint && complaint.trim() !== "") {
-            await new Complaint({
-                visitId: savedVisit._id,
-                type: complaint
-            }).save();
+            updatedStock = await Stocks.findOneAndUpdate(
+                {
+                    name: item,
+                    type: 'medicine',
+                    archive: false,
+                    remaining: { $gte: quantity } // dapat sapat ang stock
+                },
+                {
+                    $inc: { remaining: -quantity }
+                },
+                { new: true }
+            );
+
+            if (!updatedStock) {
+                const stockCheck = await Stocks.findOne({ name: item, type: 'medicine', archive: false });
+
+                if (!stockCheck) {
+                    req.session.error = `Medicine "${item}" is no longer available.`;
+                } else {
+                    req.session.error = `Not enough stock for "${item}". Only ${stockCheck.remaining} ${stockCheck.unit} left.`;
+                }
+
+                return res.redirect("/v2");
+            }
         }
 
-        // ==========================
-        // Save Medicine Request
-        // ==========================
-        if (
-            item &&
-            item.trim() !== "" &&
-            qty &&
-            Number(qty) > 0
-        ) {
-            await new Dispense({
-                visitId: savedVisit._id,
-                who: patientId,
-                type: "medicine",
-                item,
-                qty: Number(qty),
-                unit: "pcs"
-            }).save();
+        try {
+            // ==========================
+            // Create Visit
+            // ==========================
+            const newVisit = new Visits({
+                patient: patientId,
+                concern: concern || "Health Consultation",
+                complaint: complaint || "No specific complaint",
+                status: "Proceed",
+                archive: false,
+                verify: false
+            });
+
+            const savedVisit = await newVisit.save();
+
+            // ==========================
+            // Save Complaint
+            // ==========================
+            if (complaint && complaint.trim() !== "") {
+                await new Complaint({
+                    visitId: savedVisit._id,
+                    type: complaint
+                }).save();
+            }
+
+            // ==========================
+            // Save Medicine Request
+            // ==========================
+            if (hasMedicineRequest && updatedStock) {
+                await new Dispense({
+                    visitId: savedVisit._id,
+                    who: patientId,
+                    type: "medicine",
+                    item,
+                    qty: Number(qty),
+                    unit: updatedStock.unit // galing sa stock record, hindi hardcoded
+                }).save();
+            }
+
+            // ==========================
+            // Log Activity
+            // ==========================
+            const patientUser = await Users.findById(patientId);
+
+            await Logs.create({
+                who: sessionUserId,
+                what: hasMedicineRequest
+                    ? `Created a visit record for ${patientUser ? patientUser.fName + ' ' + patientUser.lName : 'a patient'} (with ${qty} ${updatedStock.unit} of "${item}")`
+                    : `Created a visit record for ${patientUser ? patientUser.fName + ' ' + patientUser.lName : 'a patient'}`,
+                archive: false
+            });
+
+            // ==========================
+            // Success
+            // ==========================
+            req.session.success = "Request Submitted Successfully!";
+            res.redirect("/v2");
+
+        } catch (innerErr) {
+            // Kung nabigo ang pag-save PAGKATAPOS na-deduct na ang stock,
+            // ibalik ang stock para hindi mapunta sa limbo ang bawas
+            if (hasMedicineRequest && updatedStock) {
+                await Stocks.findByIdAndUpdate(updatedStock._id, { $inc: { remaining: Number(qty) } });
+            }
+            throw innerErr;
         }
-
-        // ==========================
-        // Log Activity
-        // ==========================
-        const patientUser = await Users.findById(patientId);
-
-        await Logs.create({
-            who: sessionUserId,
-            what: `Created a visit record for ${patientUser ? patientUser.fName + ' ' + patientUser.lName : 'a patient'}`,
-            archive: false
-        });
-
-        // ==========================
-        // Success
-        // ==========================
-        req.session.success = "Request Submitted Successfully!";
-        res.redirect("/v2");
 
     } catch (err) {
         console.error("Submission Error:", err);
@@ -1675,34 +1880,111 @@ app.post('/visit/treatment/delete/:id', async (req, res) => {
 });
 
 // --- 3. MEDICINE (Add & Delete) ---
+
 app.post('/visit/add-medicine/:id', async (req, res) => {
     try {
         const { item, qty, unit, remarks } = req.body;
+        const quantity = parseInt(qty, 10);
+
+        // Basic validation
+        if (!item || !quantity || quantity <= 0) {
+            req.session.errorMsg = "Please select a valid medicine and quantity.";
+            return res.redirect('back');
+        }
+
         const visit = await Visits.findById(req.params.id);
-        await Dispense.create({ visitId: req.params.id, who: visit.patient, type: 'medicine', item, qty, unit, remarks });
+        if (!visit) {
+            req.session.errorMsg = "Visit not found.";
+            return res.redirect('back');
+        }
+
+        // Atomically deduct stock ONLY if enough remaining exists
+        // Prevents race conditions (two people dispensing at the same time)
+        const updatedStock = await Stocks.findOneAndUpdate(
+            {
+                name: item,
+                type: 'medicine',
+                archive: false,
+                remaining: { $gte: quantity } // must have enough stock
+            },
+            {
+                $inc: { remaining: -quantity }
+            },
+            { new: true }
+        );
+
+        // If null, either the medicine doesn't exist, or not enough stock remaining
+        if (!updatedStock) {
+            const stockCheck = await Stocks.findOne({ name: item, type: 'medicine', archive: false });
+
+            if (!stockCheck) {
+                req.session.errorMsg = `Medicine "${item}" not found in stocks.`;
+            } else {
+                req.session.errorMsg = `Not enough stock for "${item}". Only ${stockCheck.remaining} ${stockCheck.unit} left.`;
+            }
+
+            return res.redirect('back');
+        }
+
+        // Record the dispense using the actual unit from stocks (not user input)
+        await Dispense.create({
+            visitId: req.params.id,
+            who: visit.patient,
+            type: 'medicine',
+            item,
+            qty: quantity,
+            unit: updatedStock.unit,
+            remarks
+        });
 
         await Logs.create({
             who: req.session.user._id,
-            what: `Added medicine "${item}" (${qty} ${unit}) to visit ID: ${req.params.id}`,
+            what: `Added medicine "${item}" (${quantity} ${updatedStock.unit}) to visit ID: ${req.params.id}`,
             archive: false
         });
 
         res.redirect(`/vv2/${req.params.id}`);
-    } catch (err) { res.redirect('back'); }
+    } catch (err) {
+        console.error('Error in add-medicine route:', err.message);
+        res.redirect('back');
+    }
 });
 
 app.post('/visit/medicine/delete/:id', async (req, res) => {
     try {
-        const item = await Dispense.findByIdAndDelete(req.params.id);
+        const dispensedItem = await Dispense.findByIdAndDelete(req.params.id);
+
+        if (!dispensedItem) {
+            return res.redirect('back');
+        }
+
+        // Ibalik ang stock na nabawas noong na-dispense ito
+        const restoredStock = await Stocks.findOneAndUpdate(
+            {
+                name: dispensedItem.item,
+                type: 'medicine'
+                // hindi natin nilagyan ng archive:false dito, para kahit na-archive na yung
+                // stock item pagkatapos i-dispense, mababawi pa rin ang tamang quantity
+            },
+            {
+                $inc: { remaining: dispensedItem.qty }
+            },
+            { new: true }
+        );
 
         await Logs.create({
             who: req.session.user._id,
-            what: `Removed medicine "${item ? item.item : 'Unknown'}" from visit ID: ${item ? item.visitId : req.params.id}`,
+            what: restoredStock
+                ? `Removed medicine "${dispensedItem.item}" (${dispensedItem.qty} ${dispensedItem.unit}) from visit ID: ${dispensedItem.visitId} — stock restored (now ${restoredStock.remaining} ${restoredStock.unit})`
+                : `Removed medicine "${dispensedItem.item}" from visit ID: ${dispensedItem.visitId} — WARNING: matching stock item not found, stock not restored`,
             archive: false
         });
 
-        res.redirect(`/vv2/${item.visitId}`);
-    } catch (err) { res.redirect('back'); }
+        res.redirect(`/vv2/${dispensedItem.visitId}`);
+    } catch (err) {
+        console.error('Error in medicine delete route:', err.message);
+        res.redirect('back');
+    }
 });
 
 // --- 4. COMPLAINTS (Add & Delete) ---

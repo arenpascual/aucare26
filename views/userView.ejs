@@ -6,6 +6,13 @@
     .shape {
         clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 0% 100%);
     }
+        .profile-name{
+        width:100%;
+        text-align:center;
+        overflow: hidden;
+        font-weight:600;
+        margin-top:10px;
+    }
 </style>
 
 <div class=" gap10 polaroid alignStart">
@@ -13,8 +20,8 @@
         <a href="/um" class="nav"><i class="fas fa-chevron-left"></i> Return</a> 
         <div class="bgWhite corner15 justifyStart col padding20">
             <section class="col ">
-                <img class="h80 w80 hidden" src="/images/profile.png" alt="">
-                <p class="size28 colorPrimary">
+                <img class="h80 w80" src="/images/profile.png" alt="">
+                <p class="size28 colorPrimary profile-name">
                     <%= patient.fName %> <%= patient.mName ? patient.mName + ' ' : '' %><%= patient.lName %>
                 </p>
                 <p class="size16 blue"><%= patient.schoolId || '—' %></p>
