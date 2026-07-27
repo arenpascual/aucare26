@@ -1,7 +1,8 @@
 <% layout('layout') %>
 
 <div class="height10 justifyBetween">
-    <div class="width0">
+    <div class="width0 gap15">
+        <a href="/um" class="nav "><i class="fas fa-chevron-left"></i> Return</a>
         <p class="size40 str400">Pending Accounts</p>
     </div>
     <div class="width0 gap8 ">
@@ -43,13 +44,15 @@
                         <td><%= u.schoolId || '' %></td>
                         <td><%= u.role %></td>
                         <td><%= u.course || u.department || '' %></td>
-                        <td class="gap8">
-                            <a href="javascript:void(0)" class="approveBtn nav pnav" data-id="<%= u._id %>" title="Approve">
-                                <i class="fas fa-check"></i>
-                            </a>
-                            <a href="javascript:void(0)" class="rejectBtn nav" data-id="<%= u._id %>" title="Reject">
-                                <i class="fas fa-times"></i>
-                            </a>
+                        <td class="gap8 row">
+                            <section class="padding0 width100 gap10">
+                                <a href="javascript:void(0)" class="approveBtn nav pnav" data-id="<%= u._id %>" title="Approve">
+                                    <i class="fas fa-check"></i> Approve
+                                </a>
+                                <a href="javascript:void(0)" class="rejectBtn nav" data-id="<%= u._id %>" title="Reject">
+                                    <i class="fas fa-times"></i>Reject
+                                </a>
+                            </section>
                         </td>
                     </tr>
                 <% }) %>

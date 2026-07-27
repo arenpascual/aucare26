@@ -90,6 +90,12 @@
         color:red;
         display:none;
     }
+    .field-error{
+        color:red;
+        font-size:12px;
+        display:none;
+        margin-top:-5px;
+    }
     .profile-name{
     width:100%;
     text-align:center !important;
@@ -312,7 +318,7 @@
             </div>
         </section>
     </div>
-<form id="editForm" action="/profile/update" method="POST" class="width50 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;">
+<form id="editForm" action="/profile/update" method="POST" class="width50 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
     <p class="size30 str500">Edit Information</p>
 
     <section class="gap10">
@@ -323,17 +329,17 @@
 
         <div class="field">
             <label>Employee ID</label>
-            <input type="text" name="schoolId" value="<%= user.schoolId %>">
+            <input type="text" name="schoolId" id="editSchoolId" value="<%= user.schoolId %>" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
         </div>
     </section>
 
     <div class="field">
         <section class="gap10 justifyStart">
             <label>
-                <input type="radio" name="gender" value="Male" <%= user.gender === 'Male' ? 'checked' : '' %>> Male
+                <input type="radio" name="gender" value="Male" <%= user.gender === 'Male' ? 'checked' : '' %> required> Male
             </label>
             <label>
-                <input type="radio" name="gender" value="Female" <%= user.gender === 'Female' ? 'checked' : '' %>> Female
+                <input type="radio" name="gender" value="Female" <%= user.gender === 'Female' ? 'checked' : '' %> required> Female
             </label>
         </section>
     </div>
@@ -341,45 +347,47 @@
     <section class="gap10">
         <div class="field">
             <label>First Name</label>
-            <input type="text" name="fName" value="<%= user.fName %>">
+            <input type="text" name="fName" id="editFName" value="<%= user.fName %>" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
         </div>
 
         <div class="field">
             <label>Middle Name</label>
-            <input type="text" name="mName" value="<%= user.mName %>">
+            <input type="text" name="mName" id="editMName" value="<%= user.mName %>" maxlength="50" pattern="^[A-Za-z\s\-']*$" title="Letters, spaces, hyphens and apostrophes only">
         </div>
     </section>
 
     <section class="gap10">
         <div class="field">
             <label>Last Name</label>
-            <input type="text" name="lName" value="<%= user.lName %>">
+            <input type="text" name="lName" id="editLName" value="<%= user.lName %>" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
         </div>
 
         <div class="field">
             <label>Extension Name</label>
-            <input type="text" name="xName" value="<%= user.xName %>">
+            <input type="text" name="xName" id="editXName" value="<%= user.xName %>" maxlength="10" pattern="^[A-Za-z.\s]*$" title="e.g. Jr., Sr., III" placeholder="e.g. Jr., III">
         </div>
     </section>
 
     <section class="gap10">
         <div class="field">
             <label>Email</label>
-            <input type="email" name="email" value="<%= user.email %>">
+            <input type="email" name="email" id="editEmail" value="<%= user.email %>" maxlength="100" required>
         </div>
 
         <div class="field">
             <label>Contact Number</label>
-            <input type="text" name="phone" value="<%= user.phone %>">
+            <input type="tel" name="phone" id="editPhone" value="<%= user.phone %>" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="^09[0-9]{9}$" title="Enter an 11-digit PH mobile number starting with 09" required>
         </div>
     </section>
 
     <section>
         <div class="field">
             <label>Address</label>
-            <input type="text" name="address" value="<%= user.address %>">
+            <input type="text" name="address" id="editAddress" value="<%= user.address %>" maxlength="150" required>
         </div>
     </section>
+
+    <p id="editFormError" class="field-error"></p>
 
     <section class="gap20">
         <a href="javascript:void(0)" id="closeEdit" class="nav width100">Cancel</a>
@@ -717,6 +725,7 @@
 const editBtn = document.getElementById("editCard");
 const editForm = document.getElementById("editForm");
 const closeEdit = document.getElementById("closeEdit");
+const editFormError = document.getElementById("editFormError");
 
 editBtn.onclick = () => {
     editForm.classList.remove("hidden");
@@ -727,6 +736,83 @@ closeEdit.onclick = (e) => {
     editForm.classList.add("hidden");
 };
 
-    
+// ---- Live clamp: digits only, and cap length (para sa phone number) ----
+function digitsOnlyLive(input, maxLen){
+    if (!input) return; // huwag mag-error kung walang ganitong field
+    input.addEventListener('input', () => {
+        let raw = input.value.replace(/[^0-9]/g, '');
+        if (raw.length > maxLen) raw = raw.slice(0, maxLen);
+        input.value = raw;
+    });
+}
+
+// ---- Live clamp: letters, spaces, hyphens, apostrophes only (para sa pangalan) ----
+// Hindi na kelangan mag-type ng number sa mga name fields, kaagad na tatanggalin
+// ang number/symbol habang nagta-type ang user.
+function lettersOnlyLive(input, extraAllowedChars){
+    if (!input) return; // huwag mag-error kung walang ganitong field
+    const allowed = new RegExp(`[^A-Za-z\\s${extraAllowedChars || ''}]`, 'g');
+    input.addEventListener('input', () => {
+        const start = input.selectionStart;
+        const before = input.value;
+        const cleaned = before.replace(allowed, '');
+        if (cleaned !== before) {
+            input.value = cleaned;
+            const diff = before.length - cleaned.length;
+            const pos = Math.max(0, (start || 0) - diff);
+            input.setSelectionRange(pos, pos);
+        }
+    });
+    // hadlangan din ang paste ng number/invalid characters
+    input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        const cleanedText = text.replace(allowed, '');
+        const startPos = input.selectionStart;
+        const endPos = input.selectionEnd;
+        const newVal = input.value.slice(0, startPos) + cleanedText + input.value.slice(endPos);
+        input.value = newVal;
+    });
+}
+
+digitsOnlyLive(document.getElementById('editPhone'), 11);
+
+// Name fields sa Edit Information form: letters, spaces, hyphens, apostrophes lang
+lettersOnlyLive(document.getElementById('editFName'), '\\-\'');
+lettersOnlyLive(document.getElementById('editMName'), '\\-\'');
+lettersOnlyLive(document.getElementById('editLName'), '\\-\'');
+// Extension name: letters, dots, spaces lang (Jr., Sr., III)
+lettersOnlyLive(document.getElementById('editXName'), '.');
+
+function clearEditFormError(){
+    editFormError.style.display = "none";
+    editFormError.textContent = "";
+}
+
+function showEditFormError(msg){
+    editFormError.textContent = msg;
+    editFormError.style.display = "block";
+}
+
+// ---- I-validate ang lahat ng required/patterned fields bago mag-submit ----
+editForm.addEventListener('submit', function (e) {
+    clearEditFormError();
+
+    const inputs = editForm.querySelectorAll('input:not([disabled])');
+    for (const input of inputs) {
+        if (!input.checkValidity()) {
+            e.preventDefault();
+            input.reportValidity();
+            input.focus();
+            return;
+        }
+    }
+
+    const genderChecked = editForm.querySelector('input[name="gender"]:checked');
+    if (!genderChecked) {
+        e.preventDefault();
+        showEditFormError("Please select a gender.");
+    }
+});
 
     </script>

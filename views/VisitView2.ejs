@@ -205,34 +205,38 @@
             <p class="size20 str600 colorPrimary">Vital Signs</p>
             <% if(v.hBeat || v.bloodPressure?.systolic || v.temperature) { %>
                 <form action="/visit/vitals/delete/<%= v._id %>" method="POST" class="height0 width0">
-                    <button type="submit" class="nav red borderNone pointer size12">Clear All</button>
+                    <button type="submit" class="nav  borderNone pointer size12">Clear All</button>
                 </form>
             <% } %>
         </section>
 
-        <form action="/visit/vitals/<%= v._id %>" method="POST" class="col gap10 alignStart widthFull">
+        <form action="/visit/vitals/<%= v._id %>" method="POST" class="col gap10 alignStart widthFull" id="vitalsForm">
             <div class="row gap10 widthFull">
                 <div class="col widthFull alignStart gap5">
                     <label class="size12 opacity50">Blood Pressure (Sys/Dia)</label>
                     <div class="row gap10 widthFull">
-                        <input type="number" name="systolic" placeholder="120" class="input widthFull" value="<%= v.bloodPressure?.systolic %>">
-                        <input type="number" name="diastolic" placeholder="80" class="input widthFull" value="<%= v.bloodPressure?.diastolic %>">
+                        <input type="number" name="systolic" placeholder="120" class="input widthFull" min="40" max="300" step="1" inputmode="numeric" value="<%= v.bloodPressure?.systolic %>">
+                        <input type="number" name="diastolic" placeholder="80" class="input widthFull" min="20" max="200" step="1" inputmode="numeric" value="<%= v.bloodPressure?.diastolic %>">
                     </div>
                 </div>
             </div>
 
-            <div class="row gap10 widthFull">
+            <div class="row gap10 width100">
                 <div class="col width50 alignStart gap5">
                     <label class="size12 opacity50">Heart Rate (bpm)</label>
-                    <input type="number" name="hBeat" placeholder="72" class="input widthFull" value="<%= v.hBeat %>">
+                    <input type="number" name="hBeat" placeholder="72" class="input widthFull" min="20" max="250" step="1" inputmode="numeric" value="<%= v.hBeat %>">
                 </div>
                 <div class="col width50 alignStart gap5">
                     <label class="size12 opacity50">Temperature (°C)</label>
-                    <input type="text" name="temperature" placeholder="36.5" class="input widthFull" value="<%= v.temperature %>" required>
+                    <input type="number" name="temperature" placeholder="36.5" class="input widthFull" min="30" max="45" step="0.1" inputmode="decimal" value="<%= v.temperature %>" required>
                 </div>
             </div>
+            <p id="vitalsError" class="size12" style="color:red; display:none;"></p>
             <br>
-            <button type="submit" class="nav widthFull colorPrimary pointer borderNone marginT10 width60 marginLeft80">Update Vitals</button>
+            <section class="justifyBetween gap10">
+                <a href="" class="nav width50">Cancel</a>
+                <button type="submit" class="nav pnav pointer width50">Update Vitals</button>
+            </section>
         </form>
     </div>
 </div>
@@ -247,16 +251,19 @@
                 </form>
             <% } %>
         </section>
-        <form action="/visit/update-treatment/<%= v._id %>" method="POST" class="col gap10 widthFull">
-            <textarea name="treatment" class="input widthFull" rows="5" placeholder="Enter treatment..."><%= v.treatment %></textarea>
+        <form action="/visit/update-treatment/<%= v._id %>" method="POST" class="col gap10 widthFull" id="treatmentForm">
+            <textarea name="treatment" class="input widthFull" rows="5" placeholder="Enter treatment..." maxlength="1000" required><%= v.treatment %></textarea>
+            <p class="size12 gray textRight"><span id="treatmentCount">0</span>/1000</p>
+            <p id="treatmentError" class="size12" style="color:red; display:none;"></p>
             <br>
             <button type="submit" class="nav widthFull colorPrimary pointer borderNone width60 "> Save Treatment</button>
         </form>
     </div>
 </div>
 
-<div id="medicineModal" class="modal-overlay">
+<div id="medicineModal" class="modal-overlay absolute">
     <div class="modal-content glass bgWhite padding20 corner16 col gap15">
+                    <a href="" id="lgBtn" class="nav cnav absolute right10 top10"><i class="fas fa-times"></i></a>
         <p class="size20 str600 colorPrimary">Dispense Medicine</p>
 
         <% const availableMedicines = (typeof medicines !== 'undefined' ? medicines : []).filter(m => m.remaining > 0); %>
@@ -288,7 +295,7 @@
                 <div class="row gap10 width100">
                     <div class="col width50 alignStart gap5">
                         <label class="size12 opacity50">Qty</label>
-                        <input type="number" name="qty" id="qtyInput" placeholder="Qty" class="input widthFull" min="1" required>
+                        <input type="number" name="qty" id="qtyInput" placeholder="Qty" class="input widthFull" min="1" step="1" inputmode="numeric" required>
                     </div>
                     <div class="col width50 alignStart gap5">
                         <label class="size12 opacity50">Unit</label>
@@ -299,7 +306,7 @@
                     <p id="qtyHint" class="size12 gray"></p>
                 </div>
 
-                <textarea name="remarks" class="input widthFull" placeholder="Instructions (e.g. 1 tab after meal)"></textarea>
+                <textarea name="remarks" class="input widthFull" placeholder="Instructions (e.g. 1 tab after meal)" maxlength="300" required></textarea>
 
                 <p id="dispenseError" class="size13" style="color:red; display:none;"></p>
 
@@ -312,11 +319,42 @@
 
 <div id="complaintModal" class="modal-overlay">
     <div class="modal-content glass bgWhite padding20 corner16 col gap15">
-        <p class="size20 str600 colorPrimary ">Add Complaint</p>
-        <form action="/visit/complaint/add/<%= v._id %>" method="POST" class="col gap10 alignStart widthFull">
-            <input type="text" name="type" placeholder="e.g. Fever, Headache, Cough" class="input widthFull" required>
+        <p class="size20 str600 colorPrimary">Add Complaint</p>
+        <form action="/visit/complaint/add/<%= v._id %>" method="POST" class="col gap10 alignStart widthFull" id="complaintForm">
+            <div class="field widthFull">
+                <label for="complaintSelect" class="size12 opacity50">Complaint</label>
+                <div class="selectBar width100" style="width: 100% !important; min-width: 100%;">
+                    <select name="type" id="complaintSelect" class="input" required>
+                        <option value="" disabled selected>Select Complaint</option>
+                        <option value="Abdominal Pain Cramps">Abdominal pain/cramps</option>
+                        <option value="Allergy">Allergy</option>
+                        <option value="Body Muscle Pain">Body/Muscle pain</option>
+                        <option value="Colds">Colds</option>
+                        <option value="Cough">Cough</option>
+                        <option value="Difficulty of Breathing">Difficulty of Breathing</option>
+                        <option value="Dizziness">Dizziness</option>
+                        <option value="Dysmenorrhea Menstrual Cramps">Dysmenorrhea/Menstrual cramps</option>
+                        <option value="Fever">Fever</option>
+                        <option value="Headache">Headache</option>
+                        <option value="Hyperacidity">Hyperacidity</option>
+                        <option value="Lbm">LBM</option>
+                        <option value="Toothache">Toothache</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="othersFieldWrap" class="field widthFull" style="display:none;">
+                <label for="othersInput" class="size12 opacity50">Please specify</label>
+                <input type="text" name="typeOther" id="othersInput" placeholder="Specify complaint" class="input widthFull" maxlength="50">
+            </div>
+
+            <p id="complaintError" class="size12" style="color:red; display:none;"></p>
             <br>
-            <button type="submit" class="nav widthFull colorPrimary pointer borderNone width60 marginLeft75">Add Complaint</button>
+            <section class="justifyBetween gap10 width100">
+                <a href="" class="nav width50">Cancel</a>
+                <button type="submit" class="nav pnav pointer borderNone width50">Add Complaint</button>
+            </section>
         </form>
     </div>
 </div>
@@ -355,6 +393,207 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+</script>
+
+<script>
+(function(){
+    // ---- Vitals validation ----
+    const vitalsForm = document.getElementById('vitalsForm');
+    const vitalsError = document.getElementById('vitalsError');
+
+    if (vitalsForm) {
+        const systolicInput = vitalsForm.querySelector('[name="systolic"]');
+        const diastolicInput = vitalsForm.querySelector('[name="diastolic"]');
+        const hBeatInput = vitalsForm.querySelector('[name="hBeat"]');
+        const temperatureInput = vitalsForm.querySelector('[name="temperature"]');
+
+        // Live clamp: stop the value from ever exceeding min/max while typing
+        function clampLive(input, allowDecimal){
+            input.addEventListener('input', () => {
+                let raw = input.value;
+
+                // strip anything that isn't a digit, minus, or (optionally) a dot
+                raw = allowDecimal ? raw.replace(/[^0-9.]/g, '') : raw.replace(/[^0-9]/g, '');
+
+                // only one decimal point allowed
+                if (allowDecimal) {
+                    const parts = raw.split('.');
+                    if (parts.length > 2) raw = parts[0] + '.' + parts.slice(1).join('');
+                }
+
+                if (raw === '' || raw === '.') {
+                    input.value = raw;
+                    return;
+                }
+
+                const min = input.hasAttribute('min') ? Number(input.getAttribute('min')) : null;
+                const max = input.hasAttribute('max') ? Number(input.getAttribute('max')) : null;
+                const num = Number(raw);
+
+                if (max !== null && num > max) {
+                    // don't let them type past the max at all
+                    raw = String(max);
+                }
+                // don't force-clamp min while typing (e.g. typing "4" for "40" would get stuck),
+                // min is still checked on submit
+                input.value = raw;
+            });
+        }
+
+        clampLive(systolicInput, false);
+        clampLive(diastolicInput, false);
+        clampLive(hBeatInput, false);
+        clampLive(temperatureInput, true);
+
+        function showVitalsError(msg){
+            vitalsError.textContent = msg;
+            vitalsError.style.display = "block";
+        }
+        function clearVitalsError(){
+            vitalsError.style.display = "none";
+            vitalsError.textContent = "";
+        }
+
+        vitalsForm.addEventListener('submit', (e) => {
+            clearVitalsError();
+
+            const sys = systolicInput.value.trim();
+            const dia = diastolicInput.value.trim();
+            const hb = hBeatInput.value.trim();
+            const temp = temperatureInput.value.trim();
+
+            // If one of the BP fields is filled, the other is required too
+            if ((sys && !dia) || (dia && !sys)) {
+                e.preventDefault();
+                return showVitalsError("Please fill in both systolic and diastolic values.");
+            }
+
+            if (sys && (Number(sys) < 40 || Number(sys) > 300)) {
+                e.preventDefault();
+                return showVitalsError("Systolic must be between 40 and 300 mmHg.");
+            }
+            if (dia && (Number(dia) < 20 || Number(dia) > 200)) {
+                e.preventDefault();
+                return showVitalsError("Diastolic must be between 20 and 200 mmHg.");
+            }
+            if (sys && dia && Number(dia) >= Number(sys)) {
+                e.preventDefault();
+                return showVitalsError("Diastolic must be lower than systolic.");
+            }
+            if (hb && (Number(hb) < 20 || Number(hb) > 250)) {
+                e.preventDefault();
+                return showVitalsError("Heart rate must be between 20 and 250 bpm.");
+            }
+            if (!temp) {
+                e.preventDefault();
+                return showVitalsError("Temperature is required.");
+            }
+            if (Number(temp) < 30 || Number(temp) > 45) {
+                e.preventDefault();
+                return showVitalsError("Temperature must be between 30°C and 45°C.");
+            }
+        });
+    }
+
+    // ---- Treatment validation ----
+    const treatmentForm = document.getElementById('treatmentForm');
+    const treatmentError = document.getElementById('treatmentError');
+    const treatmentCount = document.getElementById('treatmentCount');
+
+    if (treatmentForm) {
+        const textarea = treatmentForm.querySelector('[name="treatment"]');
+
+        function updateTreatmentCount(){
+            treatmentCount.textContent = textarea.value.length;
+        }
+        updateTreatmentCount();
+        textarea.addEventListener('input', updateTreatmentCount);
+
+        treatmentForm.addEventListener('submit', (e) => {
+            treatmentError.style.display = "none";
+            const val = textarea.value.trim();
+            if (!val) {
+                e.preventDefault();
+                treatmentError.textContent = "Treatment details cannot be empty.";
+                treatmentError.style.display = "block";
+                return;
+            }
+            if (val.length > 1000) {
+                e.preventDefault();
+                treatmentError.textContent = "Treatment details must be 1000 characters or fewer.";
+                treatmentError.style.display = "block";
+            }
+        });
+    }
+
+    // ---- Complaint validation ----
+    const complaintForm = document.getElementById('complaintForm');
+    const complaintError = document.getElementById('complaintError');
+
+    if (complaintForm) {
+        const typeSelect = complaintForm.querySelector('[name="type"]');
+        const othersWrap = document.getElementById('othersFieldWrap');
+        const othersInput = document.getElementById('othersInput');
+        const pattern = /^[A-Za-z\s\-]+$/;
+
+        function clearComplaintError(){
+            complaintError.style.display = "none";
+            complaintError.textContent = "";
+        }
+
+        // Show/hide the "specify" field when "Others" is selected
+        typeSelect.addEventListener('change', () => {
+            clearComplaintError();
+            if (typeSelect.value === 'Others') {
+                othersWrap.style.display = 'flex';
+                othersInput.setAttribute('required', 'required');
+            } else {
+                othersWrap.style.display = 'none';
+                othersInput.removeAttribute('required');
+                othersInput.value = '';
+            }
+        });
+
+        complaintForm.addEventListener('submit', (e) => {
+            clearComplaintError();
+
+            const selected = typeSelect.value;
+
+            if (!selected) {
+                e.preventDefault();
+                complaintError.textContent = "Please select a complaint.";
+                complaintError.style.display = "block";
+                return;
+            }
+
+            if (selected === 'Others') {
+                const otherVal = othersInput.value.trim();
+                if (!otherVal) {
+                    e.preventDefault();
+                    complaintError.textContent = "Please specify the complaint.";
+                    complaintError.style.display = "block";
+                    return;
+                }
+                if (otherVal.length > 50) {
+                    e.preventDefault();
+                    complaintError.textContent = "Complaint must be 50 characters or fewer.";
+                    complaintError.style.display = "block";
+                    return;
+                }
+                if (!pattern.test(otherVal)) {
+                    e.preventDefault();
+                    complaintError.textContent = "Only letters, spaces and hyphens are allowed.";
+                    complaintError.style.display = "block";
+                    return;
+                }
+                // Send the custom text as "type" instead of the select, since
+                // a select's value can't be set to something outside its options.
+                typeSelect.removeAttribute('name');
+                othersInput.setAttribute('name', 'type');
+            }
+        });
+    }
+})();
 </script>
 
 <script>
@@ -401,6 +640,17 @@ document.addEventListener('DOMContentLoaded', () => {
         qtyInput.value = "";
     });
 
+    // Live clamp: block typing a qty greater than the remaining stock
+    qtyInput.addEventListener('input', () => {
+        let raw = qtyInput.value.replace(/[^0-9]/g, '');
+        const max = qtyInput.hasAttribute('max') ? parseInt(qtyInput.getAttribute('max'), 10) : null;
+
+        if (raw !== '' && max !== null && parseInt(raw, 10) > max) {
+            raw = String(max);
+        }
+        qtyInput.value = raw;
+    });
+
     form.addEventListener('submit', (e) => {
         clearDispenseError();
 
@@ -412,8 +662,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const remaining = parseInt(opt.getAttribute('data-remaining') || "0", 10);
         const qty = parseInt(qtyInput.value || "0", 10);
+        const remarks = form.querySelector('[name="remarks"]').value.trim();
 
-        if (qty <= 0) {
+        if (qty <= 0 || isNaN(qty)) {
             e.preventDefault();
             return showDispenseError("Please enter a valid quantity.");
         }
@@ -421,6 +672,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (qty > remaining) {
             e.preventDefault();
             return showDispenseError(`Only ${remaining} ${unitInput.value} left in stock.`);
+        }
+
+        if (!remarks) {
+            e.preventDefault();
+            return showDispenseError("Please enter dosage instructions/remarks.");
+        }
+
+        if (remarks.length > 300) {
+            e.preventDefault();
+            return showDispenseError("Instructions must be 300 characters or fewer.");
         }
     });
 })();

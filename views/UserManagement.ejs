@@ -6,87 +6,192 @@
     </div>
     <div class="width0 gap8 ">
         <div class="width0 relative height0 paddingTop5">
-            <a href="/pd" class="nav pnav w140"> Pending Account </a>
+            <a href="/pd" class="nav pnav w140">Pending Account</a>
             <% if (pendingCount > 0) { %>
-            <div class="h20 w20 corner500 bgWhite absolute right0 top0" style="border: 0.5px rgb(9, 27, 163) solid; display:flex; align-items:center; justify-content:center;">
-                <p class="size12 str600" style="color: rgb(9, 27, 163); margin:0;"><%= pendingCount > 9 ? '9+' : pendingCount %></p>
-            </div>
+                <div class="h20 w20 corner500 bgWhite absolute right0 top0" style="border:0.5px rgb(9,27,163) solid; display:flex; align-items:center; justify-content:center;">
+                    <p class="size12 str600" style="color:rgb(9,27,163); margin:0;">
+                        <%= pendingCount > 9 ? '9+' : pendingCount %>
+                    </p>
+                </div>
             <% } %>
         </div>
         |
-        <a href="/nu" class="nav pnav w100 marginTop5"> <i class="fas fa-plus"></i> New User</a>
+        <a href="/nu" class="nav pnav w100 marginTop5">
+            <i class="fas fa-plus"></i> New User
+        </a>
         |
         <a href="/ua" class="nav w100 marginTop5">Archive</a>
     </div>
 </div>
+
 <div class="height90 col justifyStart padding10">
+
     <div class="height0 justifyBetween">
-        <div class="width0">
-            <div class="selectBar w190"><i class="fas fa-filter"></i><select name="" id="">
-                <option value=""></i> Filter By</option>
-            </select></div>
-        </div>
-        <div class="width0 gap8 ">
-            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id="userSearchInput" placeholder="Search name, ID, role, dept..."></div>
-        </div>
+
+        <div class="width0 gap8">
+
+    <div class="selectBar w170">
+        <i class="fas fa-user-tag"></i>
+        <select id="roleFilter">
+            <option value="">All Roles</option>
+
+            <% [...new Set(allUsers.map(u => u.role).filter(Boolean))].sort().forEach(role => { %>
+                <option value="<%= role %>"><%= role %></option>
+            <% }) %>
+
+        </select>
     </div>
+
+    <div class="selectBar w200">
+        <i class="fas fa-building"></i>
+        <select id="departmentFilter">
+            <option value="">All Departments</option>
+
+            <% [...new Set(allUsers.map(u => (u.course || u.department)).filter(Boolean))].sort().forEach(dept => { %>
+                <option value="<%= dept %>"><%= dept %></option>
+            <% }) %>
+
+        </select>
+    </div>
+
+</div>
+
+        <div class="width0 gap8">
+            <div class="searchBar w220">
+                <i class="fas fa-search"></i>
+                <input
+                    type="search"
+                    id="userSearchInput"
+                    placeholder="Search..."
+                >
+            </div>
+        </div>
+
+    </div>
+
     <br>
+
     <table id="userTable">
         <thead>
             <tr>
                 <th class="width10 bgTint10">#</th>
-                <th class="width25 bgTint10"><i class="marginRight5 fa-solid fa-user"></i>Name</th>
-                <th class="width20 bgTint10"><i class="marginRight5 fa-solid fa-id-card"></i>School ID</th>
-                <th class="width20 bgTint10"><i class="marginRight5 fa-solid fa-user-gear"></i>Role</th>
-                <th class="width25 bgTint10"><i class="marginRight5 fa-solid fa-building"></i>Department</th>
+                <th class="width25 bgTint10">
+                    <i class="marginRight5 fa-solid fa-user"></i>Name
+                </th>
+                <th class="width20 bgTint10">
+                    <i class="marginRight5 fa-solid fa-id-card"></i>School ID
+                </th>
+                <th class="width20 bgTint10">
+                    <i class="marginRight5 fa-solid fa-user-gear"></i>Role
+                </th>
+                <th class="width25 bgTint10">
+                    <i class="marginRight5 fa-solid fa-building"></i>Department
+                </th>
             </tr>
         </thead>
+
         <tbody id="userTableBody">
+
             <% if (allUsers && allUsers.length > 0) { %>
-                <% allUsers.forEach((user, index) => { %>
+
+                <% allUsers.forEach((user,index)=>{ %>
+
                     <tr>
                         <td><%= index + 1 %></td>
-                        <td><a href="/uv/<%= user._id %>" class="underline navy"><%= user.fName %> <%= user.lName %></a></td>
+
+                        <td>
+                            <a href="/uv/<%= user._id %>" class="underline navy">
+                                <%= user.fName %> <%= user.lName %>
+                            </a>
+                        </td>
+
                         <td><%= user.schoolId || '—' %></td>
+
                         <td><%= user.role %></td>
+
                         <td><%= user.course || user.department || '—' %></td>
                     </tr>
+
                 <% }) %>
+
             <% } else { %>
+
                 <tr>
-                    <td colspan="5" class="center">No users found.</td>
+                    <td colspan="5" class="center">
+                        No users found.
+                    </td>
                 </tr>
+
             <% } %>
+
         </tbody>
+
     </table>
-    <p id="noResultsMsg" class="size14 gray hidden" style="padding: 15px 0;">No matching users found.</p>
+
+    <p id="noResultsMsg"
+       class="size14 gray hidden"
+       style="padding:15px 0;">
+       No matching users found.
+    </p>
+
 </div>
 
 <script>
-// =============================
-// LIVE SEARCH (User Management)
-// =============================
-const userSearchInput = document.getElementById('userSearchInput');
-const userTableBody = document.getElementById('userTableBody');
-const noResultsMsg = document.getElementById('noResultsMsg');
 
-if (userSearchInput && userTableBody) {
-    const allRows = Array.from(userTableBody.querySelectorAll('tr'));
+const searchInput = document.getElementById("userSearchInput");
+const roleFilter = document.getElementById("roleFilter");
+const departmentFilter = document.getElementById("departmentFilter");
+const tableBody = document.getElementById("userTableBody");
+const noResults = document.getElementById("noResultsMsg");
 
-    userSearchInput.addEventListener('input', function () {
-        const query = this.value.trim().toLowerCase();
-        let visibleCount = 0;
+const rows = [...tableBody.querySelectorAll("tr")];
 
-        allRows.forEach(row => {
-            const rowText = row.textContent.toLowerCase();
-            const matches = rowText.includes(query);
-            row.style.display = matches ? '' : 'none';
-            if (matches) visibleCount++;
-        });
+function filterUsers() {
 
-        if (noResultsMsg) {
-            noResultsMsg.classList.toggle('hidden', visibleCount > 0);
+    const keyword = searchInput.value.toLowerCase().trim();
+    const role = roleFilter.value;
+    const department = departmentFilter.value;
+
+    let visible = 0;
+
+    rows.forEach(row => {
+
+        const cells = row.querySelectorAll("td");
+
+        const name = cells[1].innerText.toLowerCase();
+        const schoolId = cells[2].innerText.toLowerCase();
+        const userRole = cells[3].innerText;
+        const userDepartment = cells[4].innerText;
+
+        const matchesSearch =
+            name.includes(keyword) ||
+            schoolId.includes(keyword) ||
+            userRole.toLowerCase().includes(keyword) ||
+            userDepartment.toLowerCase().includes(keyword);
+
+        const matchesRole =
+            role === "" || userRole === role;
+
+        const matchesDepartment =
+            department === "" || userDepartment === department;
+
+        row.style.display =
+            matchesSearch && matchesRole && matchesDepartment
+                ? ""
+                : "none";
+
+        if (matchesSearch && matchesRole && matchesDepartment) {
+            visible++;
         }
+
     });
+
+    noResults.classList.toggle("hidden", visible > 0);
+
 }
+
+searchInput.addEventListener("input", filterUsers);
+roleFilter.addEventListener("change", filterUsers);
+departmentFilter.addEventListener("change", filterUsers);
+
 </script>

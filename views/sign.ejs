@@ -90,6 +90,7 @@
       class="bgWhite shadow1 height0 gap10 padding15 width100 justifyStart">
             <p class="size20 str500">Sign Up</p>
 
+            
             <div class="form-section active" id="step-1">
                 <div class="field">
                     <label>Role</label>
@@ -98,42 +99,63 @@
                             <option value="" selected disabled>--Select--</option>
                             <option value="Student">Student</option>
                             <option value="Staff">Staff</option>
+                            <option value="Faculty">Faculty</option>
                         </select>
                     </div>
                 </div>
-                <div class="field"><label>First Name</label><input type="text" name="fName" required></div>
-                <div class="field"><label>Middle Name</label><input type="text" name="mName" ></div>
-                <div class="field"><label>Last Name</label><input type="text" name="lName" required></div>
-                <div class="field"><label>Extension Name</label><input type="text"name="xName" ></div>
-                <div class="field"><label>Date of Birth</label>
-    <div class="row gap5">
-        <div class="selectBar">
-            <select name="bMonth" required>
-            <option value="" selected disabled>--Month--</option>
-            <option value="1">01</option>
-            <option value="2">02</option>
-            <option value="3">03</option>
-            <option value="4">04</option>
-            <option value="5">05</option>
-            <option value="6">06</option>
-            <option value="7">07</option>
-            <option value="8">08</option>
-            <option value="9">09</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            </select>
-        </div>
-        <input type="text" name="bDay" placeholder="Day" required>
-        <div class="selectBar">
-            <select name="bYear" required>
-            <option value="" selected disabled>--Year--</option>
-            <option value="2005">2005</option>
-            </select>
-        </div>
-    </div>
-</div>
-                <div class="field"><label>Contact Number</label><input type="text"name="phone" required></div>
+                <div class="field">
+                    <label>First Name</label>
+                    <input type="text" name="fName" id="fName" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
+                </div>
+                <div class="field">
+                    <label>Middle Name</label>
+                    <input type="text" name="mName" id="mName" maxlength="50" pattern="^[A-Za-z\s\-']*$" title="Letters, spaces, hyphens and apostrophes only">
+                </div>
+                <div class="field">
+                    <label>Last Name</label>
+                    <input type="text" name="lName" id="lName" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
+                </div>
+                <div class="field">
+                    <label>Extension Name</label>
+                    <input type="text" name="xName" id="xName" maxlength="10" pattern="^[A-Za-z.\s]*$" title="e.g. Jr., Sr., III" placeholder="e.g. Jr., III">
+                </div>
+                <div class="field">
+                    <label>Date of Birth</label>
+                    <div class="row gap5">
+                        <div class="selectBar">
+                            <select name="bMonth" id="bMonth" required>
+                                <option value="" selected disabled>--Month--</option>
+                                <option value="1">01</option>
+                                <option value="2">02</option>
+                                <option value="3">03</option>
+                                <option value="4">04</option>
+                                <option value="5">05</option>
+                                <option value="6">06</option>
+                                <option value="7">07</option>
+                                <option value="8">08</option>
+                                <option value="9">09</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                        </div>
+                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" required>
+                        <div class="selectBar">
+                            <select name="bYear" id="bYear" required>
+                                <option value="" selected disabled>--Year--</option>
+                                <% const currentYear = new Date().getFullYear(); %>
+                                <% for (let y = currentYear - 10; y >= currentYear - 80; y--) { %>
+                                    <option value="<%= y %>"><%= y %></option>
+                                <% } %>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="field-error" id="dobError"></p>
+                </div>
+                <div class="field">
+                    <label>Contact Number</label>
+                    <input type="tel" name="phone" id="phoneInput" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="^09[0-9]{9}$" title="Enter an 11-digit PH mobile number starting with 09" required>
+                </div>
                 <div class="field">
                     <label>Gender</label>
                     <div class="selectBar">
@@ -160,9 +182,28 @@
             </div>
 
             <div class="form-section" id="step-2">
-                <div class="field"><label>Address</label><input type="text" name="address" required></div>
-                <div class="field"><label>Email</label><input type="text" name="email" required></div>
-                <div class="field"><label>School ID</label><input type="text" name="schoolId" required></div>
+                <div class="field">
+                    <label>Address</label>
+                    <div class="row gap5">
+                        <input type="text" name="province" id="province" placeholder="Province" maxlength="50" pattern="^[A-Za-z\s\-.']+$" title="Letters only" required>
+                        <input type="text" name="city" id="city" placeholder="City / Municipality" maxlength="50" pattern="^[A-Za-z\s\-.']+$" title="Letters only" required>
+                    </div>
+                    <div class="row gap5">
+                        <input type="text" name="barangay" id="barangay" placeholder="Barangay" maxlength="50" pattern="^[A-Za-z0-9\s\-.']+$" title="Letters and numbers only" required>
+                        <input type="text" name="street" id="street" placeholder="House No. / Street" maxlength="100" required>
+                    </div>
+                    <p class="field-error" id="addressError"></p>
+                    <!-- Auto-filled na buo address, ito yung ipapasa sa backend -->
+                    <input type="hidden" name="address" id="address">
+                </div>
+                <div class="field">
+                    <label>Email</label>
+                    <input type="email" name="email" id="email" maxlength="100" required>
+                </div>
+                <div class="field">
+                    <label>School ID</label>
+                    <input type="text" name="schoolId" id="schoolId" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
+                </div>
                 <div class="field">
                     <label>Campus</label>
                     <div class="selectBar">
@@ -186,8 +227,44 @@
                         </select>
                     </div>
                 </div>
-                <div class="field"><label>Course</label><input type="text" name="course"></div>
-                <div class="field"><label>Section</label><input type="text" name="section"></div>
+                <div class="field">
+                    <label>Course</label>
+                    <div class="selectBar">
+                        <select name="course" id="course" required>
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="BS Architecture">BS Architecture (BSArch)</option>
+                            <option value="BS Accountancy">BS Accountancy (BSA)</option>
+                            <option value="BS Accounting Information System">BS Accounting Information System (BSAIS)</option>
+                            <option value="BS Biology">BS Biology (BS Bio)</option>
+                            <option value="BS Business Administration">BS Business Administration (BSBA)</option>
+                            <option value="BS Civil Engineering">BS Civil Engineering (BSCE)</option>
+                            <option value="BS Computer Engineering">BS Computer Engineering (BSCpE)</option>
+                            <option value="BS Computer Science">BS Computer Science (BSCS)</option>
+                            <option value="BS Criminology">BS Criminology (BSCrim)</option>
+                            <option value="BS Dentistry">BS Dentistry (DMD)</option>
+                            <option value="BS Education">BS Education (BSEd)</option>
+                            <option value="BS Electrical Engineering">BS Electrical Engineering (BSEE)</option>
+                            <option value="BS Electronics Engineering">BS Electronics Engineering (BSECE)</option>
+                            <option value="BS Hospitality Management">BS Hospitality Management (BSHM)</option>
+                            <option value="BS Hotel and Restaurant Management">BS Hotel and Restaurant Management (BSHRM)</option>
+                            <option value="BS Information Systems">BS Information Systems (BSIS)</option>
+                            <option value="BS Information Technology">BS Information Technology (BSIT)</option>
+                            <option value="BS Industrial Engineering">BS Industrial Engineering (BSIE)</option>
+                            <option value="BS Mechanical Engineering">BS Mechanical Engineering (BSME)</option>
+                            <option value="BS Medical Technology">BS Medical Technology (BSMT)</option>
+                            <option value="BS Midwifery">BS Midwifery</option>
+                            <option value="BS Nursing">BS Nursing (BSN)</option>
+                            <option value="BS Pharmacy">BS Pharmacy</option>
+                            <option value="BS Physical Therapy">BS Physical Therapy (BSPT)</option>
+                            <option value="BS Psychology">BS Psychology (BSPsych)</option>
+                            <option value="BS Public Administration">BS Public Administration (BSPA)</option>
+                            <option value="BS Tourism Management">BS Tourism Management (BSTM)</option>
+                            <option value="Doctor of Medicine">Doctor of Medicine (MD)</option>
+                            <option value="Juris Doctor">Juris Doctor (JD)</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                </div>
 
                 <div class="pagination-buttons">
                     <div class="side-spacer">
@@ -210,7 +287,7 @@
                 <div class="field">
                     <label>Any Allergies to Medicines?</label>
                     <div class="selectBar">
-                        <select name="mAllergy">
+                        <select name="mAllergy" required>
                             <option value="" selected disabled>--Select--</option>
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
@@ -220,7 +297,7 @@
                 <div class="field">
                     <label>Any Food Allergies?</label>
                     <div class="selectBar">
-                        <select name="fAllergy">
+                        <select name="fAllergy" required>
                             <option value="" selected disabled>--Select--</option>
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
@@ -228,9 +305,19 @@
                     </div>
                 </div>
                 <br>
-                <div class="field"><label>Emergency Name</label><input type="text" name="eName" required></div>
-                <div class="field"><label>Emergency Contact</label><input type="text" name="ePhone" required></div>
-                <div class="field"><label>Emergency Address</label><input type="text" name="eAddress" required></div>
+                <p class="size15 str40 textCenter">Emergency Contact Person</p>
+                <div class="field">
+                    <label>Emergency Name</label>
+                    <input type="text" name="eName" id="eName" maxlength="100" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
+                </div>
+                <div class="field">
+                    <label>Emergency Contact</label>
+                    <input type="tel" name="ePhone" id="ePhoneInput" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="^09[0-9]{9}$" title="Enter an 11-digit PH mobile number starting with 09" required>
+                </div>
+                <div class="field">
+                    <label>Emergency Address</label>
+                    <input type="text" name="eAddress" maxlength="150" required>
+                </div>
 
 
                 <div class="pagination-buttons">
@@ -265,15 +352,160 @@
 </div>
 
 <script>
+(function(){
     const step1 = document.getElementById('step-1');
     const step2 = document.getElementById('step-2');
     const step3 = document.getElementById('step-3');
+    const bDayInput = document.getElementById('bDay');
+    const phoneInput = document.getElementById('phoneInput');
+    const ePhoneInput = document.getElementById('ePhoneInput');
+    const dobError = document.getElementById('dobError');
+
+    // ---- Live clamp: digits only, and cap length (para sa phone numbers) ----
+    function digitsOnlyLive(input, maxLen){
+        if (!input) return; // huwag mag-error kung walang ganitong field sa form
+        input.addEventListener('input', () => {
+            let raw = input.value.replace(/[^0-9]/g, '');
+            if (raw.length > maxLen) raw = raw.slice(0, maxLen);
+            input.value = raw;
+        });
+    }
+
+    // ---- Live clamp: letters, spaces, hyphens, apostrophes only (para sa pangalan) ----
+    // Hindi na kelangan mag-type ng number sa mga name fields, kaagad na tatanggalin
+    // ang number/symbol habang nagta-type ang user.
+    function lettersOnlyLive(input, extraAllowedChars){
+        if (!input) return; // huwag mag-error kung walang ganitong field sa form
+        // extraAllowedChars = regex character class content na dagdag pa sa letters/space
+        const allowed = new RegExp(`[^A-Za-z\\s${extraAllowedChars || ''}]`, 'g');
+        input.addEventListener('input', () => {
+            const start = input.selectionStart;
+            const before = input.value;
+            const cleaned = before.replace(allowed, '');
+            if (cleaned !== before) {
+                input.value = cleaned;
+                // ayusin ang cursor position pagkatapos matanggal ang invalid char
+                const diff = before.length - cleaned.length;
+                const pos = Math.max(0, (start || 0) - diff);
+                input.setSelectionRange(pos, pos);
+            }
+        });
+        // hadlangan din ang paste ng number/invalid characters
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            const cleanedText = text.replace(allowed, '');
+            const startPos = input.selectionStart;
+            const endPos = input.selectionEnd;
+            const newVal = input.value.slice(0, startPos) + cleanedText + input.value.slice(endPos);
+            input.value = newVal;
+        });
+    }
+
+    // ---- Live clamp: letters and numbers only (para sa text fields na dapat walang special symbols) ----
+    function alphaNumericLive(input, extraAllowedChars){
+        if (!input) return; // huwag mag-error kung walang ganitong field sa form
+        const allowed = new RegExp(`[^A-Za-z0-9\\s${extraAllowedChars || ''}]`, 'g');
+        input.addEventListener('input', () => {
+            const start = input.selectionStart;
+            const before = input.value;
+            const cleaned = before.replace(allowed, '');
+            if (cleaned !== before) {
+                input.value = cleaned;
+                const diff = before.length - cleaned.length;
+                const pos = Math.max(0, (start || 0) - diff);
+                input.setSelectionRange(pos, pos);
+            }
+        });
+    }
+
+    digitsOnlyLive(phoneInput, 11);
+    digitsOnlyLive(ePhoneInput, 11);
+
+    // Name fields: letters, spaces, hyphens, apostrophes lang - walang number
+    lettersOnlyLive(document.getElementById('fName'), '\\-\'');
+    lettersOnlyLive(document.getElementById('mName'), '\\-\'');
+    lettersOnlyLive(document.getElementById('lName'), '\\-\'');
+    lettersOnlyLive(document.getElementById('eName'), '\\-\'');
+    // Extension name: letters, dots, spaces lang (Jr., Sr., III)
+    lettersOnlyLive(document.getElementById('xName'), '.');
+
+    // Address parts: letters lang ang Province/City, letters+numbers ang Barangay
+    lettersOnlyLive(document.getElementById('province'), '\\-.\'');
+    lettersOnlyLive(document.getElementById('city'), '\\-.\'');
+    alphaNumericLive(document.getElementById('barangay'), '\\-.\'');
+
+    // Kung meron mang text-input version ng section/course sa ibang page, gagana rin ito
+    // dahil may null-guard na; hindi na sila mag-e-error kung wala silang match dito.
+    alphaNumericLive(document.getElementById('section'), '\\-');
+    alphaNumericLive(document.getElementById('course'), '\\-&.,()\\/');
+
+    // Pagsamahin ang address parts sa hidden "address" field bago mag-submit
+    function buildFullAddress(){
+        const street = document.getElementById('street');
+        const barangay = document.getElementById('barangay');
+        const city = document.getElementById('city');
+        const province = document.getElementById('province');
+        const addressField = document.getElementById('address');
+        if (!street || !barangay || !city || !province || !addressField) return;
+
+        const parts = [street.value, barangay.value, city.value, province.value]
+            .map(v => v.trim())
+            .filter(v => v.length > 0);
+        addressField.value = parts.join(', ');
+    }
+
+    // Day: digits only, and never let it exceed 31 (or 29/30 depending on month, checked on step validation too)
+    bDayInput.addEventListener('input', () => {
+        let raw = bDayInput.value.replace(/[^0-9]/g, '');
+        if (raw.length > 2) raw = raw.slice(0, 2);
+        if (raw !== '' && Number(raw) > 31) raw = '31';
+        bDayInput.value = raw;
+    });
+
+    // ---- Helper: validate all required/patterned fields inside a section ----
+    function validateSection(section){
+        const inputs = section.querySelectorAll('input, select');
+        for (const input of inputs) {
+            if (input.type === 'hidden') continue; // hindi na kailangang i-validate ang hidden address field
+            if (!input.checkValidity()) {
+                input.reportValidity();
+                input.focus();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Extra check: does the day make sense for the chosen month/year (e.g. no Feb 30)
+    function validateDob(){
+        const month = Number(document.getElementById('bMonth').value);
+        const day = Number(bDayInput.value);
+        const year = Number(document.getElementById('bYear').value);
+
+        dobError.style.display = 'none';
+        dobError.textContent = '';
+
+        if (!month || !day || !year) return true; // let required/pattern handle empties
+
+        const daysInMonth = new Date(year, month, 0).getDate();
+        if (day < 1 || day > daysInMonth) {
+            dobError.textContent = `That month only has ${daysInMonth} days.`;
+            dobError.style.display = 'block';
+            bDayInput.focus();
+            return false;
+        }
+        return true;
+    }
 
     document.getElementById('next1').onclick = () => {
+        if (!validateSection(step1)) return;
+        if (!validateDob()) return;
         step1.classList.remove('active');
         step2.classList.add('active');
     };
     document.getElementById('next2').onclick = () => {
+        if (!validateSection(step2)) return;
         step2.classList.remove('active');
         step3.classList.add('active');
     };
@@ -287,20 +519,34 @@
     };
 
     // 🔔 Notification Box Trigger Logic
-    const loginForm = document.getElementById('registrationForm');
+    const registrationForm = document.getElementById('registrationForm');
     const notificationBox = document.getElementById('notificationBox');
     const gotItBtn = document.getElementById('gotItBtn');
 
-    loginForm.addEventListener('submit', async function (e) {
+    registrationForm.addEventListener('submit', async function (e) {
         e.preventDefault(); // laging pigilan muna, AJAX na tayo
 
-        if (!loginForm.checkValidity()) {
-            loginForm.reportValidity();
+        // Validate every step before submitting (in case step-3 button was
+        // reached without properly passing step 1/2, e.g. via browser autofill)
+        if (!validateSection(step1) || !validateDob()) {
+            step1.classList.add('active');
+            step2.classList.remove('active');
+            step3.classList.remove('active');
+            return;
+        }
+        if (!validateSection(step2)) {
+            step2.classList.add('active');
+            step3.classList.remove('active');
+            return;
+        }
+        if (!validateSection(step3)) {
             return;
         }
 
+        buildFullAddress(); // isahin ang Province/City/Barangay/Street bago i-submit
+
         try {
-            const formData = new URLSearchParams(new FormData(loginForm));
+            const formData = new URLSearchParams(new FormData(registrationForm));
 
             const response = await fetch('/signup', {
                 method: 'POST',
@@ -326,7 +572,7 @@
         e.preventDefault();
         window.location.href = '/'; // saka lang siya mag-navigate paalis
     });
-</script>
+})();
 </script>
 </body>
 </html>
