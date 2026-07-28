@@ -170,14 +170,7 @@
             <div class="form-section" id="step-2">
                 <div class="field">
                     <label>Address</label>
-                    <div class="row gap5">
-                        <input type="text" name="province" id="province" placeholder="Province" maxlength="50" pattern="^[A-Za-z\s\-.']+$" title="Letters only" required>
-                        <input type="text" name="city" id="city" placeholder="City / Municipality" maxlength="50" pattern="^[A-Za-z\s\-.']+$" title="Letters only" required>
-                    </div>
-                    <div class="row gap5">
-                        <input type="text" name="barangay" id="barangay" placeholder="Barangay" maxlength="50" pattern="^[A-Za-z0-9\s\-.']+$" title="Letters and numbers only" required>
-                        <input type="text" name="street" id="street" placeholder="House No. / Street" maxlength="100" required>
-                    </div>
+                        <input type="text" name="address" id="address" placeholder="Street No#, Barangay, City, Province" maxlength="150" pattern="^[A-Za-z0-9\s\-.']+$" title="Letters and numbers only" required>
                     <p class="field-error" id="addressError"></p>
                     <!-- Auto-filled na buo address, ito yung ipapasa sa backend -->
                     <input type="hidden" name="address" id="address">

@@ -10,15 +10,15 @@
 </div>
 
 <br>
-
-
 <div class="height0 justifyStart bgTint13 corner15 padding10">
     <div class="corner15 justifyStart wrap padding5 gap20">
-        <a class="empCard height0 str500 width0 col bgWhite corner15 padding10 w200">
-            <img class="h100 w100 shadow1 corner500" src="/images/profile.png" alt="">
-            <br>
-            <p class="size18 textCenter textWrap">Katherine Mercado</p>
-            <p class="size14">Admin</p>
-        </a>
+        <% allAdmins.forEach(function(admin) { %>
+            <a href="/emv2/<%= admin._id %>" class="empCard height0 str500 width0 col bgWhite corner15 padding10 w200">
+                <img class="h100 w100 shadow1 corner500" src="<%= admin.photo || '/images/profile.png' %>" alt="">
+                <br>
+                <p class="size18 textCenter textWrap"><%= admin.fName %> <%= admin.lName %></p>
+                <p class="size14"><%= admin.role %></p>
+            </a>
+        <% }); %>
     </div>
 </div>

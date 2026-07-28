@@ -1,0 +1,50 @@
+<% layout('layout') %>
+<style>
+    .mainf {
+        padding: 0;
+        position: relative;
+    }
+</style>
+
+<a href="/uv" class="nav absolute top10 left10" style="z-index: 600;"><i class="fas fa-chevron-left"></i> Return</a>
+
+<div class="polaroid alignStart padding20 ">
+    <div class="height100 width65 justifyStart porcelain padding20 gap10 col overflow-y1 block">
+        <section class="padding0 justifyBetween row">
+            <p class="size30 colorPrimary str500"><%= patient.fName %> <%= patient.lName %></p>
+            <p class="size30 str500 colorPrimary">Consultation Record</p>
+        </section>
+        <p class="size12 gray"><%= patient.schoolId %></p>
+        <br>
+        <div class="height0 width100 corner15 col alignStart porcelain padding20 gap10 ">
+            <section class="padding0 justifyBetween">
+                <p class="size20">Recents</p>
+            </section>
+
+            <% if (visits && visits.length > 0) { %>
+                <% visits.forEach(visit => { %>
+                    <a href="/vv2/<%= visit._id %>" class="width100 gap5 bgWhite corner10 shadow1 alignStart col relative padding10">
+                        <p class="size16 str5">
+                            <%= visit.complaints && visit.complaints.length > 0
+                                ? visit.complaints.map(c => c.type).join(', ')
+                                : visit.complaint %>
+                        </p>
+                        <p class="size12 str4 <%= visit.status === 'Attended' ? 'noteBlue' : 'noteGreen' %>">
+                            <%= visit.status %>
+                        </p>
+                        <% if (visit.dispensed && visit.dispensed.length > 0) { %>
+                            <p class="size12 gray">
+                                Medicines: <%= visit.dispensed.map(d => `${d.item} (${d.qty} ${d.unit})`).join(', ') %>
+                            </p>
+                        <% } %>
+                        <p class="size12 gray absolute right10 top10">
+                            <%= visit.createdAt ? new Date(visit.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'No Date' %>
+                        </p>
+                    </a>
+                <% }) %>
+            <% } else { %>
+                <p class="size14 gray padding10">No visit records found for this patient.</p>
+            <% } %>
+        </div>
+    </div>
+</div>

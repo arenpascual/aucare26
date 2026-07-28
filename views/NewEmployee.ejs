@@ -1,818 +1,210 @@
 <% layout('layout') %>
 
-<style>
-    .password-note{
-        display:flex;
-        flex-direction:column;
-        align-items:flex-start;
-        gap:8px;
-        border:1px solid #444;
-        border-radius:12px;
-        padding:10px 15px;
-        width:100%;
-        box-sizing:border-box;
-    }
+<div class="right col polaroid">
 
-    .password-note p{
-        margin:0;
-        text-align:left;
-    }
+    <a href="/e" class="left20 top20 nav absolute">
+        <i class="fas fa-chevron-left"></i> Return
+    </a>
 
-    .password-list{
-        width:100%;
-        list-style: disc;
-        padding-left: 20px;
-    }
+    <div class="width70 height0 ">
 
-    .password-item{
-        margin:4px 0;
-        text-align:left;
-    }
+        <form id="newEmployeeForm" class="bgWhite shadow1 height0 gap10 padding20 justifyStart width70 relative" action="/new-employee" method="POST" novalidate>
 
-    .password-input{
-        display:flex;
-        align-items:center;
-        border:1px solid #999;
-        border-radius:14px;
-        overflow:hidden;
-    }
+            <p class="size30 str500">New Employee</p>
 
-    .password-input input{
-        border:none;
-        flex:1;
-        padding:14px;
-        outline:none;
-    }
-
-    .password-input i{
-        padding:15px;
-        cursor:pointer;
-    }
-
-    .otp-row{
-        display:flex;
-        justify-content:space-between;
-        align-items:flex-end;
-        flex-wrap:nowrap;
-        gap:10px;
-    }
-
-    #getOtpBtn{
-        flex-shrink:0;
-        white-space:nowrap;
-    }
-
-    #getOtpBtn.disabled{
-        opacity:0.5;
-        pointer-events:none;
-        cursor:not-allowed;
-    }
-
-    .otp-resend{
-        display:flex;
-        align-items:center;
-        flex-wrap:wrap;
-        gap:6px;
-        font-size:12px;
-    }
-
-    .otp-resend p{
-        margin:0;
-    }
-
-    .otp-resend a{
-        color:#0d3b66;
-        font-weight:600;
-        text-decoration:underline;
-    }
-
-    #passError{
-        color:red;
-        display:none;
-    }
-    .field-error{
-        color:red;
-        font-size:12px;
-        display:none;
-        margin-top:-5px;
-    }
-    .profile-name{
-    width:100%;
-    text-align:center !important;
-    overflow: hidden;
-    font-weight:500;
-    margin-top:10px;
-    line-height:1.3;
-}
-.modal{
-    position: fixed;
-    inset: 0;
-    width:100vw;
-    height:100vh;
-    background:rgba(0,0,0,.45);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    z-index:99999;
-    overflow-y: auto;
-}
-
-.password-card{
-    width:520px;
-    max-width:95%;
-    padding:25px;
-    gap:18px;
-    border-radius:18px;
-}
-.modal.hidden{
-    display: none !important;
-}
-.personal-info-card{
-    background:#fff;
-    border-radius:16px;
-    padding:24px 28px;
-    width:100%;
-    box-sizing:border-box;
-    display:flex;
-    flex-direction:column;
-    align-items:stretch;
-    padding: 10px;
-}
-
-.personal-info-card h3{
-    font-size:20px;
-    font-weight:700;
-    margin:0 0 18px 0;
-    color:#111;
-}
-
-.gender-row{
-    display:flex;
-    align-items:center;
-    gap:24px;
-    margin-bottom:18px;
-}
-
-.gender-option{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    font-size:14px;
-    color:#333;
-    cursor:pointer;
-}
-
-.gender-option input[type="radio"]{
-    width:18px;
-    height:18px;
-    accent-color:#0f12a1;
-    cursor:pointer;
-}
-
-.form-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:16px;
-    margin-bottom:16px;
-}
-
-.form-group{
-    display:flex;
-    flex-direction:column;
-    gap:25x;
-}
-
-.form-group.full{
-    grid-column:1 / -1;
-}
-
-.form-group label{
-    font-size:13px;
-    color:#888;
-    margin-top: 11px;
-}
-
-.form-group .field-value{
-    background:#f5f5f7;
-    border-radius:10px;
-    padding:7px 9px;
-    font-size:14px;
-    color:#222;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-}
-
-.verified-badge{
-    color:#2ecc71;
-    font-size:13px;
-    font-weight:600;
-    display:flex;
-    align-items:center;
-    gap:5px;
-}
-
-.personal-info-buttons{
-    display:flex;
-    gap:16px;
-    margin-top:10px;
-}
-
-.btn-discard{
-    flex:1;
-    padding:14px;
-    border-radius:10px;
-    border:1.5px solid #f7941d;
-    background:#fff;
-    color:#f7941d;
-    font-weight:600;
-    font-size:15px;
-    cursor:pointer;
-}
-
-.btn-discard:hover{
-    background:#fff7ee;
-}
-
-.btn-save:hover{
-    background:#400291;
-}
-.mainf {
-    padding: 0;
-}
-</style>
-
-<div class="gap20 polaroid alignStart justifyStart row padding20">
-    <div class="width25 bgWhite corner15 justifyStart col padding20">
-        <section class="col ">
-            <img class="h100 w100 bura corner500" src="/images/profile.png" alt="">
-            <p class="size28 colorPrimary profile-name">
-                <%= user.fName %> <%= user.mName %> <%= user.lName %> <%= user.xName %>
-            </p>
-            <p class="size16 blue"><%= user.schoolId %></p>
-            <p class="size16 gray"><%= user.email %></p>
-        </section>
-        <section class="col gap5">
-            <a href="javascript:void(0)" id="editCard" class="nav pnav width100">
-                Edit Information    
-            </a>
-            <a href="javascript:void(0)" id="openPassword" class="nav pnav width100">
-                Change Password
-            </a>
-            <a href="javascript:void(0)" id="openLogout" class="nav pnav width100">
-                Log Out
-            </a>
-        </section>
-    </div>
-
-    <div class="width70 shadow1 height0 bgWhite corner10 col alignStart justifyStart padding30">
-        <p class="size30 str500">Employee Information</p>
-        <section class="gap10">
-            <div class="field">
-                <label for="">Role</label>
-                <input type="text" value="<%= user.role %>" disabled>
-            </div>
-            <div class="field">
-                <label for="">Employee Id</label>
-                <input type="text" value="<%= user.schoolId %>" disabled>
-            </div>
-        </section>
-        <section class="gap10">
-            <div class="field">
-                <label for="">First Name</label>
-                <input type="text" value="<%= user.fName %>" disabled>
-            </div>
-            <div class="field">
-                <label for="">Middle Name</label>
-                <input type="text" value="<%= user.mName %>" disabled>
-            </div>
-        </section>
-        <section class="gap10">
-            <div class="field">
-                <label for="">Last Name</label>
-                <input type="text" value="<%= user.lName %>" disabled>
-            </div>
-            <div class="field">
-                <label for="">Extension Name</label>
-                <input type="text" value="<%= user.xName %>" disabled>
-            </div>
-        </section>
-        <section class="gap10">
-            <div class="field">
-                <label for="">Email</label>
-                <input type="email" value="<%= user.email %>" disabled>
-            </div>
-            <div class="field">
-                <label for="">Contact Number</label>
-                <input type="email" value="<%= user.phone %>" disabled>
-            </div>
-        </section>
-        <section class="gap10">
-            <div class="field">
-                <label for="">Gender</label>
-                <input type="text" value="<%= user.gender %>" disabled>
-            </div>
-            <div class="field">
-                <label for="">Address</label>
-                <input type="text" value="<%= user.address %>" disabled>
-            </div>
-        </section>
-    </div>
-<form id="editForm" action="/profile/update" method="POST" class="width50 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
-    <p class="size30 str500">Edit Information</p>
-
-    <section class="gap10">
+            <section class="gap10 padding0" >
+        <div class="field ">
+                    <label>Campus</label>
+                    <div class="selectBar">
+                        <select name="Campus" required>
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="Main">Main</option>
+                            <option value="Sanjose">San Jose</option>
+                            <option value="South">South</option>
+                        </select>
+                    </div>
+                </div>
         <div class="field">
-            <label>Role</label>
-            <input type="text" disabled placeholder="Admin">
-        </div>
-
-        <div class="field">
-            <label>Employee ID</label>
-            <input type="text" name="schoolId" id="editSchoolId" value="<%= user.schoolId %>" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
-        </div>
-    </section>
-
-    <div class="field">
-        <section class="gap10 justifyStart">
-            <label>
-                <input type="radio" name="gender" value="Male" <%= user.gender === 'Male' ? 'checked' : '' %> required> Male
-            </label>
-            <label>
-                <input type="radio" name="gender" value="Female" <%= user.gender === 'Female' ? 'checked' : '' %> required> Female
-            </label>
-        </section>
-    </div>
-
-    <section class="gap10">
-        <div class="field">
-            <label>First Name</label>
-            <input type="text" name="fName" id="editFName" value="<%= user.fName %>" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
-        </div>
-
-        <div class="field">
-            <label>Middle Name</label>
-            <input type="text" name="mName" id="editMName" value="<%= user.mName %>" maxlength="50" pattern="^[A-Za-z\s\-']*$" title="Letters, spaces, hyphens and apostrophes only">
-        </div>
-    </section>
-
-    <section class="gap10">
-        <div class="field">
-            <label>Last Name</label>
-            <input type="text" name="lName" id="editLName" value="<%= user.lName %>" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
-        </div>
-
-        <div class="field">
-            <label>Extension Name</label>
-            <input type="text" name="xName" id="editXName" value="<%= user.xName %>" maxlength="10" pattern="^[A-Za-z.\s]*$" title="e.g. Jr., Sr., III" placeholder="e.g. Jr., III">
-        </div>
-    </section>
-
-    <section class="gap10">
-        <div class="field">
-            <label>Email</label>
-            <input type="email" name="email" id="editEmail" value="<%= user.email %>" maxlength="100" required>
-        </div>
-
-        <div class="field">
-            <label>Contact Number</label>
-            <input type="tel" name="phone" id="editPhone" value="<%= user.phone %>" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="^09[0-9]{9}$" title="Enter an 11-digit PH mobile number starting with 09" required>
-        </div>
-    </section>
-
-    <section>
-        <div class="field">
-            <label>Address</label>
-            <input type="text" name="address" id="editAddress" value="<%= user.address %>" maxlength="150" required>
-        </div>
-    </section>
-
-    <p id="editFormError" class="field-error"></p>
-
-    <section class="gap20">
-        <a href="javascript:void(0)" id="closeEdit" class="nav width100">Cancel</a>
-        <button type="submit" class="nav pnav width100">Save Changes</button>
-    </section>
-</form>
-      
-        
-</div>
-<div id="modal" class="modal hidden">
-    <!-- PASSWORD CARD -->
-    <form id="passCard" class="password-card bgWhite corner15 shadow1 col padding5 hidden">
-        <p class="size24 str500">Change Password</p>
-
-        <div class="password-note padding0">
-            <p class="size12"><strong class="str500">Take Note!</strong> Password must contain the following:</p>
-            <ul class="password-list padding0">
-                <li class="size12 password-item">At least 1 upper case letter</li>
-                <li class="size12 password-item">At least 1 special character</li>
-                <li class="size12 password-item">Combination of letter and number</li>
-                <li class="size12 password-item">Minimum of 8 characters</li>
-            </ul>
-        </div>
-
-        <div class="field">
-            <label>Current Password</label>
-            <div class="password-input">
-                <input type="password" id="currentPassword">
-                <i class="far fa-eye toggle-password"></i>
-            </div>
-        </div>
-
-        <div class="field">
-            <label>New Password</label>
-            <div class="password-input">
-                <input type="password" id="newPassword">
-                <i class="far fa-eye toggle-password"></i>
-            </div>
-        </div>
-
-        <div class="field">
-            <label>Confirm Password</label>
-            <div class="password-input">
-                <input type="password" id="confirmPassword">
-                <i class="far fa-eye-slash toggle-password"></i>
-            </div>
-        </div>
-
-        <div class="col padding10 borderGray corner10 gap5">
-            <div class="otp-row justifyBetween gap10">
-                <a href="javascript:void(0)" id="getOtpBtn" class="nav pnav size12">Get OTP</a>
-                <div class="field otp-field">
-                    <input type="text" id="otpCode" maxlength="6" placeholder="Enter OTP code here">
+                <label>Role</label>
+                <div class="selectBar">
+                    <select name="role" required>
+                        <option value="" selected disabled>Select Role</option>
+                        <option value="Super Admin">Super Admin</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Sub Admin">Sub Admin</option>
+                    </select>
                 </div>
             </div>
-            <div id="otpStatus" class="size13 gray"></div>
-            <p id="otpTimer" class="size12 gray hidden"></p>
-            <div class="otp-resend hidden" id="otpResendRow">
-                <p class="alignStart">Didn't get the code?</p>
-                <a href="javascript:void(0)" id="resendOtp">Resend</a>
-            </div>
-        </div>
-
-        <p id="passError" class="size13" style="color:red; display:none;"></p>
-
-        <div class="button-row gap10">
-            <button type="button" class="nav width50" id="closePassword">Cancel</button>
-            <button type="button" class="nav pnav width50" id="submitPassword">Update</button>
-        </div>
-    </form>
-    
-    
-    <!-- LOGOUT CARD -->
-    <section class="width25 bgWhite corner15 col padding20 shadow1 relative hidden" id="lgCard">
-        <div class="nav cnavLG">
-            <i class="fas fa-sign-out-alt"></i>
-        </div>
-        <br>
-        <p class="size18 textCenter textBalance">
-            Are you sure you want to Log Out?
-        </p>
-        <br>
-        <section class="padding0 justifyBetween gap10">
-            <a href="javascript:void(0)" class="nav width100" id="closeLogout">Cancel</a>
-            <a href="/" class="nav pnav width100">Log Out</a>
-        </section>
     </section>
-    
-    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="notificationBox">
-        <img class="h100 w100" src="/images/like.png" alt="">
-            <section class="padding0 col alignCenter">
-                <p class="size23 str500">Success</p>
-                <p class="size17">Your password has been changed successfully.</p>
+            
+
+            <section class="gap5 padding0">
+                <div class="field">
+                    <label>First Name</label>
+                    <input type="text" name="fName" id="fName" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
+                </div>
+                <div class="field">
+                    <label>Last Name</label>
+                    <input type="text" name="lName" id="lName" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
+                </div>
             </section>
-        <a class="nav w120 size15" href="javascript:void(0)" id="gotItBtn">Got It!</a>
-    </section>
+
+            <section class="gap5 padding0">
+                <div class="field">
+                    <label>Middle Name</label>
+                    <input type="text" name="mName" id="mName" maxlength="50" pattern="^[A-Za-z\s\-']*$" title="Letters, spaces, hyphens and apostrophes only">
+                </div>
+                <div class="field">
+                    <label>Extension Name</label>
+                    <input type="text" name="xName" id="xName" maxlength="10" pattern="^[A-Za-z.\s]*$" title="e.g. Jr., Sr., III" placeholder="e.g. Jr., III">
+                </div>
+            </section>
+            <div class="field">
+                <label>Email</label>
+                <input type="email" name="email" id="email" maxlength="100" required>
+            </div>
+            
+            <section class="gap5 padding0">
+                <div class="field">
+                    <label>Employee ID</label>
+                    <input type="text" name="schoolId" id="schoolId" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
+                </div>
+                <div class="field">
+                    <label>Gender</label>
+                    <div class="selectBar">
+                        <select name="gender" required>
+                            <option value="" selected disabled>Select Gender</opt>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+            
+
+            <div class="field">
+                    <label>Date of Birth</label>
+                    <div class="row gap5">
+                        <div class="selectBar">
+                            <select name="bMonth" id="bMonth" required>
+                                <option value="" selected disabled>--Month--</option>
+                                <option value="1">01</option>
+                                <option value="2">02</option>
+                                <option value="3">03</option>
+                                <option value="4">04</option>
+                                <option value="5">05</option>
+                                <option value="6">06</option>
+                                <option value="7">07</option>
+                                <option value="8">08</option>
+                                <option value="9">09</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                        </div>
+                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" required>
+                        <div class="selectBar">
+                            <select name="bYear" id="bYear" required>
+                                <option value="" selected disabled>--Year--</option>
+                                <% const currentYear = new Date().getFullYear(); %>
+                                <% for (let y = currentYear - 10; y >= currentYear - 80; y--) { %>
+                                    <option value="<%= y %>"><%= y %></option>
+                                <% } %>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="field-error" id="dobError"></p>
+                </div>
+                
+            <div class="field">
+                <label>Contact Number</label>
+                <input type="tel" name="phone" id="phoneInput" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="^09[0-9]{9}$" title="Enter an 11-digit PH mobile number starting with 09" required>
+            </div>
+
+            <div class="field">
+                <label>Address</label>
+                <input type="text" name="address" id="address" maxlength="150" required>
+            </div>
+
+            <!-- Hidden Fields -->
+            <input type="hidden" name="eName" value="none">
+            <input type="hidden" name="ePhone" value="none">
+            <input type="hidden" name="eAddress" value="none">
+
+            <div class="justifyEnd height0">
+                <button type="submit" class="nav pnav">
+                    <i class="fas fa-check-circle"></i> Add to Record
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
 </div>
 
 <script>
+(function(){
+    const form = document.getElementById('newEmployeeForm');
+    const phoneInput = document.getElementById('phoneInput');
 
-    const modal = document.getElementById("modal");
-    const passCard = document.getElementById("passCard");
-    const lgCard = document.getElementById("lgCard");
-    const otpStatus = document.getElementById("otpStatus");
-    const otpTimerEl = document.getElementById("otpTimer");
-    const otpResendRow = document.getElementById("otpResendRow");
-    const passError = document.getElementById("passError");
-    const getOtpBtn = document.getElementById("getOtpBtn");
-    const notificationBox = document.getElementById("notificationBox");
-
-    const currentPasswordInput = document.getElementById("currentPassword");
-    const newPasswordInput = document.getElementById("newPassword");
-    const confirmPasswordInput = document.getElementById("confirmPassword");
-
-    let otpExpiryTimer = null;
-
-    // Palitan mo lang 'to kung ilang seconds gusto mong expiration ng OTP
-    const OTP_EXPIRY_SECONDS = 180; // 3 minutes
-
-    function showError(msg){
-        passError.textContent = msg;
-        passError.style.display = "flex";
-        passError.style.flexDirection = "row";
-        passError.style.backgroundColor = "#fef2f2";
-        passError.style.padding = "6px";
-        passError.style.borderRadius = "10px";
-    }
-    function clearError(){
-        passError.style.display = "none";
-        passError.textContent = "";
-    }
-
-    // Sinisigurado na kumpleto muna ang 3 password fields bago pumayag mag-send ng OTP
-    function validatePasswordFieldsBeforeOtp(){
-        const currentPassword = currentPasswordInput.value;
-        const newPassword = newPasswordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
-
-        if (!currentPassword || !newPassword || !confirmPassword) {
-            showError("Please fill in all password fields first before requesting an OTP!");
-            return false;
-        }
-
-        if (newPassword !== confirmPassword) {
-            showError("New password and confirm password do not match.");
-            return false;
-        }
-
-        clearError();
-        return true;
-    }
-
-    function disableGetOtpBtn(){
-        getOtpBtn.classList.add("disabled");
-    }
-
-    function enableGetOtpBtn(){
-        getOtpBtn.classList.remove("disabled");
-    }
-
-    function startOtpExpiryCountdown(){
-        clearInterval(otpExpiryTimer);
-
-        // Naka-disable ang Get OTP habang buhay pa ang code;
-        // Resend lang ang gagana pagkatapos mag-expire
-        disableGetOtpBtn();
-        otpResendRow.classList.add("hidden");
-        otpTimerEl.classList.remove("hidden");
-
-        let remaining = OTP_EXPIRY_SECONDS;
-
-        function render(){
-            const m = Math.floor(remaining / 60);
-            const s = String(remaining % 60).padStart(2, "0");
-            otpTimerEl.textContent = `Code has been sent to your email and will expire in ${m}:${s}`;
-        }
-
-        render();
-
-        otpExpiryTimer = setInterval(() => {
-            remaining--;
-            if (remaining <= 0){
-                clearInterval(otpExpiryTimer);
-                otpTimerEl.textContent = "Code expired.";
-                otpResendRow.classList.remove("hidden");
-                enableGetOtpBtn();
-            } else {
-                render();
-            }
-        }, 1000);
-    }
-
-    function resetOtpUI(){
-        clearInterval(otpExpiryTimer);
-        otpTimerEl.classList.add("hidden");
-        otpTimerEl.textContent = "";
-        otpResendRow.classList.add("hidden");
-        otpStatus.textContent = "";
-        enableGetOtpBtn();
-    }
-
-    async function sendOtp(){
-        // Habang tumatakbo pa ang countdown, hindi na kailangan pang i-check dito
-        // dahil naka-disable na ang button sa CSS/pointer-events, pero double-check pa rin:
-        if (getOtpBtn.classList.contains("disabled")) return;
-
-        // Huwag payagang mag-send ng OTP kung hindi pa kumpleto ang password fields
-        if (!validatePasswordFieldsBeforeOtp()) return;
-
-        disableGetOtpBtn();
-        otpStatus.textContent = "Sending code...";
-
-        try {
-            const res = await fetch('/api/account/send-password-otp', { method: 'POST' });
-            const data = await res.json();
-
-            if (data.success) {
-                otpStatus.textContent = "";
-                startOtpExpiryCountdown();
-            } else {
-                otpStatus.textContent = data.message || "Failed to send code.";
-                enableGetOtpBtn();
-            }
-        } catch (err) {
-            otpStatus.textContent = "Failed to send code. Check your connection.";
-            enableGetOtpBtn();
-        }
-    }
-
-    document.getElementById("openPassword").onclick = () => {
-        modal.classList.remove("hidden");
-
-        passCard.classList.remove("hidden");
-        lgCard.classList.add("hidden");
-        notificationBox.classList.add("hidden");
-
-        clearError();
-        currentPasswordInput.value = "";
-        newPasswordInput.value = "";
-        confirmPasswordInput.value = "";
-        document.getElementById("otpCode").value = "";
-        resetOtpUI();
-    };
-
-    document.getElementById("openLogout").onclick = () => {
-
-        modal.classList.remove("hidden");
-
-        lgCard.classList.remove("hidden");
-        passCard.classList.add("hidden");
-        notificationBox.classList.add("hidden");
-
-    };
-
-    getOtpBtn.onclick = sendOtp;
-
-    document.getElementById("resendOtp").onclick = (e) => {
-        e.preventDefault();
-        sendOtp();
-    };
-
-    document.getElementById("closePassword").onclick = closeModal;
-    document.getElementById("closeLogout").onclick = closeModal;
-
-    document.getElementById("submitPassword").onclick = async () => {
-        clearError();
-
-        const currentPassword = currentPasswordInput.value;
-        const newPassword = newPasswordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
-        const otp = document.getElementById("otpCode").value;
-
-        if (!currentPassword || !newPassword || !confirmPassword || !otp) {
-            return showError("Please fill in all fields, including the OTP.");
-        }
-        if (newPassword !== confirmPassword) {
-            return showError("New password and confirm password do not match.");
-        }
-
-        try {
-            const res = await fetch('/api/account/verify-password-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ currentPassword, newPassword, confirmPassword, otp })
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                // Itago ang password form, ipakita ang notification popup
-                passCard.classList.add("hidden");
-                notificationBox.classList.remove("hidden");
-            } else {
-                showError(data.message || "Failed to update password.");
-            }
-        } catch (err) {
-            showError("Something went wrong. Please try again.");
-        }
-    };
-
-    document.getElementById("gotItBtn").onclick = () => {
-        notificationBox.classList.add("hidden");
-        closeModal();
-    };
-
-    document.querySelectorAll(".toggle-password").forEach(icon => {
-        icon.addEventListener("click", () => {
-            const input = icon.previousElementSibling;
-            const isHidden = input.type === "password";
-            input.type = isHidden ? "text" : "password";
-            icon.classList.toggle("fa-eye");
-            icon.classList.toggle("fa-eye-slash");
+    // ---- Live clamp: digits only, and cap length (para sa phone number) ----
+    function digitsOnlyLive(input, maxLen){
+        input.addEventListener('input', () => {
+            let raw = input.value.replace(/[^0-9]/g, '');
+            if (raw.length > maxLen) raw = raw.slice(0, maxLen);
+            input.value = raw;
         });
-    });
-
-    modal.onclick = function(e){
-        if(e.target === modal){
-            closeModal();
-        }
     }
 
-    function closeModal(){
-
-        modal.classList.add("hidden");
-
-        passCard.classList.add("hidden");
-        lgCard.classList.add("hidden");
-        notificationBox.classList.add("hidden");
-
-        clearInterval(otpExpiryTimer);
-
-    }
-    // ==========================
-// EDIT INFORMATION POPUP
-// ==========================
-const editBtn = document.getElementById("editCard");
-const editForm = document.getElementById("editForm");
-const closeEdit = document.getElementById("closeEdit");
-const editFormError = document.getElementById("editFormError");
-
-editBtn.onclick = () => {
-    editForm.classList.remove("hidden");
-};
-
-closeEdit.onclick = (e) => {
-    e.preventDefault();
-    editForm.classList.add("hidden");
-};
-
-// ---- Live clamp: digits only, and cap length (para sa phone number) ----
-function digitsOnlyLive(input, maxLen){
-    if (!input) return; // huwag mag-error kung walang ganitong field
-    input.addEventListener('input', () => {
-        let raw = input.value.replace(/[^0-9]/g, '');
-        if (raw.length > maxLen) raw = raw.slice(0, maxLen);
-        input.value = raw;
-    });
-}
-
-// ---- Live clamp: letters, spaces, hyphens, apostrophes only (para sa pangalan) ----
-// Hindi na kelangan mag-type ng number sa mga name fields, kaagad na tatanggalin
-// ang number/symbol habang nagta-type ang user.
-function lettersOnlyLive(input, extraAllowedChars){
-    if (!input) return; // huwag mag-error kung walang ganitong field
-    const allowed = new RegExp(`[^A-Za-z\\s${extraAllowedChars || ''}]`, 'g');
-    input.addEventListener('input', () => {
-        const start = input.selectionStart;
-        const before = input.value;
-        const cleaned = before.replace(allowed, '');
-        if (cleaned !== before) {
-            input.value = cleaned;
-            const diff = before.length - cleaned.length;
-            const pos = Math.max(0, (start || 0) - diff);
-            input.setSelectionRange(pos, pos);
-        }
-    });
-    // hadlangan din ang paste ng number/invalid characters
-    input.addEventListener('paste', (e) => {
-        e.preventDefault();
-        const text = (e.clipboardData || window.clipboardData).getData('text');
-        const cleanedText = text.replace(allowed, '');
-        const startPos = input.selectionStart;
-        const endPos = input.selectionEnd;
-        const newVal = input.value.slice(0, startPos) + cleanedText + input.value.slice(endPos);
-        input.value = newVal;
-    });
-}
-
-digitsOnlyLive(document.getElementById('editPhone'), 11);
-
-// Name fields sa Edit Information form: letters, spaces, hyphens, apostrophes lang
-lettersOnlyLive(document.getElementById('editFName'), '\\-\'');
-lettersOnlyLive(document.getElementById('editMName'), '\\-\'');
-lettersOnlyLive(document.getElementById('editLName'), '\\-\'');
-// Extension name: letters, dots, spaces lang (Jr., Sr., III)
-lettersOnlyLive(document.getElementById('editXName'), '.');
-
-function clearEditFormError(){
-    editFormError.style.display = "none";
-    editFormError.textContent = "";
-}
-
-function showEditFormError(msg){
-    editFormError.textContent = msg;
-    editFormError.style.display = "block";
-}
-
-// ---- I-validate ang lahat ng required/patterned fields bago mag-submit ----
-editForm.addEventListener('submit', function (e) {
-    clearEditFormError();
-
-    const inputs = editForm.querySelectorAll('input:not([disabled])');
-    for (const input of inputs) {
-        if (!input.checkValidity()) {
+    // ---- Live clamp: letters, spaces, hyphens, apostrophes only (para sa pangalan) ----
+    // Hindi na kelangan mag-type ng number sa mga name fields, kaagad na tatanggalin
+    // ang number/symbol habang nagta-type ang user.
+    function lettersOnlyLive(input, extraAllowedChars){
+        const allowed = new RegExp(`[^A-Za-z\\s${extraAllowedChars || ''}]`, 'g');
+        input.addEventListener('input', () => {
+            const start = input.selectionStart;
+            const before = input.value;
+            const cleaned = before.replace(allowed, '');
+            if (cleaned !== before) {
+                input.value = cleaned;
+                const diff = before.length - cleaned.length;
+                const pos = Math.max(0, (start || 0) - diff);
+                input.setSelectionRange(pos, pos);
+            }
+        });
+        // hadlangan din ang paste ng number/invalid characters
+        input.addEventListener('paste', (e) => {
             e.preventDefault();
-            input.reportValidity();
-            input.focus();
-            return;
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            const cleanedText = text.replace(allowed, '');
+            const startPos = input.selectionStart;
+            const endPos = input.selectionEnd;
+            const newVal = input.value.slice(0, startPos) + cleanedText + input.value.slice(endPos);
+            input.value = newVal;
+        });
+    }
+
+    digitsOnlyLive(phoneInput, 11);
+
+    // Name fields: letters, spaces, hyphens, apostrophes lang - walang number
+    lettersOnlyLive(document.getElementById('fName'), '\\-\'');
+    lettersOnlyLive(document.getElementById('lName'), '\\-\'');
+    lettersOnlyLive(document.getElementById('mName'), '\\-\'');
+    // Extension name: letters, dots, spaces lang (Jr., Sr., III)
+    lettersOnlyLive(document.getElementById('xName'), '.');
+
+    // ---- Validate all required/patterned fields bago mag-submit ----
+    form.addEventListener('submit', function (e) {
+        const inputs = form.querySelectorAll('input, select');
+        for (const input of inputs) {
+            if (!input.checkValidity()) {
+                e.preventDefault();
+                input.reportValidity();
+                input.focus();
+                return;
+            }
         }
-    }
-
-    const genderChecked = editForm.querySelector('input[name="gender"]:checked');
-    if (!genderChecked) {
-        e.preventDefault();
-        showEditFormError("Please select a gender.");
-    }
-});
-
-    </script>
+    });
+})();
+</script>

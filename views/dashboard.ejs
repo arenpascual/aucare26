@@ -1,1 +1,2240 @@
+
 <% layout('layout') %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+>
+<title><%= title || 'Dashboard' %></title>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* =========================================================
+RESET
+========================================================= */
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+}
+body {
+font-family: Arial, Helvetica, sans-serif;
+color: #222;
+min-height: 100vh;
+padding: 0;
+}
+.mainf {
+    padding: 0;
+}
+button,
+select,
+
+input {
+font-family: inherit;
+}
+button {
+cursor: pointer;
+}
+
+/* =========================================================
+MAIN CONTAINER
+========================================================= */
+main {
+width: 100%;
+max-width: 1600px;
+margin: 0 auto;
+padding: 30px;
+}
+
+/* =========================================================
+HEADER
+========================================================= */
+.dashboard-header {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+gap: 20px;
+margin-bottom: 15px;
+}
+.dashboard-header h1 {
+font-size: 28px;
+margin-bottom: 6px;
+}
+.dashboard-status {
+display: flex;
+gap: 5px;
+height: 100% !important;
+}
+.status-indicator {
+width: 9px;
+height: 9px;
+border-radius: 50%;
+background: #999;
+}
+.status-indicator.online {
+background: #28a745;
+}
+.status-indicator.error {
+background: #dc3545;
+}
+
+/* =========================================================
+FILTER SECTION
+========================================================= */
+.filter-container {
+background: #fff;
+border: 1px solid #ddd;
+padding: 20px;
+margin-bottom: 25px;
+gap: 10px;
+border-radius: 14px;
+}
+.filter-group {
+display: flex;
+flex-direction: column;
+align-items: start;
+gap: 6px;
+}
+.filter-group label {
+font-size: 16px;
+color: #555;
+}
+.filter-group select,
+.filter-group input {
+width: 100%;
+height: 40px;
+padding: 0 10px;
+border: 1px solid #ccc;
+border-radius: 12px !important;
+background: #fff;
+color: #222;
+}
+.filter-actions {
+display: flex;
+gap: 10px;
+}
+
+/* =========================================================
+CUSTOM DATE RANGE
+========================================================= */
+.custom-date-container {
+display: none;
+grid-column: span 2;
+grid-template-columns: 1fr 1fr;
+gap: 15px;
+}
+.custom-date-container.visible {
+display: grid;
+}
+
+/* =========================================================
+KPI CARDS
+========================================================= */
+.kpi-grid {
+display: grid;
+grid-template-columns:
+repeat(4, minmax(180px, 1fr));
+gap: 8px;
+margin-bottom: 25px;
+}
+.kpi-card {
+border: 1px solid #ddd;
+padding: 20px;
+min-height: 125px;
+border-radius: 16px;
+color: white;
+background: 
+    radial-gradient(circle at 50% 90%, var(--shade9), transparent 50%),  /* Light Gray */
+    radial-gradient(circle at 88% 99%,  var(--tint5), transparent 26%),  /* Very Light Blue */
+    radial-gradient(circle at 20% 1%,  var(--tint3), transparent 70%),  /* Very Light Blue */
+    radial-gradient(circle at 70% 30%,  var(--shade9), transparent 10%); /* White */
+background-blend-mode: lighten;
+backdrop-filter: blur(10px);
+background-color: var(--shade10);
+}
+
+.kpi-label {
+color: white;
+font-size: 13px;
+}
+.kpi-value {
+font-size: 40px;
+}
+.kpi-description {
+color: white;
+font-size: 12px;
+}
+
+/* =========================================================
+DASHBOARD GRID
+========================================================= */
+.dashboard-grid {
+display: grid;
+grid-template-columns:
+repeat(2, minmax(0, 1fr));
+gap: 20px;
+margin-bottom: 25px;
+}
+.dashboard-card {
+background: #fff;
+border: 1px solid #ddd;
+padding: 20px;
+min-width: 0;
+border-radius: 14px;
+color: rgb(8, 8, 36);
+}
+.dashboard-card.full-width {
+grid-column: span 2;
+}
+.dashboard-card h2 {
+font-size: 30px;
+color: rgb(8, 8, 36);
+}
+.dashboard-card p {
+font-size: 12px;
+color: rgb(8, 8, 36);
+}
+.chart-container {
+position: relative;
+width: 100%;
+height: 320px;
+}
+
+/* =========================================================
+ALERTS
+========================================================= */
+.alert-list {
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+.alert-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 15px;
+padding: 12px;
+border: 1px solid #ddd;
+}
+.alert-item strong {
+font-size: 13px;
+}
+.alert-item span {
+font-size: 12px;
+color: #666;
+}
+
+.alert-critical {
+border-left: 4px solid #dc3545;
+}
+.alert-warning {
+border-left: 4px solid #ffc107;
+}
+.alert-info {
+border-left: 4px solid #0d6efd;
+}
+
+/* =========================================================
+INSIGHTS
+========================================================= */
+.insight-list {
+display: flex;
+flex-direction: column;
+width: 100%;
+gap: 5px;
+}
+.insight-item {
+    justify-content: start;
+text-align: left;
+padding: 12px;
+font-size: 13px;
+line-height: 1.5;
+background-color:rgb(235,245,255); border:0.5px solid rgba(0,102,255,0.4);color:royalblue; padding: 5px; border-radius: 0.7rem;
+}
+
+/* =========================================================
+ACTIVITY
+========================================================= */
+.activity-list {
+display: flex;
+flex-direction: column;
+gap: 0;
+}
+.activity-item {
+display: flex;
+
+justify-content: space-between;
+gap: 20px;
+padding: 14px 0;
+border-bottom: 1px solid #eee;
+}
+.activity-item:last-child {
+border-bottom: none;
+}
+.activity-message {
+font-size: 13px;
+}
+.activity-user {
+font-size: 12px;
+margin-top: 4px;
+}
+.activity-date {
+font-size: 12px;
+white-space: nowrap;
+}
+
+/* =========================================================
+LOADING
+========================================================= */
+.loading-container {
+display: none;
+text-align: center;
+padding: 5px;
+background: #fff;
+width: auto;
+border-radius: 10px;
+border: 1px solid #ddd;
+margin-bottom: 10px;
+color: navy;
+}
+.loading-container.visible {
+display: flex;
+}
+
+/* =========================================================
+ERROR
+========================================================= */
+.error-container {
+display: none;
+padding: 0;
+margin-bottom: 0;
+height: 0 !important;
+color: #dc3545;
+font-size: 14px;
+}
+.error-container.visible {
+height: 0 !important;
+display: none;
+padding: 0;
+}
+
+/* =========================================================
+EMPTY STATE
+========================================================= */
+.empty-state {
+text-align: center;
+padding: 30px;
+color: #777;
+font-size: 13px;
+}
+
+/* =========================================================
+RESPONSIVE
+========================================================= */
+@media (max-width: 1100px) {
+.filter-grid {
+grid-template-columns:
+repeat(2, minmax(150px, 1fr));
+}
+.kpi-grid {
+
+grid-template-columns:
+repeat(2, minmax(180px, 1fr));
+}
+}
+
+@media (max-width: 800px) {
+main {
+padding: 20px;
+}
+.dashboard-header {
+flex-direction: column;
+}
+.dashboard-grid {
+grid-template-columns: 1fr;
+}
+.dashboard-card.full-width {
+grid-column: span 1;
+}
+.filter-grid {
+grid-template-columns: 1fr;
+}
+.custom-date-container {
+grid-column: span 1;
+grid-template-columns: 1fr;
+}
+}
+
+@media (max-width: 550px) {
+main {
+padding: 15px;
+}
+.kpi-grid {
+
+grid-template-columns: 1fr;
+}
+.chart-container {
+height: 260px;
+}
+.activity-item {
+flex-direction: column;
+gap: 5px;
+}
+}
+</style>
+</head>
+<body class="padding0">
+<main class="polaroid col gap0">
+<!-- =========================================================
+HEADER
+========================================================== -->
+<section class="dashboard-header width100 padding15 corner18 bgWhite relative" style="height: 100px !important;">
+    <img src="/images/iconj.png" alt="" class="absolute height90" style="right: 16%;">
+    <section class="col justifyStart alignStart padding0">
+        <p class="size35 str500 ">Analytics Dashboard</p>
+        <span
+        id="statusIndicator"
+        class="status-indicator flex gap5 hidden"></span>
+
+        <span id="statusText" class="white hidden">
+        Loading
+        </span>
+        <p id="dateRangeText">
+        Loading dashboard data...
+        </p>
+    </section>
+    <div class="dashboard-status col alignEnd colorPrimary corner10 padding10 height100 width25 bgSky50" style="height: 100% !important; gap: 0 !important;">
+        <p class="size16">TODAY IS</p>
+        <p class="size26 str500" id="todayDay"></p>
+    </div>
+    <script>
+    const days = [
+        "SUNDAY",
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY"
+    ];
+
+    document.getElementById("todayDay").textContent = days[new Date().getDay()];
+</script>
+</section>
+
+<!-- =========================================================
+ERROR
+========================================================== -->
+<section
+id="errorContainer"
+class="error-container height0"
+style="display: none; height: 0 !important; padding: 0;"
+>
+</section>
+
+<!-- =========================================================
+FILTERS
+========================================================== -->
+<section class="filter-container col padding0 liquid porcelain">
+<p class="size35 hidden">Dashboard Filters</p>
+<div class="filter-grid gap10 alignEnd">
+<div class="filter-group">
+<label for="period">
+Date Period
+</label>
+<select id="period">
+<option value="today">
+Today
+</option>
+<option value="yesterday">
+
+Yesterday
+</option>
+<option value="this_week">
+This Week
+</option>
+<option value="last_week">
+Last Week
+</option>
+<option
+value="this_month"
+selected
+>
+This Month
+</option>
+<option value="last_month">
+Last Month
+</option>
+<option value="this_year">
+This Year
+</option>
+<option value="last_year">
+Last Year
+</option>
+<option value="overall">
+Overall
+</option>
+<option value="custom">
+Custom Date Range
+</option>
+</select>
+</div>
+
+<div class="filter-group">
+
+<label for="role">
+Role
+</label>
+<select id="role">
+<option value="all">
+All Roles
+</option>
+<option value="Student">
+Student
+</option>
+<option value="Faculty">
+Faculty
+</option>
+<option value="Staff">
+Staff
+</option>
+<option value="Security">
+Security
+</option>
+<option value="Maintenance">
+Maintenance
+</option>
+</select>
+</div>
+
+<div class="filter-group">
+<label for="department">
+Department
+</label>
+<select id="department">
+
+<option value="all">
+All Departments
+</option>
+<option value="IT">
+IT
+</option>
+<option value="Education">
+Education
+</option>
+<option value="Engineering">
+Engineering
+</option>
+<option value="Administration">
+Administration
+</option>
+</select>
+</div>
+
+<div class="filter-group">
+<label for="campus">
+Campus
+</label>
+<select id="campus">
+<option value="all">
+All Campuses
+</option>
+<option value="Main">
+Main
+</option>
+<option value="Other">
+Other
+</option>
+
+</select>
+</div>
+
+<div class="filter-group">
+<label for="gender">
+Gender
+</label>
+<select id="gender">
+<option value="all">
+All
+</option>
+<option value="Male">
+Male
+</option>
+<option value="Female">
+Female
+</option>
+</select>
+</div>
+
+<div class="filter-group">
+<label for="visitStatus">
+Visit Status
+</label>
+<select id="visitStatus">
+<option value="all">
+All Statuses
+</option>
+<option value="Pending">
+
+Pending
+</option>
+<option value="Proceed">
+Proceed
+</option>
+<option value="Attended">
+Attended
+</option>
+<option value="Not Attended">
+Not Attended
+</option>
+</select>
+</div>
+
+<!-- CUSTOM DATE -->
+<div
+id="customDateContainer"
+class="custom-date-container"
+>
+<div class="filter-group">
+<label for="startDate">
+Start Date
+</label>
+<input
+type="date"
+id="startDate"
+>
+</div>
+
+<div class="filter-group">
+<label for="endDate">
+
+End Date
+</label>
+<input
+type="date"
+id="endDate"
+>
+</div>
+</div>
+
+<div class="filter-actions alignEnd">
+<button class="nav pnav"
+type="button"
+id="applyFilters"
+>
+Apply Filters
+</button>
+<button class="nav"
+type="button"
+id="resetFilters"
+class="reset-button"
+>
+Reset
+</button>
+</div>
+</div>
+</section>
+
+<!-- =========================================================
+LOADING
+========================================================== -->
+<div
+id="loadingContainer"
+class="loading-container colorPrimary"
+
+>
+Loading all the data on analytics...
+</div>
+
+<!-- =========================================================
+KPI CARDS
+========================================================== -->
+<section class="kpi-grid padding0">
+<article class="kpi-card">
+<div class="kpi-label">
+Total Users
+</div>
+<div
+class="kpi-value"
+id="totalUsers"
+>
+0
+</div>
+<div class="kpi-description">
+Registered users
+</div>
+</article>
+
+<article class="kpi-card">
+<div class="kpi-label">
+Total Visits
+</div>
+<div
+class="kpi-value"
+id="totalVisits"
+>
+0
+</div>
+
+<div class="kpi-description">
+Clinic visits in selected period
+</div>
+</article>
+
+<article class="kpi-card">
+<div class="kpi-label">
+Unique Patients
+</div>
+<div
+class="kpi-value"
+id="uniquePatients"
+>
+0
+</div>
+<div class="kpi-description">
+Distinct patients
+</div>
+</article>
+
+<article class="kpi-card">
+<div class="kpi-label">
+Today's Visits
+</div>
+<div
+class="kpi-value"
+id="todayVisits"
+>
+0
+</div>
+<div class="kpi-description">
+Current day
+</div>
+
+</article>
+
+<article class="kpi-card">
+<div class="kpi-label">
+Attendance Rate
+</div>
+<div
+class="kpi-value"
+id="attendanceRate"
+>
+0%
+</div>
+<div class="kpi-description">
+Attended visits / total visits
+</div>
+</article>
+
+<article class="kpi-card">
+<div class="kpi-label">
+Pending Visits
+</div>
+<div
+class="kpi-value"
+id="pendingVisits"
+>
+0
+</div>
+<div class="kpi-description">
+Pending clinic visits
+</div>
+</article>
+
+<article class="kpi-card">
+
+<div class="kpi-label">
+Low Stock
+</div>
+<div
+class="kpi-value"
+id="lowStock"
+>
+0
+</div>
+<div class="kpi-description">
+Items with 1–10 remaining
+</div>
+</article>
+
+<article class="kpi-card">
+<div class="kpi-label">
+Out of Stock
+</div>
+<div
+class="kpi-value"
+id="outOfStock"
+>
+0
+</div>
+<div class="kpi-description">
+Items with zero remaining
+</div>
+</article>
+</section>
+
+
+
+<!-- INSIGHTS -->
+<article class="dashboard-card width100 porcelain">
+
+<h2>
+Key Insights
+</h2>
+<p> Automatically generated observations based on current data.</p>
+<br>
+<div id="insightList" class="insight-list shadow1 padding10 corner10" ></div>
+</article>
+<!-- =========================================================
+CHARTS
+========================================================== -->
+
+<section class="dashboard-grid">
+
+<!-- VISIT TREND -->
+<article class="dashboard-card full-width">
+<h2>
+Clinic Visit Trend
+</h2>
+<p>
+Number of visits recorded during the selected period.
+</p>
+<div class="chart-container">
+<canvas id="visitTrendChart"></canvas>
+</div>
+</article>
+
+<!-- VISITS BY ROLE -->
+<article class="dashboard-card">
+<h2>
+Visits by Role
+</h2>
+<p>
+Distribution of clinic visits by user role.
+</p>
+<div class="chart-container">
+<canvas id="visitsByRoleChart"></canvas>
+</div>
+</article>
+
+<!-- VISIT STATUS -->
+<article class="dashboard-card">
+<h2>
+Visit Status
+</h2>
+<p>
+Distribution of visit statuses.
+</p>
+<div class="chart-container">
+<canvas id="visitStatusChart"></canvas>
+</div>
+</article>
+
+<!-- TOP COMPLAINTS -->
+<article class="dashboard-card">
+<h2>
+Top Complaints
+</h2>
+<p>
+Most frequently recorded health complaints.
+</p>
+<div class="chart-container">
+<canvas id="topComplaintsChart"></canvas>
+</div>
+</article>
+
+<!-- DISPENSING -->
+<article class="dashboard-card">
+<h2>
+Medicine and Supply Consumption
+</h2>
+<p>
+Quantity dispensed by item type.
+</p>
+<div class="chart-container">
+<canvas id="dispensingChart"></canvas>
+</div>
+</article>
+
+<!-- TOP ITEMS -->
+<article class="dashboard-card full-width">
+<h2>
+Top Dispensed Items
+</h2>
+<p>
+Most frequently dispensed medicines and supplies.
+</p>
+<div class="chart-container">
+<canvas id="topDispensedItemsChart"></canvas>
+</div>
+</article>
+
+<!-- INVENTORY -->
+
+<article class="dashboard-card">
+<h2>
+Inventory Status
+</h2>
+<p>
+Current inventory condition.
+</p>
+<div class="chart-container">
+<canvas id="inventoryChart"></canvas>
+</div>
+</article>
+
+<!-- ALERTS -->
+<article class="dashboard-card">
+<h2>
+System Alerts
+</h2>
+<p>
+Items requiring administrator attention.
+</p>
+<div
+id="alertList"
+class="alert-list"
+>
+</div>
+</article>
+
+<!-- RECENT ACTIVITY -->
+<article class="dashboard-card full-width hidden">
+<h2>
+Recent System Activity
+</h2>
+<p>
+Latest recorded system activities.
+</p>
+<div
+id="activityList"
+class="activity-list"
+>
+</div>
+</article>
+</section>
+</main>
+
+<script>
+
+/* =========================================================
+GLOBAL VARIABLES
+========================================================= */
+let charts = {};
+let currentDashboardData = null;
+
+/* =========================================================
+DOM ELEMENTS
+========================================================= */
+const periodElement =
+document.getElementById('period');
+const roleElement =
+document.getElementById('role');
+const departmentElement =
+document.getElementById('department');
+const campusElement =
+document.getElementById('campus');
+const genderElement =
+document.getElementById('gender');
+const visitStatusElement =
+document.getElementById('visitStatus');
+const startDateElement =
+document.getElementById('startDate');
+const endDateElement =
+document.getElementById('endDate');
+const customDateContainer =
+document.getElementById(
+'customDateContainer'
+);
+const loadingContainer =
+document.getElementById(
+
+'loadingContainer'
+);
+const errorContainer =
+document.getElementById(
+'errorContainer'
+);
+const statusIndicator =
+document.getElementById(
+'statusIndicator'
+);
+const statusText =
+document.getElementById(
+'statusText'
+);
+
+/* =========================================================
+NUMBER FORMATTER
+========================================================= */
+function formatNumber(value) {
+const number =
+Number(value || 0);
+return new Intl.NumberFormat(
+'en-PH'
+).format(number);
+}
+
+/* =========================================================
+PERCENT FORMATTER
+========================================================= */
+function formatPercent(value) {
+return `${Number(value || 0).toFixed(2)}%`;
+}
+
+/* =========================================================
+DATE FORMATTER
+========================================================= */
+function formatDate(dateValue) {
+if (!dateValue) {
+return '-';
+}
+const date =
+new Date(dateValue);
+return date.toLocaleDateString(
+'en-PH',
+{
+year: 'numeric',
+month: 'short',
+day: 'numeric'
+}
+);
+}
+
+/* =========================================================
+DATE TIME FORMATTER
+========================================================= */
+function formatDateTime(dateValue) {
+if (!dateValue) {
+return '-';
+}
+const date =
+new Date(dateValue);
+return date.toLocaleString(
+'en-PH',
+{
+year: 'numeric',
+
+month: 'short',
+day: 'numeric',
+hour: 'numeric',
+minute: '2-digit'
+}
+);
+}
+
+/* =========================================================
+SHOW LOADING
+========================================================= */
+function showLoading() {
+loadingContainer
+.classList
+.add('visible');
+statusText.textContent =
+'Loading';
+statusIndicator
+.classList
+.remove('online');
+statusIndicator
+.classList
+.remove('error');
+}
+
+/* =========================================================
+HIDE LOADING
+========================================================= */
+function hideLoading() {
+loadingContainer
+.classList
+.remove('visible');
+
+}
+
+/* =========================================================
+SHOW ERROR
+========================================================= */
+function showError(message) {
+errorContainer.textContent =
+message;
+errorContainer
+.classList
+.add('visible');
+statusText.textContent =
+'Error';
+statusIndicator
+.classList
+.remove('online');
+statusIndicator
+.classList
+.add('error');
+}
+
+/* =========================================================
+CLEAR ERROR
+========================================================= */
+function clearError() {
+errorContainer.textContent =
+'';
+errorContainer
+.classList
+.remove('visible');
+}
+
+/* =========================================================
+BUILD API URL
+========================================================= */
+function buildApiUrl() {
+const params =
+new URLSearchParams();
+params.set(
+'period',
+periodElement.value
+);
+params.set(
+'role',
+roleElement.value
+);
+params.set(
+'department',
+departmentElement.value
+);
+params.set(
+'campus',
+campusElement.value
+);
+params.set(
+'gender',
+genderElement.value
+);
+params.set(
+'visitStatus',
+visitStatusElement.value
+);
+
+if (
+periodElement.value ===
+
+'custom'
+) {
+if (
+!startDateElement.value ||
+!endDateElement.value
+) {
+throw new Error(
+'Please select both start and end dates.'
+);
+}
+params.set(
+'startDate',
+startDateElement.value
+);
+params.set(
+'endDate',
+endDateElement.value
+);
+}
+
+return `/api/dashboard/analytics?${params.toString()}`;
+}
+
+/* =========================================================
+UPDATE DATE RANGE TEXT
+========================================================= */
+function updateDateRangeText(
+filters
+) {
+const dateRangeText =
+document.getElementById(
+'dateRangeText'
+);
+
+if (
+filters.period ===
+'overall'
+) {
+dateRangeText.textContent =
+'Showing overall system analytics';
+return;
+}
+
+if (
+filters.startDate &&
+filters.endDate
+) {
+dateRangeText.textContent =
+`Showing data from ${formatDate(
+filters.startDate
+)} to ${formatDate(
+filters.endDate
+)}`;
+}
+}
+
+/* =========================================================
+UPDATE KPI CARDS
+========================================================= */
+function updateKPIs(kpis) {
+document.getElementById(
+'totalUsers'
+).textContent =
+formatNumber(
+kpis.totalUsers
+);
+
+document.getElementById(
+'totalVisits'
+).textContent =
+formatNumber(
+kpis.totalVisits
+);
+document.getElementById(
+'uniquePatients'
+).textContent =
+formatNumber(
+kpis.uniquePatients
+);
+document.getElementById(
+'todayVisits'
+).textContent =
+formatNumber(
+kpis.todayVisits
+);
+document.getElementById(
+'attendanceRate'
+).textContent =
+formatPercent(
+kpis.attendanceRate
+);
+document.getElementById(
+'pendingVisits'
+).textContent =
+formatNumber(
+kpis.pending
+);
+document.getElementById(
+'lowStock'
+).textContent =
+formatNumber(
+kpis.lowStockCount
+);
+document.getElementById(
+'outOfStock'
+
+).textContent =
+formatNumber(
+kpis.outOfStockCount
+);
+}
+
+/* =========================================================
+DESTROY CHART
+========================================================= */
+function destroyChart(
+chartName
+) {
+if (
+charts[chartName]
+) {
+charts[chartName].destroy();
+charts[chartName] =
+null;
+}
+}
+
+/* =========================================================
+CREATE VISIT TREND CHART
+========================================================= */
+function createVisitTrendChart(
+data
+) {
+destroyChart(
+'visitTrend'
+);
+const labels =
+data.map(
+
+item => {
+const id =
+item._id;
+return `${id.year}-${String(
+id.month
+).padStart(
+2,
+'0'
+)}-${String(
+id.day
+).padStart(
+2,
+'0'
+)}`;
+}
+);
+const values =
+data.map(
+item =>
+item.visits
+);
+
+charts.visitTrend =
+new Chart(
+document
+.getElementById(
+'visitTrendChart'
+),
+{
+type: 'line',
+data: {
+labels,
+datasets: [
+
+{
+label:
+'Visits',
+data:
+values,
+borderWidth:
+2,
+tension:
+0.3,
+fill:
+false
+}
+]
+},
+options: {
+responsive:
+true,
+maintainAspectRatio:
+false,
+scales: {
+y: {
+beginAtZero:
+true,
+ticks: {
+precision:
+0
+
+}
+}
+}
+}
+}
+);
+}
+
+/* =========================================================
+VISITS BY ROLE CHART
+========================================================= */
+function createVisitsByRoleChart(
+data
+) {
+destroyChart(
+'visitsByRole'
+);
+const labels =
+data.map(
+item =>
+item._id ||
+'Unknown'
+);
+const values =
+data.map(
+item =>
+item.count
+);
+
+charts.visitsByRole =
+new Chart(
+
+document
+.getElementById(
+'visitsByRoleChart'
+),
+{
+type: 'bar',
+data: {
+labels,
+datasets: [
+{
+label:
+'Visits',
+data:
+values,
+borderWidth:
+1
+}
+]
+},
+options: {
+responsive:
+true,
+maintainAspectRatio:
+false,
+scales: {
+y: {
+
+beginAtZero:
+true,
+ticks: {
+precision:
+0
+}
+}
+}
+}
+}
+);
+}
+
+/* =========================================================
+VISIT STATUS CHART
+========================================================= */
+function createVisitStatusChart(
+data
+) {
+destroyChart(
+'visitStatus'
+);
+const labels =
+data.map(
+item =>
+item._id ||
+'Unknown'
+);
+const values =
+data.map(
+
+item =>
+item.count
+);
+
+charts.visitStatus =
+new Chart(
+document
+.getElementById(
+'visitStatusChart'
+),
+{
+type: 'doughnut',
+data: {
+labels,
+datasets: [
+{
+data:
+values,
+borderWidth:
+1
+}
+]
+},
+options: {
+responsive:
+true,
+maintainAspectRatio:
+false
+
+}
+}
+);
+}
+
+/* =========================================================
+TOP COMPLAINTS CHART
+========================================================= */
+function createTopComplaintsChart(
+data
+) {
+destroyChart(
+'topComplaints'
+);
+const labels =
+data.map(
+item =>
+item._id ||
+'Unknown'
+);
+const values =
+data.map(
+item =>
+item.count
+);
+
+charts.topComplaints =
+new Chart(
+document
+.getElementById(
+'topComplaintsChart'
+),
+
+{
+type: 'bar',
+data: {
+labels,
+datasets: [
+{
+label:
+'Complaints',
+data:
+values,
+borderWidth:
+1
+}
+]
+},
+options: {
+indexAxis:
+'y',
+responsive:
+true,
+maintainAspectRatio:
+false,
+scales: {
+x: {
+beginAtZero:
+true,
+
+ticks: {
+precision:
+0
+}
+}
+}
+}
+}
+);
+}
+
+/* =========================================================
+DISPENSING CHART
+========================================================= */
+function createDispensingChart(
+data
+) {
+destroyChart(
+'dispensing'
+);
+const labels =
+data.map(
+item =>
+item._id ||
+'Unknown'
+);
+const values =
+data.map(
+item =>
+item.quantity
+
+);
+
+charts.dispensing =
+new Chart(
+document
+.getElementById(
+'dispensingChart'
+),
+{
+type: 'doughnut',
+data: {
+labels,
+datasets: [
+{
+data:
+values,
+borderWidth:
+1
+}
+]
+},
+options: {
+responsive:
+true,
+maintainAspectRatio:
+false
+}
+
+}
+);
+}
+
+/* =========================================================
+TOP DISPENSED ITEMS
+========================================================= */
+function createTopDispensedItemsChart(
+data
+) {
+destroyChart(
+'topDispensedItems'
+);
+const labels =
+data.map(
+item =>
+item._id ||
+'Unknown'
+);
+const values =
+data.map(
+item =>
+item.quantity
+);
+
+charts.topDispensedItems =
+new Chart(
+document
+.getElementById(
+'topDispensedItemsChart'
+),
+{
+
+type: 'bar',
+data: {
+labels,
+datasets: [
+{
+label:
+'Quantity',
+data:
+values,
+borderWidth:
+1
+}
+]
+},
+options: {
+indexAxis:
+'y',
+responsive:
+true,
+maintainAspectRatio:
+false,
+scales: {
+x: {
+beginAtZero:
+true,
+ticks: {
+
+precision:
+0
+}
+}
+}
+}
+}
+);
+}
+
+/* =========================================================
+INVENTORY CHART
+========================================================= */
+function createInventoryChart(
+kpis
+) {
+destroyChart(
+'inventory'
+);
+const healthy =
+Math.max(
+Number(
+kpis.totalInventory ||
+0
+)
+-
+Number(
+kpis.lowStockCount ||
+0
+
+)
+-
+Number(
+kpis.outOfStockCount ||
+0
+)
+-
+Number(
+kpis.expiredCount ||
+0
+),
+0
+);
+
+charts.inventory =
+new Chart(
+document
+.getElementById(
+'inventoryChart'
+),
+{
+type: 'doughnut',
+data: {
+labels: [
+'Healthy',
+'Low Stock',
+'Out of Stock',
+'Expired'
+
+],
+datasets: [
+{
+data: [
+healthy,
+kpis.lowStockCount,
+kpis.outOfStockCount,
+kpis.expiredCount
+],
+borderWidth:
+1
+}
+]
+},
+options: {
+responsive:
+true,
+maintainAspectRatio:
+false
+}
+}
+);
+}
+
+/* =========================================================
+UPDATE ALERTS
+========================================================= */
+function updateAlerts(
+kpis
+) {
+const alertList =
+document.getElementById(
+'alertList'
+);
+alertList.innerHTML =
+'';
+
+const alerts = [];
+
+if (
+Number(
+kpis.outOfStockCount
+) > 0
+) {
+alerts.push({
+type:
+'critical',
+title:
+'Out of stock items',
+value:
+`${formatNumber(
+kpis.outOfStockCount
+)} item(s) currently have zero remaining quantity.`
+});
+}
+
+if (
+Number(
+kpis.expiredCount
+) > 0
+) {
+alerts.push({
+type:
+'critical',
+title:
+'Expired inventory',
+value:
+`${formatNumber(
+kpis.expiredCount
+)} item(s) have expired.`
+});
+}
+
+if (
+Number(
+kpis.lowStockCount
+) > 0
+) {
+alerts.push({
+type:
+'warning',
+title:
+'Low stock items',
+value:
+`${formatNumber(
+kpis.lowStockCount
+)} item(s) have between 1 and 10 remaining.`
+
+});
+}
+
+if (
+Number(
+kpis.expiringSoon
+) > 0
+) {
+alerts.push({
+type:
+'warning',
+title:
+'Expiring soon',
+value:
+`${formatNumber(
+kpis.expiringSoon
+)} item(s) expire within 30 days.`
+});
+}
+
+if (
+Number(
+kpis.pending
+) > 0
+) {
+alerts.push({
+type:
+'info',
+title:
+'Pending visits',
+value:
+
+`${formatNumber(
+kpis.pending
+)} visit(s) are currently pending.`
+});
+}
+
+if (
+alerts.length === 0
+) {
+alertList.innerHTML =
+'<div class="empty-state">No active alerts.</div>';
+return;
+}
+
+alerts.forEach(
+alert => {
+const element =
+document.createElement(
+'div'
+);
+element.className =
+`alert-item alert-${alert.type}`;
+element.innerHTML = `
+<strong>
+${alert.title}
+</strong>
+<span>
+${alert.value}
+</span>
+`;
+
+alertList.appendChild(
+element
+);
+}
+);
+}
+
+/* =========================================================
+UPDATE INSIGHTS
+========================================================= */
+function updateInsights(
+data
+) {
+const insightList =
+document.getElementById(
+'insightList'
+);
+insightList.innerHTML =
+'';
+
+const insights = [];
+
+const kpis =
+data.kpis;
+const complaints =
+data.charts.topComplaints;
+const roles =
+data.charts.visitsByRole;
+const items =
+data.charts.topDispensedItems;
+
+if (
+
+complaints &&
+complaints.length > 0
+) {
+insights.push(
+`The most frequently recorded complaint is "${complaints[0]._id}" with
+${formatNumber(
+
+complaints[0].count
+)} recorded case(s).`
+);
+}
+
+if (
+roles &&
+roles.length > 0
+) {
+insights.push(
+`The user role with the highest number of clinic visits is "${roles[0]._id}" with
+${formatNumber(
+roles[0].count
+)} visit(s).`
+);
+}
+
+if (
+items &&
+items.length > 0
+) {
+insights.push(
+`"${items[0]._id}" is the most frequently dispensed item with ${formatNumber(
+items[0].quantity
+)} unit(s) dispensed.`
+
+);
+}
+
+insights.push(
+`The current attendance rate is ${formatPercent(
+kpis.attendanceRate
+)}.`
+);
+
+insights.push(
+`There are ${formatNumber(
+kpis.uniquePatients
+)} unique patient(s) across ${formatNumber(
+kpis.totalVisits
+)} clinic visit(s) in the selected period.`
+);
+
+if (
+Number(
+kpis.lowStockCount
+) > 0
+) {
+insights.push(
+`${formatNumber(
+kpis.lowStockCount
+)} inventory item(s) require stock monitoring because they have 10 or fewer units
+remaining.`
+);
+}
+
+insights.forEach(
+
+insight => {
+const element =
+document.createElement(
+'div'
+);
+element.className =
+'insight-item';
+element.textContent =
+insight;
+insightList.appendChild(
+element
+);
+}
+);
+}
+
+/* =========================================================
+UPDATE ACTIVITY
+========================================================= */
+function updateActivity(
+activities
+) {
+const activityList =
+document.getElementById(
+'activityList'
+);
+activityList.innerHTML =
+'';
+
+if (
+!activities ||
+activities.length === 0
+) {
+
+activityList.innerHTML =
+'<div class="empty-state">No recent activity found.</div>';
+return;
+}
+
+activities.forEach(
+activity => {
+const element =
+document.createElement(
+'div'
+);
+element.className =
+'activity-item';
+
+const user =
+activity.who;
+let userName =
+'Unknown user';
+
+if (user) {
+userName =
+user.fName ||
+user.lName
+?
+`${user.fName || ''} ${user.lName || ''}`.trim()
+:
+user.username ||
+'Unknown user';
+
+}
+
+element.innerHTML = `
+<div>
+<div class="activity-message">
+${activity.what || 'System activity'}
+</div>
+<div class="activity-user">
+${userName}
+</div>
+</div>
+<div class="activity-date">
+${formatDateTime(
+activity.createdAt
+)}
+</div>
+`;
+
+activityList.appendChild(
+element
+);
+}
+);
+}
+
+/* =========================================================
+RENDER DASHBOARD
+========================================================= */
+function renderDashboard(
+data
+) {
+
+currentDashboardData =
+data;
+
+updateDateRangeText(
+data.filters
+);
+
+updateKPIs(
+data.kpis
+);
+
+createVisitTrendChart(
+data.charts.visitTrend
+);
+
+createVisitsByRoleChart(
+data.charts.visitsByRole
+);
+
+createVisitStatusChart(
+data.charts.visitsByStatus
+);
+
+createTopComplaintsChart(
+data.charts.topComplaints
+);
+
+createDispensingChart(
+data.charts.dispensingByType
+);
+
+createTopDispensedItemsChart(
+data.charts.topDispensedItems
+);
+
+createInventoryChart(
+data.kpis
+);
+
+updateAlerts(
+data.kpis
+);
+
+updateInsights(
+data
+);
+
+updateActivity(
+data.recentActivity
+);
+
+statusText.textContent =
+'Connected';
+
+statusIndicator
+.classList
+.remove('error');
+statusIndicator
+.classList
+.add('online');
+}
+
+/* =========================================================
+LOAD DASHBOARD
+========================================================= */
+async function loadDashboard() {
+showLoading();
+clearError();
+
+try {
+const apiUrl =
+buildApiUrl();
+
+const response =
+await fetch(
+apiUrl,
+{
+method:
+'GET',
+headers: {
+'Accept':
+'application/json'
+}
+}
+);
+
+if (
+!response.ok
+) {
+const errorData =
+await response
+.json()
+.catch(
+() => null
+);
+throw new Error(
+errorData?.message ||
+`Dashboard request failed with status ${response.status}.`
+
+);
+}
+
+const data =
+await response.json();
+
+if (
+!data.success
+) {
+throw new Error(
+data.message ||
+'Unable to load dashboard data.'
+);
+}
+
+renderDashboard(
+data
+);
+
+} catch (error) {
+console.error(
+'Dashboard Error:',
+error
+);
+
+showError(
+error.message ||
+'An error occurred while loading dashboard analytics.'
+);
+
+} finally {
+
+hideLoading();
+}
+}
+
+/* =========================================================
+PERIOD CHANGE
+========================================================= */
+periodElement.addEventListener(
+'change',
+function () {
+if (
+this.value ===
+'custom'
+) {
+customDateContainer
+.classList
+.add('visible');
+} else {
+customDateContainer
+.classList
+.remove('visible');
+}
+}
+);
+
+/* =========================================================
+APPLY FILTERS
+========================================================= */
+
+document
+.getElementById(
+'applyFilters'
+)
+.addEventListener(
+'click',
+function () {
+loadDashboard();
+}
+);
+
+/* =========================================================
+RESET FILTERS
+========================================================= */
+document
+.getElementById(
+'resetFilters'
+)
+.addEventListener(
+'click',
+function () {
+periodElement.value =
+'this_month';
+roleElement.value =
+'all';
+departmentElement.value =
+'all';
+campusElement.value =
+'all';
+genderElement.value =
+
+'all';
+visitStatusElement.value =
+'all';
+startDateElement.value =
+'';
+endDateElement.value =
+'';
+
+customDateContainer
+.classList
+.remove('visible');
+
+loadDashboard();
+}
+);
+
+/* =========================================================
+INITIAL LOAD
+========================================================= */
+document.addEventListener(
+'DOMContentLoaded',
+function () {
+loadDashboard();
+}
+);
+</script>
+</body>
+</html>

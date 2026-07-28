@@ -11,8 +11,7 @@ const isUsers = async (req, res, next) => {
             'Student', 
             'Faculty', 
             'Staff', 
-            'Security', 
-            'Maintenance'
+
         ];
 
         // 1. Fetch filtered active users [cite: 46, 51, 53, 58]

@@ -1114,19 +1114,19 @@ progress::-moz-progress-bar { background-color: #4caf50; }
         radial-gradient(circle at 50% 50%,  var(--tint6), transparent 50%);
     background-blend-mode: lighten;
     backdrop-filter: blur(10px);
-    background-color: var(--shade12);
+    background-color: var(--shade10);
 }
 
 .gradient {
     color: white;
     background: 
-        radial-gradient(circle at 50% 90%, var(--shade15), transparent 50%),  /* Light Gray */
+        radial-gradient(circle at 50% 90%, var(--shade10), transparent 50%),  /* Light Gray */
         radial-gradient(circle at 88% 99%,  var(--tint5), transparent 26%),  /* Very Light Blue */
         radial-gradient(circle at 20% 1%,  var(--tint3), transparent 70%),  /* Very Light Blue */
-        radial-gradient(circle at 70% 30%,  var(--shade15), transparent 10%); /* White */
+        radial-gradient(circle at 70% 30%,  var(--shade10), transparent 10%); /* White */
     background-blend-mode: lighten;
     backdrop-filter: blur(10px);
-    background-color: var(--shade12);
+    background-color: var(--shade10);
 }
 
 .polaroid {

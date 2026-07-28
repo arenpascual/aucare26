@@ -27,6 +27,31 @@
         .stCard:hover p {
             color: var(--blue500);
         }
+        
+        .field {
+    width: 100%;
+    display: flex;
+    height: auto;
+    justify-content: start;
+    align-items: start;
+    padding: 0;
+    gap: 3px;
+    flex-direction: column;
+    position: relative;
+}
+
+.field input{
+    width: 100%;
+    padding-right: 45px;
+}
+
+.toggle-password{
+    position: absolute;
+    right: 15px;
+    bottom: 12px;
+    cursor: pointer;
+    z-index: 10;
+}
     </style>
 </head>
 <body>
@@ -40,22 +65,22 @@
                 <p>&bull; Combination of letter and number</p>
                 <p>&bull; At least 1 upper case letter</p>
                 <p>&bull; At least 1 special character</p>
-            </section> 
+            </section>
             <br>
             <section class="field">
                 <label class="str500 col alignStart" for="">Temporary Password</label>
                 <input type="password" id="tempPassword" required>
-                <i class="far fa-eye toggle-password"></i>
+                <i class="fa fa-eye toggle-password"></i>
             </section>
             <section class="field">
                 <label class="str500 col" for="">Create Password</label>
                 <input type="password" id="newPassword" required>
-                <i class="far fa-eye toggle-password"></i>
+                <i class="fa fa-eye toggle-password"></i>
             </section>
             <section class="field">
                 <label class="str500 col" for="">Confirm Password</label>
                 <input type="password" id="confirmPassword" required>
-                <i class="far fa-eye toggle-password"></i>
+                <i class="fa fa-eye toggle-password"></i>
             </section>
             <p id="resetPassError" class="size13" style="color:red; display:none;"></p>
             <br>
@@ -109,6 +134,22 @@
                 showResetError("Something went wrong. Please try again.");
             }
         };
+            // Show / Hide Password
+            document.querySelectorAll('.toggle-password').forEach(icon => {
+        icon.addEventListener('click', function () {
+            const input = this.parentElement.querySelector('input');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.classList.remove('fa-eye');
+                this.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                this.classList.remove('fa-eye-slash');
+                this.classList.add('fa-eye');
+            }
+        });
+    });
     </script>
 <% } %>
     <div class="sidef">

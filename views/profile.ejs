@@ -238,7 +238,7 @@
     background:#400291;
 }
 .mainf {
-    padding: 0;
+    padding: 5;
 }
 </style>
 
@@ -267,16 +267,17 @@
 
     <div class="width70 shadow1 height0 bgWhite corner10 col alignStart justifyStart padding30">
         <p class="size30 str500">Employee Information</p>
-        <section class="gap10">
-            <div class="field">
-                <label for="">Role</label>
-                <input type="text" value="<%= user.role %>" disabled>
+        <section class="gap padding0">
+            <div class="field padding10">
+                <label>Role</label>
+                <input type="text" disabled placeholder="Admin">
             </div>
             <div class="field">
-                <label for="">Employee Id</label>
-                <input type="text" value="<%= user.schoolId %>" disabled>
+                    <label for="">Campus</label>
+                    <input type="text" value="<%= user.campus %>" disabled>
             </div>
         </section>
+    
         <section class="gap10">
             <div class="field">
                 <label for="">First Name</label>
@@ -287,6 +288,7 @@
                 <input type="text" value="<%= user.mName %>" disabled>
             </div>
         </section>
+
         <section class="gap10">
             <div class="field">
                 <label for="">Last Name</label>
@@ -297,6 +299,25 @@
                 <input type="text" value="<%= user.xName %>" disabled>
             </div>
         </section>
+
+        <section class="gap10 padding10">
+        <div class="field">
+            <label>Employee ID</label>
+            <input type="text" name="schoolId" id="editSchoolId" value="<%= user.schoolId %>" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
+        </div>
+
+        <div class="field">
+                    <label>Date of Birth</label>
+                    <div class="row gap5">
+                        <input type="text" name="bMonth" id="" value="<% user.bMonth %>" disabled>
+                        <input type="text" name="bDay" id="" value="<% user.bDay %>" disabled>
+                        <input type="text" name="bYear" id="" value="<% user.bYear %>" disabled>
+                    </div>
+                    <p class="field-error" id="dobError"></p>
+                </div>
+        </section>
+
+
         <section class="gap10">
             <div class="field">
                 <label for="">Email</label>
@@ -318,33 +339,30 @@
             </div>
         </section>
     </div>
-<form id="editForm" action="/profile/update" method="POST" class="width50 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
-    <p class="size30 str500">Edit Information</p>
 
-    <section class="gap10">
-        <div class="field">
+
+
+<form id="editForm" action="/profile/update" method="POST" class="width50 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
+    <p class="size28 str500">Edit Information</p>
+    <section class="gap10 padding0">
+        <div class="field ">
             <label>Role</label>
             <input type="text" disabled placeholder="Admin">
         </div>
-
         <div class="field">
-            <label>Employee ID</label>
-            <input type="text" name="schoolId" id="editSchoolId" value="<%= user.schoolId %>" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
+            <label>Campus</label>
+                <div class="selectBar">
+                    <select name="campus" required>
+                        <option value="" disabled <%= !user.campus ? 'selected' : '' %>>--Select--</option>
+                        <option value="Main" <%= user.campus === 'Main' ? 'selected' : '' %>>Main</option>
+                        <option value="South" <%= user.campus === 'South' ? 'selected' : '' %>>South</option>
+                        <option value="San Jose" <%= user.campus === 'San Jose' ? 'selected' : '' %>>San Jose</option>
+                    </select>
+                </div>
         </div>
     </section>
 
-    <div class="field">
-        <section class="gap10 justifyStart">
-            <label>
-                <input type="radio" name="gender" value="Male" <%= user.gender === 'Male' ? 'checked' : '' %> required> Male
-            </label>
-            <label>
-                <input type="radio" name="gender" value="Female" <%= user.gender === 'Female' ? 'checked' : '' %> required> Female
-            </label>
-        </section>
-    </div>
-
-    <section class="gap10">
+    <section class="gap10 padding0">
         <div class="field">
             <label>First Name</label>
             <input type="text" name="fName" id="editFName" value="<%= user.fName %>" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
@@ -356,7 +374,7 @@
         </div>
     </section>
 
-    <section class="gap10">
+    <section class="gap10 padding0">
         <div class="field">
             <label>Last Name</label>
             <input type="text" name="lName" id="editLName" value="<%= user.lName %>" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
@@ -368,19 +386,69 @@
         </div>
     </section>
 
-    <section class="gap10">
+    <section class="gap10 padding0">
+        <div class="field">
+            <label>Employee ID</label>
+            <input type="text" name="schoolId" id="editSchoolId" value="<%= user.schoolId %>" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
+        </div>
         <div class="field">
             <label>Email</label>
             <input type="email" name="email" id="editEmail" value="<%= user.email %>" maxlength="100" required>
         </div>
+    </section>
 
+    <div class="field padding0">
+                <label>Date of Birth</label>
+                    <div class="row gap5">
+                        <div class="selectBar">
+                            <select name="bMonth" id="bMonth" required>
+                                <option value="" selected disabled>--Month--</option>
+                                <option value="1">01</option>
+                                <option value="2">02</option>
+                                <option value="3">03</option>
+                                <option value="4">04</option>
+                                <option value="5">05</option>
+                                <option value="6">06</option>
+                                <option value="7">07</option>
+                                <option value="8">08</option>
+                                <option value="9">09</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                        </div>
+                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" required>
+                        <div class="selectBar">
+                            <select name="bYear" id="bYear" required>
+                                <option value="" selected disabled>--Year--</option>
+                                <% const currentYear = new Date().getFullYear(); %>
+                                <% for (let y = currentYear - 10; y >= currentYear - 80; y--) { %>
+                                    <option value="<%= y %>"><%= y %></option>
+                                <% } %>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="field-error" id="dobError"></p>
+        </div>
+
+    <section class="gap10 padding0">
+        <div class="field">
+                    <label>Gender</label>
+                    <div class="selectBar">
+                        <select name="gender" required>
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                </div>
         <div class="field">
             <label>Contact Number</label>
             <input type="tel" name="phone" id="editPhone" value="<%= user.phone %>" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="^09[0-9]{9}$" title="Enter an 11-digit PH mobile number starting with 09" required>
         </div>
     </section>
 
-    <section>
+    <section class="padding0">
         <div class="field">
             <label>Address</label>
             <input type="text" name="address" id="editAddress" value="<%= user.address %>" maxlength="150" required>

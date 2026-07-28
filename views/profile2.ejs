@@ -167,6 +167,12 @@
         list-style: disc;
         padding-left: 20px;
     }
+    .field-error{
+        color:red;
+        font-size:12px;
+        display:none;
+        margin-top:-5px;
+    }
     </style>
 
     <div class=" gap10 polaroid alignStart">
@@ -201,15 +207,15 @@
                 
             <div class="height0 gap10">
                 <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
-                    <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                    <a href="javascript:void(0)" class="nav cnav absolute right16 top10 lgBtn" data-target="editForm"><i class="fas fa-pen"></i></a>
                     <p class="size20 str400">Personal Details</p>
                     <p class="size14 gray">Gender: <%= user.gender %></p>
                     <p class="size14 gray">Address: <%= user.address %></p>
-                    <p class="size14 gray">Date of Birth: <%= user.bMonth %> <%= user.bDay %> <%= user.bYear %>:</p>
+                    <p class="size14 gray">Date of Birth: <%= user.bMonth %> <%= user.bDay %> <%= user.bYear %> </p>
 
                 </section>
                 <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
-                    <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                    <a href="javascript:void(0)" class="nav cnav absolute right16 top10 lgBtn" data-target="eseditForm"><i class="fas fa-pen"></i></a>
                     <p class="size20 str400">School Information</p>
                     <p class="size14 gray">School ID: <%= user.schoolId %></p>
                     <p class="size14 gray">Year Level: <%= user.yearLevel %></p>
@@ -219,7 +225,7 @@
             
             <div class="height0 justifyStart gap10 padding0 ">
                 <section class="left width100 bgWhite corner14 col alignStart padding15 borderGray relative height0">
-                    <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                    <a href="javascript:void(0)" class="nav cnav absolute right16 top10 lgBtn" data-target="eceditForm"><i class="fas fa-pen"></i></a>
                     <p class="size20 str400">Emergency Contact</p>
                     <p class="size14 gray">Name: <%= user.eName %></p>
                     <p class="size14 gray">Contact: <%= user.ePhone %></p>
@@ -228,11 +234,11 @@
             </div>
             
                 <section class="left width100 bgWhite corner14 col alignStart gap5 padding10 borderGray relative height0">
-                    <a href="javascript:void(0)" id="lgBtn" class="nav cnav absolute right16 top10"><i class="fas fa-pen"></i></a>
+                    <a href="javascript:void(0)" class="nav cnav absolute right16 top10 lgBtn" data-target="eaeditForm"><i class="fas fa-pen"></i></a>
                     <p class="size20 str400">Allergies</p>
                     <p class="size14 gray">Food Allergies: <%= user.fAllergy %></p>
                     <p class="size14 gray">Medicines Allergies: <%= user.mAllergy %></p>
-                    <p class="size14 gray">Other Allergies: <%= user.oAllergy %></p>
+        
 
                 </section>
         </div>
@@ -326,6 +332,216 @@
         <a class="nav w120 size15" href="javascript:void(0)" id="gotItBtn">Got It!</a>
     </section>
 
+        <!-- EDIT PERSONAL INFORMATION -->
+        <form id="editForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
+            <p class="size30 str500">Edit Personal Information</p>
+            <div class="field">
+                <section class="gap10 justifyStart">
+                    <label>
+                        <input type="radio" name="gender" value="Male" <%= user.gender === 'Male' ? 'checked' : '' %> required> Male
+                    </label>
+                    <label>
+                        <input type="radio" name="gender" value="Female" <%= user.gender === 'Female' ? 'checked' : '' %> required> Female
+                    </label>
+                </section>
+            </div>
+                <section class="gap10">
+                    <div class="field">
+                        <label>First Name</label>
+                        <input type="text" name="fName" id="editFName" value="<%= user.fName %>" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
+                    </div>
+                    <div class="field">
+                        <label>Middle Name</label>
+                        <input type="text" name="mName" id="editMName" value="<%= user.mName %>" maxlength="50" pattern="^[A-Za-z\s\-']*$" title="Letters, spaces, hyphens and apostrophes only">
+                    </div>
+                </section>
+                <section class="gap10">
+                    <div class="field">
+                        <label>Last Name</label>
+                        <input type="text" name="lName" id="editLName" value="<%= user.lName %>" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
+                    </div>
+                    <div class="field">
+                        <label>Extension Name</label>
+                        <input type="text" name="xName" id="editXName" value="<%= user.xName %>" maxlength="10" pattern="^[A-Za-z.\s]*$" title="e.g. Jr., Sr., III" placeholder="e.g. Jr., III">
+                    </div>
+                </section>
+                <section class="gap10">
+                    <div class="field">
+                        <label>Email</label>
+                        <input type="email" name="email" id="editEmail" value="<%= user.email %>" maxlength="100" required>
+                    </div>
+                    <div class="field">
+                        <label>Contact Number</label>
+                        <input type="tel" name="phone" id="editPhone" value="<%= user.phone %>" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="^09[0-9]{9}$" title="Enter an 11-digit PH mobile number starting with 09" required>
+                    </div>
+                </section>
+                <section>
+                    <div class="field">
+                        <label>Address</label>
+                        <input type="text" name="address" id="editAddress" value="<%= user.address %>" maxlength="150" required>
+                    </div>
+                </section>
+                <div class="field padding10">
+                    <label>Date of Birth</label>
+                    <div class="row gap5">
+                        <div class="selectBar">
+                            <select name="bMonth" id="bMonth" required>
+                                <option value="" selected disabled>--Month--</option>
+                                <option value="1">01</option>
+                                <option value="2">02</option>
+                                <option value="3">03</option>
+                                <option value="4">04</option>
+                                <option value="5">05</option>
+                                <option value="6">06</option>
+                                <option value="7">07</option>
+                                <option value="8">08</option>
+                                <option value="9">09</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                        </div>
+                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" required>
+                        <div class="selectBar">
+                            <select name="bYear" id="bYear" required>
+                                <option value="" selected disabled>--Year--</option>
+                                <% const currentYear = new Date().getFullYear(); %>
+                                <% for (let y = currentYear - 10; y >= currentYear - 80; y--) { %>
+                                    <option value="<%= y %>"><%= y %></option>
+                                <% } %>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="field-error" id="dobError"></p>
+                </div>
+                <p class="field-error"></p>
+                <section class="gap20">
+                    <a href="javascript:void(0)" class="nav width100 closeEditBtn">Cancel</a>
+                    <button type="submit" class="nav pnav width100">Save Changes</button>
+                </section>
+    </form>
+
+    <!-- EDIT SCHOOL INFORMATION -->
+    <form id="eseditForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
+            <p class="size30 str500">Edit School Information</p>
+                <div class="field">
+                    <label>School ID</label>
+                    <input type="text" name="schoolId" id="editSchoolId" value="<%= user.schoolId %>" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
+                </div>
+                <div class="field">
+                    <label>Year Level</label>
+                    <div class="selectBar">
+                        <select name="yearLevel" required>
+                            <option value="" disabled <%= !user.yearLevel ? 'selected' : '' %>>--Select--</option>
+                            <option value="4th Year" <%= user.yearLevel === '4th Year' ? 'selected' : '' %>>4th Year</option>
+                            <option value="3rd Year" <%= user.yearLevel === '3rd Year' ? 'selected' : '' %>>3rd Year</option>
+                            <option value="2nd Year" <%= user.yearLevel === '2nd Year' ? 'selected' : '' %>>2nd Year</option>
+                            <option value="1st Year" <%= user.yearLevel === '1st Year' ? 'selected' : '' %>>1st Year</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Course</label>
+                    <div class="selectBar">
+                        <select name="course" id="editCourse" required>
+                            <option value="" disabled <%= !user.course ? 'selected' : '' %>>--Select--</option>
+                            <option value="BS Architecture">BS Architecture (BSArch)</option>
+                            <option value="BS Accountancy">BS Accountancy (BSA)</option>
+                            <option value="BS Accounting Information System">BS Accounting Information System (BSAIS)</option>
+                            <option value="BS Biology">BS Biology (BS Bio)</option>
+                            <option value="BS Business Administration">BS Business Administration (BSBA)</option>
+                            <option value="BS Civil Engineering">BS Civil Engineering (BSCE)</option>
+                            <option value="BS Computer Engineering">BS Computer Engineering (BSCpE)</option>
+                            <option value="BS Computer Science">BS Computer Science (BSCS)</option>
+                            <option value="BS Criminology">BS Criminology (BSCrim)</option>
+                            <option value="BS Dentistry">BS Dentistry (DMD)</option>
+                            <option value="BS Education">BS Education (BSEd)</option>
+                            <option value="BS Electrical Engineering">BS Electrical Engineering (BSEE)</option>
+                            <option value="BS Electronics Engineering">BS Electronics Engineering (BSECE)</option>
+                            <option value="BS Hospitality Management">BS Hospitality Management (BSHM)</option>
+                            <option value="BS Hotel and Restaurant Management">BS Hotel and Restaurant Management (BSHRM)</option>
+                            <option value="BS Information Systems">BS Information Systems (BSIS)</option>
+                            <option value="BS Information Technology">BS Information Technology (BSIT)</option>
+                            <option value="BS Industrial Engineering">BS Industrial Engineering (BSIE)</option>
+                            <option value="BS Mechanical Engineering">BS Mechanical Engineering (BSME)</option>
+                            <option value="BS Medical Technology">BS Medical Technology (BSMT)</option>
+                            <option value="BS Midwifery">BS Midwifery</option>
+                            <option value="BS Nursing">BS Nursing (BSN)</option>
+                            <option value="BS Pharmacy">BS Pharmacy</option>
+                            <option value="BS Physical Therapy">BS Physical Therapy (BSPT)</option>
+                            <option value="BS Psychology">BS Psychology (BSPsych)</option>
+                            <option value="BS Public Administration">BS Public Administration (BSPA)</option>
+                            <option value="BS Tourism Management">BS Tourism Management (BSTM)</option>
+                            <option value="Doctor of Medicine">Doctor of Medicine (MD)</option>
+                            <option value="Juris Doctor">Juris Doctor (JD)</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="field-error"></p>
+                <section class="gap20">
+                    <a href="javascript:void(0)" class="nav width100 closeEditBtn">Cancel</a>
+                    <button type="submit" class="nav pnav width100">Save Changes</button>
+                </section>
+    </form>
+
+    <!-- EDIT EMERGENCY CONTACT -->
+    <form id="eceditForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
+            <p class="size30 str500">Edit Emergency Contact</p>
+                <section class="gap10">
+                    <div class="field">
+                        <label>Full Name</label>
+                        <input type="text" name="eName" id="editEName" value="<%= user.eName %>" maxlength="100" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
+                    </div>
+                    <div class="field">
+                        <label>Contact Number</label>
+                        <input type="tel" name="ePhone" id="editEPhone" value="<%= user.ePhone %>" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="^09[0-9]{9}$" title="Enter an 11-digit PH mobile number starting with 09" required>
+                    </div>
+                </section>
+                <section>
+                    <div class="field">
+                        <label>Address</label>
+                        <input type="text" name="eAddress" id="editEAddress" value="<%= user.eAddress %>" maxlength="150" required>
+                    </div>
+                </section>
+                <p class="field-error"></p>
+                <section class="gap20">
+                    <a href="javascript:void(0)" class="nav width100 closeEditBtn">Cancel</a>
+                    <button type="submit" class="nav pnav width100">Save Changes</button>
+                </section>
+    </form>
+
+    <!-- EDIT ALLERGIES -->
+    <form id="eaeditForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
+            <p class="size30 str500">Edit Allergies</p>
+                <div class="field">
+                    <label>Any Food Allergies?</label>
+                    <div class="selectBar">
+                        <select name="fAllergy" id="editFAllergy" required>
+                            <option value="" disabled <%= !user.fAllergy ? 'selected' : '' %>>--Select--</option>
+                            <option value="Yes" <%= user.fAllergy === 'Yes' ? 'selected' : '' %>>Yes</option>
+                            <option value="No" <%= user.fAllergy === 'No' ? 'selected' : '' %>>No</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Any Allergies to Medicines?</label>
+                    <div class="selectBar">
+                        <select name="mAllergy" id="editMAllergy" required>
+                            <option value="" disabled <%= !user.mAllergy ? 'selected' : '' %>>--Select--</option>
+                            <option value="Yes" <%= user.mAllergy === 'Yes' ? 'selected' : '' %>>Yes</option>
+                            <option value="No" <%= user.mAllergy === 'No' ? 'selected' : '' %>>No</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="field-error"></p>
+                <section class="gap20">
+                    <a href="javascript:void(0)" class="nav width100 closeEditBtn">Cancel</a>
+                    <button type="submit" class="nav pnav width100">Save Changes</button>
+                </section>
+    </form>
+
+
 </div>
 
     <script>
@@ -339,6 +555,9 @@
     const passError = document.getElementById("passError");
     const getOtpBtn = document.getElementById("getOtpBtn");
     const notificationBox = document.getElementById("notificationBox");
+
+    // Lahat ng edit forms
+    const editForms = document.querySelectorAll('#editForm, #eseditForm, #eceditForm, #eaeditForm');
 
     const currentPasswordInput = document.getElementById("currentPassword");
     const newPasswordInput = document.getElementById("newPassword");
@@ -465,6 +684,7 @@
         passCard.classList.remove("hidden");
         lgCard.classList.add("hidden");
         notificationBox.classList.add("hidden");
+        editForms.forEach(f => f.classList.add("hidden"));
 
         clearError();
         currentPasswordInput.value = "";
@@ -481,8 +701,40 @@
         lgCard.classList.remove("hidden");
         passCard.classList.add("hidden");
         notificationBox.classList.add("hidden");
+        editForms.forEach(f => f.classList.add("hidden"));
 
     };
+
+    // Pag pinindot ang alinman sa edit (pen) buttons, buksan ang tamang Edit form
+    // base sa data-target attribute (editForm / eseditForm / eceditForm / eaeditForm)
+    function openEditForm(targetId){
+        modal.classList.remove("hidden");
+
+        // itago muna lahat ng edit forms
+        editForms.forEach(f => f.classList.add("hidden"));
+
+        // ipakita lang yung tamang form
+        const target = document.getElementById(targetId);
+        if (target) target.classList.remove("hidden");
+
+        passCard.classList.add("hidden");
+        lgCard.classList.add("hidden");
+        notificationBox.classList.add("hidden");
+
+        if (target) clearEditFormError(target);
+    }
+
+    document.querySelectorAll(".lgBtn").forEach(btn => {
+        btn.onclick = () => openEditForm(btn.dataset.target);
+    });
+
+    // Cancel buttons ng bawat edit form (may class na "closeEditBtn" na ngayon)
+    document.querySelectorAll(".closeEditBtn").forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            closeModal();
+        };
+    });
 
     getOtpBtn.onclick = sendOtp;
 
@@ -557,11 +809,103 @@
         passCard.classList.add("hidden");
         lgCard.classList.add("hidden");
         notificationBox.classList.add("hidden");
+        editForms.forEach(f => f.classList.add("hidden"));
 
         clearInterval(otpExpiryTimer);
 
     }
 
-    
+    // ---- Live clamp: digits only, and cap length (para sa phone number) ----
+    function digitsOnlyLive(input, maxLen){
+        if (!input) return; // huwag mag-error kung walang ganitong field
+        input.addEventListener('input', () => {
+            let raw = input.value.replace(/[^0-9]/g, '');
+            if (raw.length > maxLen) raw = raw.slice(0, maxLen);
+            input.value = raw;
+        });
+    }
+
+    // ---- Live clamp: letters, spaces, hyphens, apostrophes only (para sa pangalan) ----
+    // Hindi na kelangan mag-type ng number sa mga name fields, kaagad na tatanggalin
+    // ang number/symbol habang nagta-type ang user.
+    function lettersOnlyLive(input, extraAllowedChars){
+        if (!input) return; // huwag mag-error kung walang ganitong field
+        const allowed = new RegExp(`[^A-Za-z\\s${extraAllowedChars || ''}]`, 'g');
+        input.addEventListener('input', () => {
+            const start = input.selectionStart;
+            const before = input.value;
+            const cleaned = before.replace(allowed, '');
+            if (cleaned !== before) {
+                input.value = cleaned;
+                const diff = before.length - cleaned.length;
+                const pos = Math.max(0, (start || 0) - diff);
+                input.setSelectionRange(pos, pos);
+            }
+        });
+        // hadlangan din ang paste ng number/invalid characters
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            const cleanedText = text.replace(allowed, '');
+            const startPos = input.selectionStart;
+            const endPos = input.selectionEnd;
+            const newVal = input.value.slice(0, startPos) + cleanedText + input.value.slice(endPos);
+            input.value = newVal;
+        });
+    }
+
+    // Personal Info form
+    digitsOnlyLive(document.getElementById('editPhone'), 11);
+    lettersOnlyLive(document.getElementById('editFName'), '\\-\'');
+    lettersOnlyLive(document.getElementById('editMName'), '\\-\'');
+    lettersOnlyLive(document.getElementById('editLName'), '\\-\'');
+    // Extension name: letters, dots, spaces lang (Jr., Sr., III)
+    lettersOnlyLive(document.getElementById('editXName'), '.');
+
+    // Emergency Contact form
+    digitsOnlyLive(document.getElementById('editEPhone'), 11);
+    lettersOnlyLive(document.getElementById('editEName'), '\\-\'');
+
+    function clearEditFormError(form){
+        const errEl = form.querySelector('.field-error');
+        if (errEl){
+            errEl.style.display = "none";
+            errEl.textContent = "";
+        }
+    }
+
+    function showEditFormError(form, msg){
+        const errEl = form.querySelector('.field-error');
+        if (errEl){
+            errEl.textContent = msg;
+            errEl.style.display = "block";
+        }
+    }
+
+    // ---- I-validate ang lahat ng required/patterned fields bago mag-submit ----
+    editForms.forEach(form => {
+        form.addEventListener('submit', function (e) {
+            clearEditFormError(form);
+
+            const inputs = form.querySelectorAll('input:not([disabled]), select:not([disabled])');
+            for (const input of inputs) {
+                if (!input.checkValidity()) {
+                    e.preventDefault();
+                    input.reportValidity();
+                    input.focus();
+                    return;
+                }
+            }
+
+            // gender check para lang sa Personal Information form
+            if (form.id === 'editForm') {
+                const genderChecked = form.querySelector('input[name="gender"]:checked');
+                if (!genderChecked) {
+                    e.preventDefault();
+                    showEditFormError(form, "Please select a gender.");
+                }
+            }
+        });
+    });
 
     </script>

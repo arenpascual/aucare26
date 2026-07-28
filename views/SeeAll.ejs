@@ -28,7 +28,7 @@
         <% allVisits.forEach(v => { %>
             <a href="/vv1/<%= v._id %>" class="width100 gap5 bgWhite corner10 shadow1 alignStart col relative padding10 marginBottom10">
                 <p class="size16 str5"><%= v.complaint %></p>
-                <p class="size12 str4 <%= v.status === 'Attended' ? 'noteGreen' : 'noteBlue' %>"><%= v.status %></p>
+                <p class="size12 str4 <%= v.status === 'Attended' ? 'noteBlue' : 'noteGreen' %>"><%= v.status %></p>
                 <p class="size12 gray absolute right10 top10">
                     <%= new Date(v.createdAt).toLocaleString('en-US', { 
                         month: 'short', day: 'numeric', year: 'numeric', 

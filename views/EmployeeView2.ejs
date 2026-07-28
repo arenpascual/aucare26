@@ -1,0 +1,249 @@
+<% layout('layout') %>
+
+<style>
+    .profile-name{
+    width:100%;
+    text-align:center !important;
+    overflow: hidden;
+    font-weight:500;
+    margin-top:10px;
+    line-height:1.3;
+}
+.modal.hidden{
+    display: none !important;
+}
+.personal-info-card{
+    background:#fff;
+    border-radius:16px;
+    padding:24px 28px;
+    width:100%;
+    box-sizing:border-box;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    padding: 10px;
+}
+
+.personal-info-card h3{
+    font-size:20px;
+    font-weight:700;
+    margin:0 0 18px 0;
+    color:#111;
+}
+
+.gender-row{
+    display:flex;
+    align-items:center;
+    gap:24px;
+    margin-bottom:18px;
+}
+
+.gender-option{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:14px;
+    color:#333;
+    cursor:pointer;
+}
+
+.gender-option input[type="radio"]{
+    width:18px;
+    height:18px;
+    accent-color:#0f12a1;
+    cursor:pointer;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-bottom:16px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+    gap:25x;
+}
+
+.form-group.full{
+    grid-column:1 / -1;
+}
+
+.form-group label{
+    font-size:13px;
+    color:#888;
+    margin-top: 11px;
+}
+
+.form-group .field-value{
+    background:#f5f5f7;
+    border-radius:10px;
+    padding:7px 9px;
+    font-size:14px;
+    color:#222;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.verified-badge{
+    color:#2ecc71;
+    font-size:13px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:5px;
+}
+
+.personal-info-buttons{
+    display:flex;
+    gap:16px;
+    margin-top:10px;
+}
+
+.btn-discard{
+    flex:1;
+    padding:14px;
+    border-radius:10px;
+    border:1.5px solid #f7941d;
+    background:#fff;
+    color:#f7941d;
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+}
+
+.btn-discard:hover{
+    background:#fff7ee;
+}
+
+.btn-save:hover{
+    background:#400291;
+}
+.mainf {
+    padding: 5;
+}
+</style>
+
+<%
+    const isOwnProfile = user && employee && String(user._id) === String(employee._id);
+    const canEditOthers = typeof isSuperAdmin !== 'undefined' && isSuperAdmin && !isOwnProfile;
+%>
+
+<div class="gap20 polaroid alignStart justifyStart row padding20 relative row">
+    <a href="/ea" class="nav justifyStart absolute left10 top10"><i class="fas fa-chevron-left"></i>
+        Return
+    </a>
+    <div class="width25 bgWhite corner15 justifyStart col padding20 height85" style="margin-top: 50px; !important">
+        <section class="col ">
+            <img class="h100 w100 bura corner500" src="/images/profile.png" alt="">
+            <p class="size28 colorPrimary profile-name">
+                <%= employee.fName %> <%= employee.mName %> <%= employee.lName %> <%= employee.xName %>
+            </p>
+            <p class="size16 blue"><%= employee.schoolId %></p>
+            <p class="size16 gray"><%= employee.email %></p>
+        </section>
+        <section class="col gap5">
+            <a href="javascript:void(0)" id="openArchiveOther" class="nav pnav width100">
+                Restore
+            </a>
+        </section>
+    </div>
+
+    <div class="width70 shadow1 height0 bgWhite corner10 col alignStart justifyStart padding30" style="margin-top: 50px; !important">
+        <p class="size30 str500">Employee Information</p>
+        <section class="gap padding0">
+            <div class="field padding10">
+                <label>Role</label>
+                <input type="text" value="<%= employee.role %>" disabled>
+            </div>
+            <div class="field">
+                    <label for="">Campus</label>
+                    <input type="text" value="<%= employee.campus %>" disabled>
+            </div>
+        </section>
+    
+        <section class="gap10">
+            <div class="field">
+                <label for="">First Name</label>
+                <input type="text" value="<%= employee.fName %>" disabled>
+            </div>
+            <div class="field">
+                <label for="">Middle Name</label>
+                <input type="text" value="<%= employee.mName %>" disabled>
+            </div>
+        </section>
+
+        <section class="gap10">
+            <div class="field">
+                <label for="">Last Name</label>
+                <input type="text" value="<%= employee.lName %>" disabled>
+            </div>
+            <div class="field">
+                <label for="">Extension Name</label>
+                <input type="text" value="<%= employee.xName %>" disabled>
+            </div>
+        </section>
+
+        <section class="gap10 padding10">
+        <div class="field">
+            <label>Employee ID</label>
+            <input type="text" value="<%= employee.schoolId %>" disabled>
+        </div>
+
+        <div class="field">
+                    <label>Date of Birth</label>
+                    <div class="row gap5">
+                        <input type="text" value="<%= employee.bMonth %>" disabled>
+                        <input type="text" value="<%= employee.bDay %>" disabled>
+                        <input type="text" value="<%= employee.bYear %>" disabled>
+                    </div>
+                    <p class="field-error" id="dobErrorView"></p>
+                </div>
+        </section>
+
+
+        <section class="gap10">
+            <div class="field">
+                <label for="">Email</label>
+                <input type="email" value="<%= employee.email %>" disabled>
+            </div>
+            <div class="field">
+                <label for="">Contact Number</label>
+                <input type="text" value="<%= employee.phone %>" disabled>
+            </div>
+        </section>
+        <section class="gap10">
+            <div class="field">
+                <label for="">Gender</label>
+                <input type="text" value="<%= employee.gender %>" disabled>
+            </div>
+            <div class="field">
+                <label for="">Address</label>
+                <input type="text" value="<%= employee.address %>" disabled>
+            </div>
+        </section>
+    </div>
+
+</div>
+
+<script>
+    document.getElementById("openArchiveOther").onclick = async () => {
+        if (!confirm("Are you sure you want to restore this employee?")) return;
+
+        try {
+            const res = await fetch('/api/users/restore/<%= employee._id %>', { method: 'POST' });
+            const data = await res.json();
+
+            if (data.success) {
+                window.location.href = '/ea';
+            } else {
+                alert(data.message || "Failed to restore employee.");
+            }
+        } catch (err) {
+            alert("Something went wrong. Please try again.");
+        }
+    };
+</script>

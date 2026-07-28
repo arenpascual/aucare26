@@ -12,6 +12,9 @@ const multer = require('multer');
 const dayjs = require('dayjs');
 const helmet = require('helmet');
 const crypto = require('crypto');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
+const isoWeek = require('dayjs/plugin/isoWeek');
 
 
 // Models
@@ -45,6 +48,11 @@ const isArchiveVisit = require('./middleware/isArchiveVisit');
 const app = express();
 const PORT = process.env.PORT;
 process.env.TZ = "Asia/Manila";
+const APP_TIMEZONE = 'Asia/Manila';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(isoWeek);
 
 // Database Connection to!
 mongoose.connect(process.env.MONGO_URI)
@@ -415,9 +423,897 @@ app.get('/h', isLogin, isStocks, async (req, res) => {
     }
 });
 
+function getDashboardDateRange(query) {
+const period = query.period || 'this_month';
+const now = dayjs().tz(APP_TIMEZONE);
+let start = null;
+let end = null;
+switch (period) {
+case 'today':
+start = now.startOf('day');
+end = now.endOf('day');
+break;
+case 'yesterday':
+start = now.subtract(1, 'day').startOf('day');
+end = now.subtract(1, 'day').endOf('day');
+break;
+case 'this_week':
+start = now.startOf('isoWeek');
+end = now.endOf('isoWeek');
+break;
+case 'last_week':
+start = now.subtract(1, 'week').startOf('isoWeek');
+
+end = now.subtract(1, 'week').endOf('isoWeek');
+break;
+case 'this_month':
+start = now.startOf('month');
+end = now.endOf('month');
+break;
+case 'last_month':
+start = now.subtract(1, 'month').startOf('month');
+end = now.subtract(1, 'month').endOf('month');
+break;
+case 'this_year':
+start = now.startOf('year');
+end = now.endOf('year');
+break;
+case 'last_year':
+start = now.subtract(1, 'year').startOf('year');
+end = now.subtract(1, 'year').endOf('year');
+break;
+case 'custom': {
+if (!query.startDate || !query.endDate) {
+throw new Error(
+'Custom date range requires startDate and endDate.'
+);
+}
+start = dayjs.tz(
+query.startDate,
+APP_TIMEZONE
+).startOf('day');
+end = dayjs.tz(
+query.endDate,
+APP_TIMEZONE
+).endOf('day');
+if (!start.isValid() || !end.isValid()) {
+throw new Error('Invalid custom date range.');
+}
+
+if (start.isAfter(end)) {
+throw new Error(
+'startDate cannot be later than endDate.'
+);
+}
+break;
+}
+case 'overall':
+return {
+period,
+start: null,
+end: null,
+startDate: null,
+endDate: null
+};
+default:
+throw new Error(
+`Invalid dashboard period: ${period}`
+);
+}
+return {
+period,
+start: start.toDate(),
+end: end.toDate(),
+startDate: start.format('YYYY-MM-DD'),
+endDate: end.format('YYYY-MM-DD')
+};
+}
+
+function buildDashboardUserMatch(query) {
+const match = {
+archive: false,
+verify: false,
+suspend: false
+};
+
+if (query.role && query.role !== 'all') {
+match.role = query.role;
+}
+if (query.department && query.department !== 'all') {
+match.department = query.department;
+}
+if (query.campus && query.campus !== 'all') {
+match.campus = query.campus;
+}
+if (query.gender && query.gender !== 'all') {
+match.gender = query.gender;
+}
+if (query.course && query.course !== 'all') {
+match.course = query.course;
+}
+if (query.yearLevel && query.yearLevel !== 'all') {
+match.yearLevel = query.yearLevel;
+}
+if (query.section && query.section !== 'all') {
+match.section = query.section;
+}
+return match;
+}
+
+
 app.get('/d', isLogin, async (req, res) => {
-    res.render('dashboard', { title: 'Dashboard', active: 'd' });
+try {
+const dateRange = getDashboardDateRange({
+period: 'this_month'
 });
+res.render('dashboard', {
+
+title: 'Dashboard',
+active: 'd',
+dashboardConfig: {
+defaultPeriod: 'this_month',
+timezone: 'Asia/Manila',
+dateRange: {
+startDate: dateRange.startDate,
+endDate: dateRange.endDate
+},
+periods: [
+{
+value: 'today',
+label: 'Today'
+},
+{
+value: 'yesterday',
+label: 'Yesterday'
+},
+{
+value: 'this_week',
+label: 'This Week'
+},
+{
+value: 'last_week',
+label: 'Last Week'
+},
+{
+value: 'this_month',
+label: 'This Month'
+},
+{
+value: 'last_month',
+label: 'Last Month'
+},
+{
+value: 'this_year',
+label: 'This Year'
+},
+{
+value: 'last_year',
+
+label: 'Last Year'
+},
+{
+value: 'overall',
+label: 'Overall'
+},
+{
+value: 'custom',
+label: 'Custom Range'
+}
+]
+}
+});
+} catch (error) {
+console.error(
+'Dashboard Render Error:',
+error
+);
+res.status(500).render('dashboard', {
+title: 'Dashboard',
+active: 'd',
+dashboardConfig: {
+defaultPeriod: 'this_month',
+timezone: 'Asia/Manila'
+}
+});
+}
+});
+
+app.get(
+'/api/dashboard/analytics',
+isLogin,
+async (req, res) => {
+try {
+
+const dateRange =
+getDashboardDateRange(req.query);
+const userMatch =
+buildDashboardUserMatch(req.query);
+const {
+start,
+end
+} = dateRange;
+const hasDateFilter =
+start !== null && end !== null;
+const visitMatch = {
+archive: false
+};
+if (hasDateFilter) {
+visitMatch.createdAt = {
+$gte: start,
+$lte: end
+};
+}
+if (
+req.query.visitStatus &&
+req.query.visitStatus !== 'all'
+) {
+visitMatch.status =
+req.query.visitStatus;
+}
+/*
+=====================================================
+1. USERS
+=====================================================
+*/
+const [
+totalUsers,
+activeUsers,
+pendingUsers,
+suspendedUsers
+
+] = await Promise.all([
+Users.countDocuments({
+archive: false
+}),
+Users.countDocuments({
+archive: false,
+verify: false,
+suspend: false,
+...(
+Object.keys(userMatch).length > 0
+? userMatch
+: {}
+)
+}),
+Users.countDocuments({
+archive: false,
+verify: true
+}),
+Users.countDocuments({
+archive: false,
+suspend: true
+})
+]);
+
+/*
+=====================================================
+2. VISIT KPIs
+=====================================================
+*/
+const visitKpis = await Visits.aggregate([
+{
+$match: visitMatch
+},
+{
+$lookup: {
+
+from: 'users',
+localField: 'patient',
+foreignField: '_id',
+as: 'patientData'
+}
+},
+{
+$unwind: {
+path: '$patientData',
+preserveNullAndEmptyArrays: false
+}
+},
+{
+$match: {
+'patientData.archive': false,
+'patientData.verify': false,
+'patientData.suspend': false,
+...(req.query.role &&
+req.query.role !== 'all'
+? {
+'patientData.role':
+req.query.role
+}
+: {}),
+...(req.query.department &&
+req.query.department !== 'all'
+? {
+'patientData.department':
+req.query.department
+}
+: {}),
+...(req.query.campus &&
+req.query.campus !== 'all'
+? {
+'patientData.campus':
+req.query.campus
+}
+: {}),
+
+...(req.query.gender &&
+req.query.gender !== 'all'
+? {
+'patientData.gender':
+req.query.gender
+}
+: {})
+}
+},
+{
+$facet: {
+totalVisits: [
+{
+$count: 'count'
+}
+],
+uniquePatients: [
+{
+$group: {
+_id: '$patient'
+}
+},
+{
+$count: 'count'
+}
+],
+attended: [
+{
+$match: {
+status: 'Attended'
+}
+},
+{
+$count: 'count'
+}
+],
+pending: [
+{
+$match: {
+
+status: 'Pending'
+}
+},
+{
+$count: 'count'
+}
+],
+notAttended: [
+{
+$match: {
+status: 'Not Attended'
+}
+},
+{
+$count: 'count'
+}
+],
+proceed: [
+{
+$match: {
+status: 'Proceed'
+}
+},
+{
+$count: 'count'
+}
+]
+}
+}
+]);
+const visitStats =
+visitKpis[0] || {};
+const totalVisits =
+visitStats.totalVisits?.[0]?.count || 0;
+const uniquePatients =
+visitStats.uniquePatients?.[0]?.count || 0;
+
+const attended =
+visitStats.attended?.[0]?.count || 0;
+const pending =
+visitStats.pending?.[0]?.count || 0;
+const notAttended =
+visitStats.notAttended?.[0]?.count || 0;
+const proceed =
+visitStats.proceed?.[0]?.count || 0;
+
+/*
+=====================================================
+EXACT KPI FORMULAS
+=====================================================
+*/
+const attendanceRate =
+totalVisits > 0
+? Number(
+(
+attended /
+totalVisits
+) * 100
+).toFixed(2)
+: 0;
+const noShowRate =
+totalVisits > 0
+? Number(
+(
+notAttended /
+totalVisits
+) * 100
+).toFixed(2)
+: 0;
+const pendingRate =
+totalVisits > 0
+? Number(
+(
+pending /
+
+totalVisits
+) * 100
+).toFixed(2)
+: 0;
+
+/*
+=====================================================
+3. TODAY'S VISITS
+=====================================================
+*/
+const todayStart =
+dayjs()
+.tz(APP_TIMEZONE)
+.startOf('day')
+.toDate();
+const todayEnd =
+dayjs()
+.tz(APP_TIMEZONE)
+.endOf('day')
+.toDate();
+const todayVisits =
+await Visits.countDocuments({
+archive: false,
+createdAt: {
+$gte: todayStart,
+$lte: todayEnd
+}
+});
+
+/*
+=====================================================
+4. VISIT TREND
+=====================================================
+*/
+const visitTrend = await Visits.aggregate([
+{
+$match: visitMatch
+
+},
+{
+$group: {
+_id: {
+year: {
+$year: '$createdAt'
+},
+month: {
+$month: '$createdAt'
+},
+day: {
+$dayOfMonth: '$createdAt'
+}
+},
+visits: {
+$sum: 1
+}
+}
+},
+{
+$sort: {
+'_id.year': 1,
+'_id.month': 1,
+'_id.day': 1
+}
+}
+]);
+
+/*
+=====================================================
+5. VISITS BY ROLE
+=====================================================
+*/
+
+const visitsByRole =
+await Visits.aggregate([
+{
+$match: visitMatch
+},
+{
+$lookup: {
+from: 'users',
+localField: 'patient',
+foreignField: '_id',
+as: 'patient'
+}
+},
+{
+$unwind: '$patient'
+},
+{
+$match: {
+'patient.archive': false
+}
+},
+{
+$group: {
+_id: '$patient.role',
+count: {
+$sum: 1
+}
+}
+},
+{
+$sort: {
+count: -1
+}
+}
+
+]);
+
+/*
+=====================================================
+6. VISITS BY STATUS
+=====================================================
+*/
+const visitsByStatus =
+await Visits.aggregate([
+{
+$match: visitMatch
+},
+{
+$group: {
+_id: '$status',
+count: {
+$sum: 1
+}
+}
+},
+{
+$sort: {
+count: -1
+}
+}
+]);
+
+/*
+=====================================================
+7. TOP COMPLAINTS
+=====================================================
+*/
+
+const complaintMatch =
+hasDateFilter
+? {
+createdAt: {
+$gte: start,
+$lte: end
+}
+}
+: {};
+const topComplaints =
+await Complaint.aggregate([
+{
+$match: complaintMatch
+},
+{
+$group: {
+_id: '$type',
+count: {
+$sum: 1
+}
+}
+},
+{
+$sort: {
+count: -1
+}
+},
+{
+$limit: 10
+}
+]);
+
+/*
+=====================================================
+
+8. DISPENSE ANALYTICS
+=====================================================
+*/
+const dispenseMatch =
+hasDateFilter
+? {
+createdAt: {
+$gte: start,
+$lte: end
+}
+}
+: {};
+const dispensing =
+await Dispense.aggregate([
+{
+$match: dispenseMatch
+},
+{
+$facet: {
+byType: [
+{
+$group: {
+_id: '$type',
+quantity: {
+$sum: '$qty'
+},
+transactions: {
+$sum: 1
+}
+}
+}
+],
+
+topItems: [
+{
+$group: {
+_id: '$item',
+quantity: {
+$sum: '$qty'
+}
+}
+},
+{
+$sort: {
+quantity: -1
+}
+},
+{
+$limit: 10
+}
+]
+}
+}
+]);
+const dispensingStats =
+dispensing[0] || {};
+
+/*
+=====================================================
+9. INVENTORY
+=====================================================
+*/
+const inventory =
+await Stocks.aggregate([
+
+{
+$match: {
+archive: false
+}
+},
+{
+$facet: {
+total: [
+{
+$count: 'count'
+}
+],
+medicines: [
+{
+$match: {
+type: 'medicine'
+}
+},
+{
+$count: 'count'
+}
+],
+supplies: [
+{
+$match: {
+type: 'supply'
+}
+},
+{
+$count: 'count'
+}
+],
+lowStock: [
+{
+$match: {
+remaining: {
+$gt: 0,
+
+$lte: 10
+}
+},
+},
+{
+$count: 'count'
+}
+],
+outOfStock: [
+{
+$match: {
+remaining: 0
+}
+},
+{
+$count: 'count'
+}
+],
+expired: [
+{
+$match: {
+expirationDate: {
+$ne: null,
+$lt: new Date()
+}
+}
+},
+{
+$count: 'count'
+}
+]
+}
+
+}
+]);
+
+/*
+=====================================================
+10. EXPIRING SOON
+=====================================================
+*/
+const expirationLimit =
+dayjs()
+.tz(APP_TIMEZONE)
+.add(30, 'day')
+.endOf('day')
+.toDate();
+const expiringSoon =
+await Stocks.countDocuments({
+archive: false,
+expirationDate: {
+$gte: new Date(),
+$lte: expirationLimit
+}
+});
+
+/*
+=====================================================
+11. RECENT ACTIVITY
+=====================================================
+*/
+const recentActivity =
+await Logs.find({
+archive: false
+})
+
+.populate(
+'who',
+'fName lName username role'
+)
+.sort({
+createdAt: -1
+})
+.limit(10)
+.lean();
+
+/*
+=====================================================
+12. INVENTORY PERCENTAGES
+=====================================================
+*/
+const inventoryData =
+inventory[0] || {};
+const totalInventory =
+inventoryData.total?.[0]?.count || 0;
+const lowStockCount =
+inventoryData.lowStock?.[0]?.count || 0;
+const outOfStockCount =
+inventoryData.outOfStock?.[0]?.count || 0;
+const expiredCount =
+inventoryData.expired?.[0]?.count || 0;
+const healthyInventory =
+Math.max(
+totalInventory -
+lowStockCount -
+outOfStockCount -
+expiredCount,
+0
+);
+
+const inventoryHealth =
+totalInventory > 0
+? Number(
+(
+healthyInventory /
+totalInventory
+) * 100
+).toFixed(2)
+: 0;
+
+/*
+=====================================================
+13. RESPONSE
+=====================================================
+*/
+res.json({
+success: true,
+filters: {
+period: dateRange.period,
+startDate:
+dateRange.startDate,
+endDate:
+dateRange.endDate,
+role:
+req.query.role || 'all',
+department:
+req.query.department || 'all',
+campus:
+req.query.campus || 'all',
+gender:
+req.query.gender || 'all',
+
+visitStatus:
+req.query.visitStatus || 'all'
+},
+kpis: {
+totalUsers,
+activeUsers,
+pendingUsers,
+suspendedUsers,
+totalVisits,
+todayVisits,
+uniquePatients,
+attended,
+pending,
+notAttended,
+proceed,
+attendanceRate,
+noShowRate,
+pendingRate,
+totalInventory,
+lowStockCount,
+outOfStockCount,
+expiredCount,
+expiringSoon,
+
+inventoryHealth
+},
+charts: {
+visitTrend,
+visitsByRole,
+visitsByStatus,
+topComplaints,
+dispensingByType:
+dispensingStats.byType || [],
+topDispensedItems:
+dispensingStats.topItems || []
+},
+recentActivity
+});
+} catch (error) {
+console.error(
+'Dashboard Analytics API Error:',
+error
+);
+res.status(500).json({
+success: false,
+message:
+error.message ||
+'Failed to load dashboard analytics.'
+});
+
+}
+}
+);
 
 app.get('/r', isRequest, isLogin, async (req, res) => {
     res.render('request', { title: 'Request', active: 'r' });
@@ -504,7 +1400,8 @@ app.post('/profile/update', isLogin, async (req, res) => {
             phone,
             gender,
             address,
-            schoolId
+            schoolId,
+            campus
         } = req.body;
 
         const updatedUser = await Users.findByIdAndUpdate(
@@ -518,7 +1415,8 @@ app.post('/profile/update', isLogin, async (req, res) => {
                 phone,
                 gender,
                 address,
-                schoolId
+                schoolId,
+                campus
             },
             { new: true }
         );
@@ -541,6 +1439,8 @@ app.post('/profile/update', isLogin, async (req, res) => {
         req.session.save(() => res.redirect('/p'));
     }
 });
+
+
 
 app.get('/v2', isVisit, isLogin, isUsers, async (req, res) => {
     res.render('visit2', { title: 'Visit2', active: 'v2' });
@@ -639,6 +1539,67 @@ app.get('/p2', async (req, res) => {
     res.render('profile2', { title: 'profile2', active: 'p2' });
 });
 
+// UPDATE PROFILE INFORMATION (USER — profile2.ejs, route /p2)
+// ============================================================
+app.post('/profile2/update', isLogin, async (req, res) => {
+    try {
+        const {
+            fName, mName, lName, xName, email, phone, gender, address,
+            schoolId, yearLevel, course,
+            eName, ePhone, eAddress, bMonth, bDay, bYear,
+            fAllergy, mAllergy, oAllergy
+        } = req.body;
+
+        const updateData = {};
+
+        if (fName !== undefined) updateData.fName = fName;
+        if (mName !== undefined) updateData.mName = mName;
+        if (lName !== undefined) updateData.lName = lName;
+        if (xName !== undefined) updateData.xName = xName;
+        if (email !== undefined) updateData.email = email.trim().toLowerCase();
+        if (phone !== undefined) updateData.phone = phone;
+        if (gender !== undefined) updateData.gender = gender;
+        if (address !== undefined) updateData.address = address;
+        if (bMonth !== undefined) updateData.bMonth = bMonth;
+        if (bDay !== undefined) updateData.bDay = bDay;
+        if (bYear !== undefined) updateData.bYear = bYear;
+
+        if (schoolId !== undefined) updateData.schoolId = schoolId;
+        if (yearLevel !== undefined) updateData.yearLevel = yearLevel;
+        if (course !== undefined) updateData.course = course;
+
+        if (eName !== undefined) updateData.eName = eName;
+        if (ePhone !== undefined) updateData.ePhone = ePhone;
+        if (eAddress !== undefined) updateData.eAddress = eAddress;
+
+        if (fAllergy !== undefined) updateData.fAllergy = fAllergy;
+        if (mAllergy !== undefined) updateData.mAllergy = mAllergy;
+        if (oAllergy !== undefined) updateData.oAllergy = oAllergy;
+
+        const updatedUser = await Users.findByIdAndUpdate(
+            req.session.user._id,
+            updateData,
+            { new: true }
+        );
+
+        req.session.user = updatedUser;
+
+        await Logs.create({
+            who: updatedUser._id,
+            what: `Updated profile information: ${updatedUser.fName} ${updatedUser.lName}`,
+            archive: false
+        });
+
+        req.session.success = 'Profile updated successfully.';
+        req.session.save(() => res.redirect('/p2'));
+
+    } catch (err) {
+        console.error('Profile2 Update Error:', err.message);
+        req.session.error = 'Failed to update profile.';
+        req.session.save(() => res.redirect('/p2'));
+    }
+});
+
 app.get('/np', isLogin, async (req, res) => {
     try {
         const notifications = await Notification.find({
@@ -691,6 +1652,193 @@ app.get('/sa', isLogin, async (req, res) => {
     } catch (err) {
         console.error('SeeAll Fetch Error:', err.message);
         res.render('SeeAll', { title: 'SeeAll', active: 'sa', allVisits: [], hasActiveVisit: false, isClinicOpen: false });
+    }
+});
+
+app.get('/emv2/:id', isLogin, async (req, res) => {
+    try {
+        const employee = await Users.findOne({
+            _id: req.params.id,
+            archive: true
+        }).lean();
+
+        if (!employee) {
+            req.session.error = "Archived employee not found.";
+            return req.session.save(() => res.redirect('/ea'));
+        }
+
+        res.render('EmployeeView2', {
+            title: 'Archived Employee View',
+            active: 'e',
+            employee,
+            isSuperAdmin: req.session.user.role === 'Super Admin'
+        });
+
+    } catch (err) {
+        console.error('EmployeeView2 Fetch Error:', err.message);
+        req.session.error = "Failed to load archived employee details.";
+        res.redirect('/ea');
+    }
+});
+
+app.get('/emv/:id', isLogin, async (req, res) => {
+    try {
+        const employee = await Users.findOne({
+            _id: req.params.id,
+            archive: false
+        }).lean();
+
+        if (!employee) {
+            req.session.error = "Employee not found.";
+            return req.session.save(() => res.redirect('/e'));
+        }
+
+        res.render('EmployeeView', {
+            title: 'EmployeeView',
+            active: 'emv',
+            employee,
+            isSuperAdmin: req.session.user.role === 'Super Admin'
+        });
+
+    } catch (err) {
+        console.error('EmployeeView Fetch Error:', err.message);
+        req.session.error = "Failed to load employee details.";
+        res.redirect('/e');
+    }
+});
+
+// ============================================================
+// EDIT EMPLOYEE INFORMATION (Super Admin lang ang pwede mag-edit ng IBANG employee)
+// ============================================================
+app.post('/api/users/edit/:id', isLogin, async (req, res) => {
+    try {
+        if (req.session.user.role !== 'Super Admin') {
+            req.session.error = "You are not authorized to perform this action.";
+            return req.session.save(() => res.redirect(`/emv/${req.params.id}`));
+        }
+
+        const { id } = req.params;
+        const {
+            campus, fName, mName, lName, xName,
+            schoolId, email, bMonth, bDay, bYear,
+            gender, phone, address
+        } = req.body;
+
+        const updatedEmployee = await Users.findByIdAndUpdate(id, {
+            campus,
+            fName,
+            mName,
+            lName,
+            xName,
+            schoolId,
+            email: email ? email.trim().toLowerCase() : undefined,
+            bMonth,
+            bDay,
+            bYear,
+            gender,
+            phone,
+            address
+        }, { new: true });
+
+        if (!updatedEmployee) {
+            req.session.error = "Employee not found.";
+            return req.session.save(() => res.redirect('/e'));
+        }
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Edited employee information: ${updatedEmployee.fName} ${updatedEmployee.lName}`,
+            archive: false
+        });
+
+        req.session.success = "Employee information updated successfully.";
+        req.session.save(() => res.redirect(`/emv/${id}`));
+
+    } catch (err) {
+        console.error('Edit Employee Error:', err.message);
+        req.session.error = "Failed to update employee information.";
+        req.session.save(() => res.redirect(`/emv/${req.params.id}`));
+    }
+});
+
+// ============================================================
+// ARCHIVE EMPLOYEE (Super Admin lang ang pwede mag-archive ng IBANG employee)
+// ============================================================
+app.post('/api/users/archive/:id', isLogin, async (req, res) => {
+    try {
+        if (req.session.user.role !== 'Super Admin') {
+            return res.json({ success: false, message: "You are not authorized to perform this action." });
+        }
+
+        const { id } = req.params;
+
+        const employee = await Users.findByIdAndUpdate(id, { archive: true }, { new: true });
+
+        if (!employee) {
+            return res.json({ success: false, message: "Employee not found." });
+        }
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Archived employee account: ${employee.fName} ${employee.lName}`,
+            archive: false
+        });
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error('Archive Employee Error:', err.message);
+        res.json({ success: false, message: "Failed to archive employee." });
+    }
+});
+
+
+app.get('/cr/:id', isLogin, async (req, res) => {
+    try {
+        const patient = await Users.findOne({
+            _id: req.params.id,
+            archive: false
+        }).lean();
+
+        if (!patient) {
+            req.session.error = "Patient not found.";
+            return req.session.save(() => res.redirect('/um'));
+        }
+
+        const visits = await Visits.find({
+            patient: patient._id,
+            archive: false
+        })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        const visitIds = visits.map(v => v._id);
+
+        const [allComplaints, allDispensed] = await Promise.all([
+            Complaint.find({ visitId: { $in: visitIds } }).lean(),
+            Dispense.find({ visitId: { $in: visitIds } }).lean()
+        ]);
+
+        const detailedVisits = visits.map(visit => {
+            const visitId = visit._id.toString();
+            return {
+                ...visit,
+                complaints: allComplaints.filter(c => c.visitId?.toString() === visitId),
+                dispensed: allDispensed.filter(d => d.visitId?.toString() === visitId)
+            };
+        });
+
+        res.render('ConsultationRecord', {
+            title: 'Consultation Record',
+            active: 'cr',
+            patient,
+            visits: detailedVisits
+        });
+
+    } catch (err) {
+        console.error('Consultation Record Fetch Error:', err.message);
+        req.session.error = "Failed to load consultation record.";
+        res.redirect('/um');
     }
 });
 
@@ -930,6 +2078,63 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
+    }
+});
+
+// ============================================================
+// SEND TEMPORARY PASSWORD SA IBANG EMPLOYEE (Super Admin lang)
+// ============================================================
+app.post('/api/users/change-password/:id', isLogin, async (req, res) => {
+    try {
+        if (req.session.user.role !== 'Super Admin') {
+            return res.json({ success: false, message: "You are not authorized to perform this action." });
+        }
+
+        const { id } = req.params;
+
+        const tempPassword = crypto.randomBytes(4).toString('hex');
+
+        const employee = await Users.findByIdAndUpdate(id, {
+            password: tempPassword,
+            reset: true
+        }, { new: true });
+
+        if (!employee) {
+            return res.json({ success: false, message: "Employee not found." });
+        }
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Sent a new temporary password to employee: ${employee.fName} ${employee.lName}`,
+            archive: false
+        });
+
+        try {
+            const mailOptions = {
+                from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+                to: employee.email,
+                subject: "Your AuCare Temporary Password",
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                        <h2 style="color: #0056b3; text-align: center;">Password Reset</h2>
+                        <p>Hello ${employee.fName},</p>
+                        <p>A Super Admin has issued you a new temporary password. Use this to log in:</p>
+                        <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 4px;">
+                            ${tempPassword}
+                        </div>
+                        <p style="color: red;">You'll be required to set a new password immediately after logging in.</p>
+                    </div>`
+            };
+            await transporter.sendMail(mailOptions);
+        } catch (mailErr) {
+            console.error('Send Temp Password Email Error:', mailErr.message);
+        }
+
+        res.json({ success: true, message: `A temporary password has been sent to ${employee.email}.` });
+
+    } catch (err) {
+        console.error('Send Temp Password Error:', err.message);
+        res.json({ success: false, message: "Failed to send temporary password." });
     }
 });
 
@@ -1247,12 +2452,12 @@ app.get('/sta', isArchiveStock, isLogin, async (req, res) => {
 app.post('/api/stocks/add', isLogin, async (req, res) => {
   try {
     const {
-      name, type, unit, remaining, description,
+      name, type, remaining, description,
       brandName, isLocal, medicineForm, dosageStrength,
       category, sizeSpecification, expirationDate
     } = req.body;
 
-    if (!name || !type || !unit || remaining === undefined) {
+    if (!name || !type || remaining === undefined) {
       req.session.error = 'Please fill in all required fields.';
       return req.session.save(() => res.redirect('/st'));
     }
@@ -1260,7 +2465,6 @@ app.post('/api/stocks/add', isLogin, async (req, res) => {
     const newStock = await Stocks.create({
       name: name.trim(),
       type: type,
-      unit: unit.trim(),
       remaining: Number(remaining),
       description: description ? description.trim() : '',
       genericName: name.trim(),
@@ -1276,7 +2480,7 @@ app.post('/api/stocks/add', isLogin, async (req, res) => {
 
     await Logs.create({
       who: req.session.user._id,
-      what: `Added new stock item: ${newStock.name} (${newStock.type}) ${newStock.remaining} ${newStock.unit}`,
+      what: `Added new stock item: ${newStock.name} (${newStock.type}) ${newStock.remaining} }`,
       archive: false
     });
 
@@ -1302,7 +2506,6 @@ app.post('/api/stocks/edit/:id', isLogin, async (req, res) => {
     const updated = await Stocks.findByIdAndUpdate(id, {
       name: name.trim(),
       type: type,
-      unit: unit.trim(),
       remaining: Number(remaining),
       description: description ? description.trim() : '',
       genericName: name.trim(),
@@ -1322,7 +2525,7 @@ app.post('/api/stocks/edit/:id', isLogin, async (req, res) => {
 
     await Logs.create({
       who: req.session.user._id,
-      what: `Updated stock item: ${updated.name} now ${updated.remaining} ${updated.unit}`,
+      what: `Updated stock item: ${updated.name} now ${updated.remaining} `,
       archive: false
     });
 
@@ -2050,7 +3253,7 @@ app.post('/signup', async (req, res) => {
             password: placeholderPassword,
             eName, ePhone, eAddress,
             archive: false,
-            verify: false,
+            verify: true,
             suspend: false,
             access: 0,
             reset: false,
@@ -2079,7 +3282,7 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
         const tempPassword = crypto.randomBytes(4).toString('hex');
 
         const user = await Users.findByIdAndUpdate(id, {
-            verify: true,
+            verify: false,
             verifyAt: Date.now(),
             isVerify: req.session.user.username,
             password: tempPassword,
@@ -2126,6 +3329,7 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
         res.json({ success: false, message: 'Failed to approve account.' });
     }
 });
+
 
 app.use((req, res) => {
     res.status(404);
