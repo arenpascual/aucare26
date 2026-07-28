@@ -1792,6 +1792,37 @@ app.post('/api/users/archive/:id', isLogin, async (req, res) => {
     }
 });
 
+// ============================================================
+// RESTORE EMPLOYEE (Super Admin lang ang pwede mag-restore ng IBANG employee)
+// ============================================================
+app.post('/api/users/restore/:id', isLogin, async (req, res) => {
+    try {
+        if (req.session.user.role !== 'Super Admin') {
+            return res.json({ success: false, message: "You are not authorized to perform this action." });
+        }
+
+        const { id } = req.params;
+
+        const employee = await Users.findByIdAndUpdate(id, { archive: false }, { new: true });
+
+        if (!employee) {
+            return res.json({ success: false, message: "Employee not found." });
+        }
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Restored employee account: ${employee.fName} ${employee.lName}`,
+            archive: false
+        });
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error('Restore Employee Error:', err.message);
+        res.json({ success: false, message: "Failed to restore employee." });
+    }
+});
+
 
 app.get('/cr/:id', isLogin, async (req, res) => {
     try {
