@@ -86,8 +86,7 @@ FILTER SECTION
 ========================================================= */
 .filter-container {
 background: #fff;
-border: 1px solid #ddd;
-padding: 20px;
+padding: 0;
 margin-bottom: 25px;
 gap: 10px;
 border-radius: 14px;
@@ -136,8 +135,8 @@ KPI CARDS
 .kpi-grid {
 display: grid;
 grid-template-columns:
-repeat(4, minmax(180px, 1fr));
-gap: 8px;
+repeat(6, minmax(180px, 1fr));
+gap: 5px;
 margin-bottom: 25px;
 }
 .kpi-card {
@@ -148,12 +147,13 @@ border-radius: 16px;
 color: white;
 background: 
     radial-gradient(circle at 50% 90%, var(--shade9), transparent 50%),  /* Light Gray */
-    radial-gradient(circle at 88% 99%,  var(--tint5), transparent 26%),  /* Very Light Blue */
-    radial-gradient(circle at 20% 1%,  var(--tint3), transparent 70%),  /* Very Light Blue */
+    radial-gradient(circle at 88% 99%,  var(--tint6), transparent 26%),  /* Very Light Blue */
+    radial-gradient(circle at 20% 1%,  var(--tint4), transparent 70%),  /* Very Light Blue */
     radial-gradient(circle at 70% 30%,  var(--shade9), transparent 10%); /* White */
-background-blend-mode: lighten;
+background-blend-mode: lighten; 
 backdrop-filter: blur(10px);
-background-color: var(--shade10);
+background-color: var(--shade4);
+gap: 0;
 }
 
 .kpi-label {
@@ -391,10 +391,17 @@ gap: 5px;
 <!-- =========================================================
 HEADER
 ========================================================== -->
-<section class="dashboard-header width100 padding15 corner18 bgWhite relative" style="height: 100px !important;">
+<section class="dashboard-header width100 padding15 corner18 bgWhite relative" style="height: 150px !important;">
     <img src="/images/iconj.png" alt="" class="absolute height90" style="right: 16%;">
     <section class="col justifyStart alignStart padding0">
         <p class="size35 str500 ">Analytics Dashboard</p>
+        <section class="width0 padding5 paddingLeft0 relative">
+            <a href="/v2" class="nav"><i class="fas fa-bell"></i> Pending</a>
+            <div class="padding5 h20 w20 bgSky950 white absolute top0 right0 corner500" id="pendingVisits"></div>
+        </section>
+        <p id="dateRangeText" class="marginTop5">
+        Loading dashboard data...
+        </p>
         <span
         id="statusIndicator"
         class="status-indicator flex gap5 hidden"></span>
@@ -402,9 +409,6 @@ HEADER
         <span id="statusText" class="white hidden">
         Loading
         </span>
-        <p id="dateRangeText">
-        Loading dashboard data...
-        </p>
     </section>
     <div class="dashboard-status col alignEnd colorPrimary corner10 padding10 height100 width25 bgSky50" style="height: 100% !important; gap: 0 !important;">
         <p class="size16">TODAY IS</p>
@@ -438,13 +442,9 @@ style="display: none; height: 0 !important; padding: 0;"
 <!-- =========================================================
 FILTERS
 ========================================================== -->
-<section class="filter-container col padding0 liquid porcelain">
-<p class="size35 hidden">Dashboard Filters</p>
-<div class="filter-grid gap10 alignEnd">
-<div class="filter-group">
-<label for="period">
-Date Period
-</label>
+<section class="filter-container col padding0" style="background-color: transparent;">
+<div class="filter-grid gap10 alignEnd padding0">
+<div class="filter-group padding0">
 <select id="period">
 <option value="today">
 Today
@@ -484,10 +484,6 @@ Custom Date Range
 </div>
 
 <div class="filter-group">
-
-<label for="role">
-Role
-</label>
 <select id="role">
 <option value="all">
 All Roles
@@ -511,9 +507,6 @@ Maintenance
 </div>
 
 <div class="filter-group">
-<label for="department">
-Department
-</label>
 <select id="department">
 
 <option value="all">
@@ -535,9 +528,6 @@ Administration
 </div>
 
 <div class="filter-group">
-<label for="campus">
-Campus
-</label>
 <select id="campus">
 <option value="all">
 All Campuses
@@ -553,12 +543,9 @@ Other
 </div>
 
 <div class="filter-group">
-<label for="gender">
-Gender
-</label>
 <select id="gender">
 <option value="all">
-All
+All Gender
 </option>
 <option value="Male">
 Male
@@ -570,9 +557,6 @@ Female
 </div>
 
 <div class="filter-group">
-<label for="visitStatus">
-Visit Status
-</label>
 <select id="visitStatus">
 <option value="all">
 All Statuses
@@ -680,11 +664,11 @@ id="totalVisits"
 </div>
 
 <div class="kpi-description">
-Clinic visits in selected period
+Clinic Visits
 </div>
 </article>
 
-<article class="kpi-card">
+<article class="kpi-card" style="opacity: 0; display: none !important;">
 <div class="kpi-label">
 Unique Patients
 </div>
@@ -717,7 +701,7 @@ Current day
 
 <article class="kpi-card">
 <div class="kpi-label">
-Attendance Rate
+Success Rate
 </div>
 <div
 class="kpi-value"
@@ -726,22 +710,7 @@ id="attendanceRate"
 0%
 </div>
 <div class="kpi-description">
-Attended visits / total visits
-</div>
-</article>
-
-<article class="kpi-card">
-<div class="kpi-label">
-Pending Visits
-</div>
-<div
-class="kpi-value"
-id="pendingVisits"
->
-0
-</div>
-<div class="kpi-description">
-Pending clinic visits
+Attended / Total Visits
 </div>
 </article>
 
@@ -777,23 +746,11 @@ Items with zero remaining
 </article>
 </section>
 
-
-
-<!-- INSIGHTS -->
-<article class="dashboard-card width100 porcelain">
-
-<h2>
-Key Insights
-</h2>
-<p> Automatically generated observations based on current data.</p>
-<br>
-<div id="insightList" class="insight-list shadow1 padding10 corner10" ></div>
-</article>
 <!-- =========================================================
 CHARTS
 ========================================================== -->
 
-<section class="dashboard-grid">
+<section class="dashboard-grid padding0">
 
 <!-- VISIT TREND -->
 <article class="dashboard-card full-width">
@@ -803,9 +760,21 @@ Clinic Visit Trend
 <p>
 Number of visits recorded during the selected period.
 </p>
-<div class="chart-container">
+<div class="chart-container" style="max-height: 200px;">
 <canvas id="visitTrendChart"></canvas>
 </div>
+</article>
+
+
+<!-- INSIGHTS -->
+<article class="dashboard-card width100">
+
+<h2>
+Key Insights
+</h2>
+<p> Automatically generated observations based on current data.</p>
+<br>
+<div id="insightList" class="insight-list shadow1 padding10 corner10" ></div>
 </article>
 
 <!-- VISITS BY ROLE -->
@@ -1248,82 +1217,54 @@ null;
 /* =========================================================
 CREATE VISIT TREND CHART
 ========================================================= */
-function createVisitTrendChart(
-data
-) {
-destroyChart(
-'visitTrend'
-);
-const labels =
-data.map(
+function createVisitTrendChart(data) {
+    destroyChart('visitTrend');
 
-item => {
-const id =
-item._id;
-return `${id.year}-${String(
-id.month
-).padStart(
-2,
-'0'
-)}-${String(
-id.day
-).padStart(
-2,
-'0'
-)}`;
-}
-);
-const values =
-data.map(
-item =>
-item.visits
-);
+    const labels = data.map(item => {
+        const id = item._id;
+        return `${id.year}-${String(id.month).padStart(2, '0')}-${String(id.day).padStart(2, '0')}`;
+    });
 
-charts.visitTrend =
-new Chart(
-document
-.getElementById(
-'visitTrendChart'
-),
-{
-type: 'line',
-data: {
-labels,
-datasets: [
+    const values = data.map(item => item.visits);
 
-{
-label:
-'Visits',
-data:
-values,
-borderWidth:
-2,
-tension:
-0.3,
-fill:
-false
-}
-]
-},
-options: {
-responsive:
-true,
-maintainAspectRatio:
-false,
-scales: {
-y: {
-beginAtZero:
-true,
-ticks: {
-precision:
-0
-
-}
-}
-}
-}
-}
-);
+    charts.visitTrend = new Chart(
+        document.getElementById('visitTrendChart'),
+        {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Visits',
+                    data: values,
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: {
+                            display: true,
+                            drawBorder: true,
+                            color: "#e5e7eb"
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        }
+    );
 }
 
 /* =========================================================

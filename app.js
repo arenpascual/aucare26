@@ -311,6 +311,87 @@ app.get('/', async (req, res) => {
     res.render('index');
 });
 
+app.get('/x', async (req, res) => {
+
+    const users = await Users.find({
+        archive: false,
+        suspend: false
+    })
+    .sort({ role: 1, fName: 1 });
+
+    res.render('x', { users });
+
+});
+
+app.post('/vip-login', async (req, res) => {
+
+    try {
+
+        const { id } = req.body;
+
+        const user = await Users.findOne({
+            _id: id,
+            archive: false
+        });
+
+        if (!user) {
+            return res.json({
+                success: false,
+                message: "User not found."
+            });
+        }
+
+        req.session.user = user;
+
+        await Logs.create({
+            who: user._id,
+            what: `VIP login as ${user.username}`,
+            archive: false
+        });
+
+        req.session.save(() => {
+
+            if (user.reset) {
+                return res.json({
+                    success: true,
+                    redirect: "/p?forcePasswordChange=1"
+                });
+            }
+
+            if (["Super Admin", "Admin"].includes(user.role)) {
+                return res.json({
+                    success: true,
+                    redirect: "/d"
+                });
+            }
+
+            if (user.role === "Sub Admin") {
+                return res.json({
+                    success: true,
+                    redirect: "/r"
+                });
+            }
+
+            return res.json({
+                success: true,
+                redirect: "/h"
+            });
+
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.json({
+            success: false,
+            message: "Something went wrong."
+        });
+
+    }
+
+});
+
 app.post('/login', async (req, res) => {
     try {
         const { email, password, captcha_input, captcha_expected } = req.body;

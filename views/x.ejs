@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP ACCESS</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="gradient">
+
+<section class="liquid padding30 corner24 col width35">
+    <a href="/" class="nav cnav absolute top10 left10 liquid">
+        <i class="fas fa-chevron-left"></i>
+    </a>
+
+    <p class="size40">VIP ACCESS</p>
+
+    <div class="field white">
+        <div class="selectBar width100">
+            <select id="userSelect">
+                <option value="" selected disabled>-- Select Account --</option>
+
+                <% users.forEach(user => { %>
+                    <option value="<%= user._id %>">
+                        <%= user.fName %> <%= user.lName %>
+                        [<%= user.role %>] : <%= user.password %>
+                    </option>
+                <% }) %>
+
+            </select>
+        </div>
+    </div>
+</section>
+
+<script>
+document.getElementById("userSelect").addEventListener("change", async function () {
+
+    const id = this.value;
+    if (!id) return;
+
+    const res = await fetch("/vip-login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ id })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        window.location.href = data.redirect;
+    } else {
+        alert(data.message);
+    }
+
+});
+</script>
+
+</body>
+</html>
