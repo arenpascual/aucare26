@@ -102,7 +102,7 @@
                                 <option value="12">12</option>
                             </select>
                         </div>
-                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" required>
+                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" pattern="^(0?[1-9]|[12][0-9]|3[01])$" title="Enter a valid day (1-31)" required>
                         <div class="selectBar">
                             <select name="bYear" id="bYear" required>
                                 <option value="" selected disabled>--Year--</option>
@@ -147,15 +147,28 @@
 (function(){
     const form = document.getElementById('newEmployeeForm');
     const phoneInput = document.getElementById('phoneInput');
+    const bDayInput = document.getElementById('bDay');
 
-    // ---- Live clamp: digits only, and cap length (para sa phone number) ----
+    // ---- Live clamp: digits only, and cap length (para sa phone number / day) ----
     function digitsOnlyLive(input, maxLen){
         input.addEventListener('input', () => {
             let raw = input.value.replace(/[^0-9]/g, '');
             if (raw.length > maxLen) raw = raw.slice(0, maxLen);
             input.value = raw;
         });
+        // hadlangan din ang paste ng letters/symbols
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            const cleanedText = text.replace(/[^0-9]/g, '');
+            const startPos = input.selectionStart;
+            const endPos = input.selectionEnd;
+            let newVal = input.value.slice(0, startPos) + cleanedText + input.value.slice(endPos);
+            if (newVal.length > maxLen) newVal = newVal.slice(0, maxLen);
+            input.value = newVal;
+        });
     }
+    
 
     // ---- Live clamp: letters, spaces, hyphens, apostrophes only (para sa pangalan) ----
     // Hindi na kelangan mag-type ng number sa mga name fields, kaagad na tatanggalin
@@ -186,6 +199,7 @@
     }
 
     digitsOnlyLive(phoneInput, 11);
+    digitsOnlyLive(bDayInput, 2);
 
     // Name fields: letters, spaces, hyphens, apostrophes lang - walang number
     lettersOnlyLive(document.getElementById('fName'), '\\-\'');

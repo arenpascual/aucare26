@@ -55,7 +55,7 @@ const userSchema = new mongoose.Schema({
   oAllergy: { type: String, trim: true },
 
   
-  schoolId: { type: String, trim: true },
+  schoolId: { type: String, trim: true, unique: true, sparse: true },
   course: { type: String, trim: true },
   yearLevel: { type: String, trim: true },
   section: { type: String, trim: true },

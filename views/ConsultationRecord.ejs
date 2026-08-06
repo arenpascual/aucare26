@@ -6,7 +6,7 @@
     }
 </style>
 
-<a href="/uv" class="nav absolute top10 left10" style="z-index: 600;"><i class="fas fa-chevron-left"></i> Return</a>
+<a href="/uv/<%= patient._id %>" class="nav absolute top10 left10" style="z-index: 600;"><i class="fas fa-chevron-left"></i> Return</a>
 
 <div class="polaroid alignStart padding20 ">
     <div class="height100 width65 justifyStart porcelain padding20 gap10 col overflow-y1 block">
@@ -14,7 +14,7 @@
             <p class="size30 colorPrimary str500"><%= patient.fName %> <%= patient.lName %></p>
             <p class="size30 str500 colorPrimary">Consultation Record</p>
         </section>
-        <p class="size12 gray"><%= patient.schoolId %></p>
+        <p class="size12 colorPrimary"><%= patient.schoolId %></p>
         <br>
         <div class="height0 width100 corner15 col alignStart porcelain padding20 gap10 ">
             <section class="padding0 justifyBetween">

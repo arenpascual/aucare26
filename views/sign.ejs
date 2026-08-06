@@ -95,7 +95,7 @@
                 <div class="field">
                     <label>Role</label>
                     <div class="selectBar">
-                        <select name="role" required>
+                        <select name="role" id="roleSelect" required>
                             <option value="" selected disabled>--Select--</option>
                             <option value="Student">Student</option>
                             <option value="Staff">Staff</option>
@@ -185,18 +185,15 @@
                 <div class="field">
                     <label>Address</label>
                     <div class="row gap5">
-                        <input type="text" name="address" id="address" placeholder="Street No#, Barangay, City, Province" maxlength="150" pattern="^[A-Za-z0-9\s\-.']+$" title="Letters and numbers only" required>
+                        <input  type="text"  name="address" id="address" placeholder="Street No#, Barangay, City, Province" maxlength="150" pattern="^[A-Za-z0-9À-ÿ\s\-.,#'\/]+$" title="Letters, numbers, and common address symbols only (# , . - ' /)" required>
                     </div>
-                    <p class="field-error" id="addressError"></p>
-                    <!-- Auto-filled na buo address, ito yung ipapasa sa backend -->
-                    <input type="hidden" name="address" id="address">
                 </div>
                 <div class="field">
                     <label>Email</label>
-                    <input type="email" name="email" id="email" maxlength="100" required>
+                    <input type="email" name="email" id="email" maxlength="100" pattern="^[A-Za-z0-9._%+\-]+@phinmaed\.com$" title="Gumamit ng valid na @phinmaed.com email address" required>
                 </div>
                 <div class="field">
-                    <label>School ID</label>
+                    <label id="schoolIdLabel">School ID</label>
                     <input type="text" name="schoolId" id="schoolId" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
                 </div>
                 <div class="field">
@@ -210,10 +207,10 @@
                         </select>
                     </div>
                 </div>
-                <div class="field">
-                    <label>Year Level</label>
-                    <div class="selectBar">
-                        <select name="yearLevel" required>
+                <div class="field" id="yearLevelField">
+                        <label>Year Level</label>
+                        <div class="selectBar">
+                        <select name="yearLevel" id="yearLevel" required>
                             <option value="" selected disabled>--Select--</option>
                             <option value="4th Year">4th Year</option>
                             <option value="3rd Year">3rd Year</option>
@@ -222,9 +219,9 @@
                         </select>
                     </div>
                 </div>
-                <div class="field">
-                    <label>Course</label>
-                    <div class="selectBar">
+                <div class="field" id="courseField">
+                        <label>Course</label>
+                        <div class="selectBar">
                         <select name="course" id="course" required>
                             <option value="" selected disabled>--Select--</option>
                             <option value="BS Architecture">BS Architecture (BSArch)</option>
@@ -425,30 +422,47 @@
     // Extension name: letters, dots, spaces lang (Jr., Sr., III)
     lettersOnlyLive(document.getElementById('xName'), '.');
 
-    // Address parts: letters lang ang Province/City, letters+numbers ang Barangay
-    lettersOnlyLive(document.getElementById('province'), '\\-.\'');
-    lettersOnlyLive(document.getElementById('city'), '\\-.\'');
-    alphaNumericLive(document.getElementById('barangay'), '\\-.\'');
+// Address: letters, numbers, at common address symbols na lang ang papayagan
+    alphaNumericLive(document.getElementById('address'), '\\-.,#\'\\/');
 
     // Kung meron mang text-input version ng section/course sa ibang page, gagana rin ito
     // dahil may null-guard na; hindi na sila mag-e-error kung wala silang match dito.
     alphaNumericLive(document.getElementById('section'), '\\-');
     alphaNumericLive(document.getElementById('course'), '\\-&.,()\\/');
 
-    // Pagsamahin ang address parts sa hidden "address" field bago mag-submit
-    function buildFullAddress(){
-        const street = document.getElementById('street');
-        const barangay = document.getElementById('barangay');
-        const city = document.getElementById('city');
-        const province = document.getElementById('province');
-        const addressField = document.getElementById('address');
-        if (!street || !barangay || !city || !province || !addressField) return;
+    // ---- Role-based field toggling (Student vs Faculty/Staff) ----
+    const roleSelect = document.getElementById('roleSelect');
+    const yearLevelField = document.getElementById('yearLevelField');
+    const courseField = document.getElementById('courseField');
+    const yearLevelSelect = document.getElementById('yearLevel');
+    const courseSelect = document.getElementById('course');
+    const schoolIdLabel = document.getElementById('schoolIdLabel');
 
-        const parts = [street.value, barangay.value, city.value, province.value]
-            .map(v => v.trim())
-            .filter(v => v.length > 0);
-        addressField.value = parts.join(', ');
+    function applyRoleVisibility(){
+        if (!roleSelect) return;
+        const isStudent = roleSelect.value === 'Student';
+
+        if (yearLevelField) yearLevelField.style.display = isStudent ? '' : 'none';
+        if (courseField) courseField.style.display = isStudent ? '' : 'none';
+        if (yearLevelSelect) {
+            yearLevelSelect.required = isStudent;
+            if (!isStudent) yearLevelSelect.value = '';
+        }
+        if (courseSelect) {
+            courseSelect.required = isStudent;
+            if (!isStudent) courseSelect.value = '';
+        }
+
+        if (schoolIdLabel) {
+            schoolIdLabel.textContent = isStudent ? 'School ID' : 'Employee ID';
+        }
     }
+
+    if (roleSelect) {
+        roleSelect.addEventListener('change', applyRoleVisibility);
+        applyRoleVisibility();
+    }
+
 
     // Day: digits only, and never let it exceed 31 (or 29/30 depending on month, checked on step validation too)
     bDayInput.addEventListener('input', () => {
@@ -459,10 +473,11 @@
     });
 
     // ---- Helper: validate all required/patterned fields inside a section ----
-    function validateSection(section){
+   function validateSection(section){
         const inputs = section.querySelectorAll('input, select');
         for (const input of inputs) {
             if (input.type === 'hidden') continue; // hindi na kailangang i-validate ang hidden address field
+            if (input.offsetParent === null) continue; // laktawan ang mga itinagong field (role-based toggling)
             if (!input.checkValidity()) {
                 input.reportValidity();
                 input.focus();
@@ -537,8 +552,6 @@
         if (!validateSection(step3)) {
             return;
         }
-
-        buildFullAddress(); // isahin ang Province/City/Barangay/Street bago i-submit
 
         try {
             const formData = new URLSearchParams(new FormData(registrationForm));

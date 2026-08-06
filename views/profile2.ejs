@@ -401,7 +401,7 @@
                                 <option value="12">12</option>
                             </select>
                         </div>
-                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" required>
+                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" pattern="^(0?[1-9]|[12][0-9]|3[01])$" title="Enter a valid day (1-31)" required>
                         <div class="selectBar">
                             <select name="bYear" id="bYear" required>
                                 <option value="" selected disabled>--Year--</option>
@@ -856,6 +856,7 @@
 
     // Personal Info form
     digitsOnlyLive(document.getElementById('editPhone'), 11);
+    digitsOnlyLive(document.getElementById('bDay'), 2);
     lettersOnlyLive(document.getElementById('editFName'), '\\-\'');
     lettersOnlyLive(document.getElementById('editMName'), '\\-\'');
     lettersOnlyLive(document.getElementById('editLName'), '\\-\'');

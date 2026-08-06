@@ -2006,17 +2006,19 @@ app.post('/new-employee', isLogin, async (req, res) => {
             return req.session.save(() => res.redirect('/ne'));
         }
 
-        // Check existing email
-        const normalizedEmail = email.trim().toLowerCase();
+       const normalizedEmail = email.trim().toLowerCase();
 
-        const emailExist = await Users.findOne({
-            email: normalizedEmail
-        });
-
+        const emailExist = await Users.findOne({ email: normalizedEmail });
         if (emailExist) {
-            req.session.error = "That email is already registered.";
-            return req.session.save(() => res.redirect('/ne'));
+            return res.status(400).json({ success: false, message: "Email already exists." });
         }
+
+        // Check kung existing na ang School ID / Employee ID
+        const schoolIdExist = await Users.findOne({ schoolId: schoolId });
+        if (schoolIdExist) {
+            return res.status(400).json({ success: false, message: "That School/Employee ID is already registered." });
+        }
+
 
         // Generate temporary password
         const tempPassword = crypto.randomBytes(4).toString('hex');
@@ -2182,16 +2184,20 @@ app.get('/seed-admins', async (req, res) => {
     }
 });
 
-const nodemailer = require('nodemailer');
+//const nodemailer = require('nodemailer');
 
 // Configure the transporter using your .env credentials
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+//const transporter = nodemailer.createTransport({
+   // service: 'gmail',
+    //auth: {
+       // user: process.env.EMAIL_USER,
+      //  pass: process.env.EMAIL_PASS
+   // }
+//});
+
+const sgMail = require('@sendgrid/mail');
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // ============================================================
 // SEND TEMPORARY PASSWORD SA IBANG EMPLOYEE (Super Admin lang)
@@ -3380,8 +3386,15 @@ app.post('/signup', async (req, res) => {
 
         return res.status(200).json({ success: true });
 
-    } catch (err) {
+        } catch (err) {
         console.log(err);
+
+        // Kung dalawang tao ang nag-sign up nang sabay-sabay gamit ang parehong
+        // schoolId/email, ito ang huling depensa laban sa duplicate (MongoDB unique index)
+        if (err.code === 11000) {
+            return res.status(400).json({ success: false, message: "That email or School/Employee ID is already registered." });
+        }
+
         return res.status(500).json({ success: false, message: "Registration failed. " + err.message });
     }
 });
@@ -3410,22 +3423,52 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
         });
 
         const mailOptions = {
-            from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
-            to: user.email,
-            subject: "Your AuCare Account Has Been Approved",
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
-                    <h2 style="color: #0056b3; text-align: center;">Account Approved</h2>
-                    <p>Hello ${user.fName},</p>
-                    <p>Your AuCare account has been reviewed and approved. Log in using your email and the temporary password below:</p>
-                    <p><strong>Email (Username):</strong> ${user.email}</p>
-                    <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 4px;">
-                        ${tempPassword}
-                    </div>
-                    <p style="color: red;">You'll be required to set a new password immediately after logging in.</p>
-                </div>`
-        };
-        await transporter.sendMail(mailOptions);
+    from: {
+        email: process.env.EMAIL_USER,
+        name: "AuCare Support"
+    },
+    to: user.email,
+    subject: "Your AuCare Account Has Been Approved",
+    html: `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+            <h2 style="color:#0056b3;text-align:center;">
+                Account Approved
+            </h2>
+
+            <p>Hello ${user.fName},</p>
+
+            <p>
+                Your AuCare account has been reviewed and approved.
+                Log in using your email and the temporary password below:
+            </p>
+
+            <p>
+                <strong>Email (Username):</strong> ${user.email}
+            </p>
+
+            <div style="
+                background:#f4f4f4;
+                padding:15px;
+                text-align:center;
+                font-size:28px;
+                font-weight:bold;
+                letter-spacing:4px;
+            ">
+                ${tempPassword}
+            </div>
+
+            <p style="color:red;">
+                You'll be required to set a new password immediately after logging in.
+            </p>
+
+            <p>
+                Thank you,<br>
+                <strong>AuCare Team</strong>
+            </p>
+        </div>
+    `
+};
+        await sgMail.send(mailOptions);
 
         await Notification.create({
             who: user._id,

@@ -417,7 +417,7 @@
                                 <option value="12">12</option>
                             </select>
                         </div>
-                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" required>
+                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" pattern="^(0?[1-9]|[12][0-9]|3[01])$" title="Enter a valid day (1-31)" required>
                         <div class="selectBar">
                             <select name="bYear" id="bYear" required>
                                 <option value="" selected disabled>--Year--</option>
@@ -484,7 +484,7 @@
             <label>Current Password</label>
             <div class="password-input">
                 <input type="password" id="currentPassword">
-                <i class="far fa-eye toggle-password"></i>
+                <i class="far fa-eye toggle-password top20"></i>
             </div>
         </div>
 
@@ -492,7 +492,7 @@
             <label>New Password</label>
             <div class="password-input">
                 <input type="password" id="newPassword">
-                <i class="far fa-eye toggle-password"></i>
+                <i class="far fa-eye toggle-password top20"></i>
             </div>
         </div>
 
@@ -500,7 +500,7 @@
             <label>Confirm Password</label>
             <div class="password-input">
                 <input type="password" id="confirmPassword">
-                <i class="far fa-eye-slash toggle-password"></i>
+                <i class="far fa-eye-slash toggle-password top20"></i>
             </div>
         </div>
 
@@ -844,6 +844,7 @@ function lettersOnlyLive(input, extraAllowedChars){
 }
 
 digitsOnlyLive(document.getElementById('editPhone'), 11);
+digitsOnlyLive(document.getElementById('bDay'), 2);
 
 // Name fields sa Edit Information form: letters, spaces, hyphens, apostrophes lang
 lettersOnlyLive(document.getElementById('editFName'), '\\-\'');

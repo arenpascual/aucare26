@@ -118,15 +118,17 @@
                 <p class="size18 str500">Complaint</p>
                 <button id="openComplaint" class="nav cnav glass shadowNone pointer"><i class="fas fa-plus"></i></button>
             </section>
-            <section class="gap30 justifyStart flexWrap">
+            <section class="gap30 justifyStart padding0" style="align-items: start !important;">
                 <% if (v.complaints && v.complaints.length > 0) { %>
                     <% v.complaints.forEach(item => { %>
-                        <div class="col width0 relative">
-                            <img src="/images/<%= item.type %>.png" onerror="this.src='/images/item.png'" alt="" class="corner500 bgWhite h60 w60 porcelain padding5">
-                            <p class="size14 str500"><%= item.type %></p>
-                            <form action="/visit/complaint/delete/<%= item._id %>" method="POST" class="absolute right10 top5 corner500 height0 width0 padding0">
-                                <button type="submit" class="h20 w20 corner500 pointer"><i class="fa-solid fa-circle-minus red h15 w15"></i></button>
-                            </form>
+                        <div class="col width0 gap3 justifyStart padding0" style="max-width: 100px !important;">
+                            <section class="width0 padding0 relative" style="border-bottom-left-radius: 50%; border-bottom-right-radius: 50%;">
+                                <img src="/images/<%= item.type %>.png" onerror="this.src='/images/item.png'" alt="" class="corner500 bgWhite h60 w60 porcelain padding5">
+                                <form action="/visit/complaint/delete/<%= item._id %>" method="POST" class="absolute right0 top0 corner500 height0 width0 padding0">
+                                    <button type="submit" class="h20 w20 corner500 pointer"><i class="fa-solid fa-circle-minus red h15 w15"></i></button>
+                                </form>
+                            </section>
+                            <p class="size14 str500 textCenter"><%= item.type %></p>
                         </div>
                     <% }) %>
                 <% } else { %>
@@ -253,10 +255,12 @@
         </section>
         <form action="/visit/update-treatment/<%= v._id %>" method="POST" class="col gap10 widthFull" id="treatmentForm">
             <textarea name="treatment" class="input widthFull" rows="5" placeholder="Enter treatment..." maxlength="1000" required><%= v.treatment %></textarea>
-            <p class="size12 gray textRight"><span id="treatmentCount">0</span>/1000</p>
             <p id="treatmentError" class="size12" style="color:red; display:none;"></p>
             <br>
-            <button type="submit" class="nav widthFull colorPrimary pointer borderNone width60 "> Save Treatment</button>
+            <section class="justifyBetween gap10">
+                <a href="" class="nav width50">Cancel</a>
+                <button type="submit" class="nav pnav pointer width50 "> Save Treatment</button>
+            </section>
         </form>
     </div>
 </div>
