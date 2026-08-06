@@ -9,6 +9,7 @@
 
         <% if (!isClinicOpen) { %>
             <p class="size18 str400 noteBlue"><i class="fas fa-exclamation-circle"></i> Clinic is closed. Open 7:30 AM - 5:30 PM</p>
+             <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20 width25">Visit Now</a>
         <% } else if (hasActiveVisit) { %>
             <p class="size18 str400 noteBlue"><i class="fas fa-exclamation-circle"></i> You already have a pending request. Please wait for it to be attended.</p>
         <% } else { %>
