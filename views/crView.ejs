@@ -1,93 +1,33 @@
 <% layout('layout') %>
 <style>
-    .mainf { padding: 0; }
-    /* Modal styling kept strictly to your classes */
+    .headf { display: none; }
+
     .modal-overlay {
-        position: absolute; 
-        inset: 0; 
-        background: rgba(0,0,0,0.5); 
-        display: none; 
-        justify-content: center; 
-        align-items: center; 
-        z-index: 2000; 
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 35%;
+        height: auto;
+        z-index: 999;
+        margin-left: 350px;
+        margin-top: 200px;
+        align-items: center;
+        justify-content: center;
     }
-    .modal-content { 
-        width: 90%; 
-        max-width: 500px; 
-        z-index: 2001; 
-        height: auto !important;
+    .modal-overlay.active {
+        display: flex;
     }
 </style>
 
-<div class="bgModal5 absolute justifyCenter alignCenter hidden" id="successModal" style="z-index:9999999999;">
-
-    <form id="successForm" action="" method="POST" class="width30 corner20 bgWhite col padding20 alignCenter">
-
-        <a href="" class="disabled nav cnavLG"><i class="fas fa-question-circle size30"></i></a>
-        <br>
-
-        <p class="size16 textBalance textCenter">
-            Are you sure you want to mark this visit as Attended?
-        </p>
-
-        <br>
-
-        <section class="justifyBetween gap10 width100">
-
-            <button type="button" class="width100 nav" id="cancelSuccess">
-                Cancel
-            </button>
-
-            <button type="submit" class="width100 nav pnav">
-                Proceed
-            </button>
-
-        </section>
-
-    </form>
-
-</div>
-
-<div class="bgModal5 absolute justifyCenter hidden" id="rComplaintModal" style="z-index:9999999999;">
-        <section class="width25 bgWhite corner15 col padding20 shadow1 relative" id="rComplaint">
-            <section class="nav cnavLG">
-                    <i class="fas fa-trash"></i>
-            </section>
-                <br>
-                    <p class="size18 textCenter textBalance">
-                        Are you sure you want to remove this complaint?
-                    </p>
-                <br>
-            <section class="padding0 justifyBetween gap10">
-                    <button type="button" class="nav width100" id="cancelRComplaint">Cancel</button>
-                    <form id="rComplaintForm" action="" method="POST" class="width100">
-                        <button type="submit" class="nav pnav width100">Remove</button>
-                    </form>
-            </section>
-        </section>
-</div>
-
-<div class="bgModal5 absolute justifyCenter hidden" id="rMedicationModal" style="z-index:9999999999;">
-        <section class="width25 bgWhite corner15 col padding20 shadow1 relative">
-            <section class="nav cnavLG">
-                    <i class="fas fa-trash"></i>
-            </section>
-                <br>
-                    <p class="size18 textCenter textBalance">
-                        Are you sure you want to remove this Medication?
-                    </p>
-                <br>
-            <section class="padding0 justifyBetween gap10">
-                    <button type="button" class="nav width100" id="cancelrMedication">Cancel</button>
-                    <form id="rMedicationForm" action="" method="POST" class="width100">
-                        <button type="submit" class="nav pnav width100">Remove</button>
-                    </form>
-            </section>
-        </section>
-</div>
+<%
+const visit = v;
+const complaints = v.complaints || [];
+const dispensedMedicines  = v.dispensed || [];
+%>
 
 <div class="polaroid gap0 colorPrimary justifyEnd relative">
-    <a href="/v2" class="nav cnav absolute left20 top20"><i class="fas fa-chevron-left"></i></a>
+    <a href="/cr/<%= visit.patient._id %>" class="nav cnav absolute left20 top20"><i class="fas fa-chevron-left"></i></a>
 
     <div class="col justifyStart padding10 gap10 width45">
         <section class="justifyBetween gap10 padding0 paddingInline10">
@@ -162,9 +102,9 @@
                         <div class="col width0 gap3 justifyStart padding0" style="max-width: 100px !important;">
                             <section class="width0 padding0 relative" style="border-bottom-left-radius: 50%; border-bottom-right-radius: 50%;">
                                 <img src="/images/<%= item.type %>.png" onerror="this.src='/images/item.png'" alt="" class="corner500 bgWhite h60 w60 porcelain padding5">
-                                <button type="button" class="removeComplaintBtn absolute right0 top0 corner500 h20 w20 pointer borderNone" data-url="/visit/complaint/delete/<%= item._id %>" style="padding:0;">
-                                    <i class="fa-solid fa-circle-minus red h15 w15"></i>
-                                </button>
+                                <form action="/visit/complaint2/delete/<%= item._id %>" method="POST" class="absolute right0 top0 corner500 height0 width0 padding0">
+                                    <button type="submit" class="h20 w20 corner500 pointer"><i class="fa-solid fa-circle-minus red h15 w15"></i></button>
+                                </form>
                             </section>
                             <p class="size14 str500 textCenter"><%= item.type %></p>
                         </div>
@@ -200,7 +140,7 @@
                     <p class="size22 str500">Treatment</p>
                     <button id="openTreatment2" class="nav cnav pointer"><i class="fas fa-pen"></i></button>
                 </section>
-                <section class="bgWhite corner10 padding15 widthFull">
+                <section class="bgWhite corner10 padding15 width100">
                     <p class="size14"><%= v.treatment || 'No treatment details provided.' %></p>
                 </section>
             </section>
@@ -212,27 +152,21 @@
                 <p class="size22 str500">Medication</p>
                 <button id="openMedicine2" class="nav cnav pointer"><i class="fas fa-plus"></i></button>
             </section>
-
+            
             <% if (v.dispensed && v.dispensed.length > 0) { %>
                 <% v.dispensed.forEach(med => { %>
                     <section class="padding5 gap5 bgWhite justifyStart corner16 shadow1 relative">
                         <img src="/images/item.png" alt="" class="h80 width0">
-
                         <section class="col padding0 alignStart">
                             <p class="size18 str500"><%= med.item %></p>
                             <p class="size14 str400 textWrap"><%= med.remarks %></p>
                         </section>
-
-                        <p class="size14 str500 absolute right15 top15">
-                            <%= med.qty %> piece(s)
-                        </p>
-
-                        <button
-                            type="button"
-                            class="pointer size12 nav red str600 borderNone removeMedicationBtn absolute right10 bottom5"
-                            data-action="/visit/medicine/delete/<%= med._id %>">
-                            <i class="fas fa-trash"></i> Remove
-                        </button>
+                        <p class="size14 str500 absolute right15 top15"><%= med.qty %> piece(s)</p>
+                        <form action="/visit/medicine2/delete/<%= med._id %>" method="POST" class="corner0 height0 width0 absolute right10 bottom5 padding0">
+                            <button type="submit" class="pointer size12 nav red str600 borderNone">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </form>
                     </section>
                 <% }) %>
             <% } else { %>
@@ -242,48 +176,47 @@
         <% } %>
 
         
-        
     </div>
 </div>
 
-
-
-<div id="vitalModal" class="modal-overlay">
-    <div class="modal-content glass bgWhite padding20 corner16 col gap15">
-        <section class="justifyBetween padding0">
-            <p class="size20 str600 colorPrimary">Vital Signs</p>
+<div id="vitalModal" class="modal-overlay shadow1 corner20">
+    <div class="modal-content bgWhite padding20 corner16 col gap0">
+        <section class="justifyCenter gap10">
+            <p class="size24 str600 colorPrimary textCenter">Vital Signs</p>
             <% if(v.hBeat || v.bloodPressure?.systolic || v.temperature) { %>
-                <form action="/visit/vitals/delete/<%= v._id %>" method="POST" class="height0 width0">
-                    <button type="submit" class="nav  borderNone pointer size12">Clear All</button>
+                <form action="/visit/vitals2/delete/<%= v._id %>" method="POST" class="height0 padding0 width50 alignEnd corner0">
+                    <button type="submit" class="nav borderNone pointer">Clear All</button>
                 </form>
             <% } %>
         </section>
 
-        <form action="/visit/vitals/<%= v._id %>" method="POST" class="col gap10 alignStart widthFull" id="vitalsForm">
-            <div class="row gap10 widthFull">
-                <div class="col widthFull alignStart gap5">
+        <form action="/visit/vitals2/<%= v._id %>" method="POST" class="col alignStart width100" id="vitalsForm">
+            <section class="row gap10 width100 padding0">
+                <section class="col width100 alignStart padding0">
                     <label class="size12 opacity50">Blood Pressure (Sys/Dia)</label>
-                    <div class="row gap10 widthFull">
-                        <input type="number" name="systolic" placeholder="120" class="input widthFull" min="40" max="300" step="1" inputmode="numeric" value="<%= v.bloodPressure?.systolic %>">
-                        <input type="number" name="diastolic" placeholder="80" class="input widthFull" min="20" max="200" step="1" inputmode="numeric" value="<%= v.bloodPressure?.diastolic %>">
-                    </div>
-                </div>
-            </div>
+                    <section class="row gap10 width100 padding0">
+                        <input type="number" name="systolic" placeholder="120" class="input width100" min="40" max="300" step="1" inputmode="numeric" value="<%= v.bloodPressure?.systolic %>">
+                        <input type="number" name="diastolic" placeholder="80" class="input width100" min="20" max="200" step="1" inputmode="numeric" value="<%= v.bloodPressure?.diastolic %>">
+                    </section>
+                </section>
+            </section>
 
-            <div class="row gap10 width100">
-                <div class="col width50 alignStart gap5">
+            <section class="row gap10 width100 padding0">
+                <section class="col width50 alignStart gap5 padding0">
                     <label class="size12 opacity50">Heart Rate (bpm)</label>
-                    <input type="number" name="hBeat" placeholder="72" class="input widthFull" min="20" max="250" step="1" inputmode="numeric" value="<%= v.hBeat %>">
-                </div>
-                <div class="col width50 alignStart gap5">
+                    <input type="number" name="hBeat" placeholder="72" class="input width100" min="20" max="250" step="1" inputmode="numeric" value="<%= v.hBeat %>">
+                </section>
+                <section class="col width50 alignStart gap5 padding0">
                     <label class="size12 opacity50">Temperature (°C)</label>
-                    <input type="number" name="temperature" placeholder="36.5" class="input widthFull" min="30" max="45" step="0.1" inputmode="decimal" value="<%= v.temperature %>" required>
-                </div>
-            </div>
+                    <input type="number" name="temperature" placeholder="36.5" class="input width100" min="30" max="45" step="0.1" inputmode="decimal" value="<%= v.temperature %>" required>
+                </section>
+            </section>
             <p id="vitalsError" class="size12" style="color:red; display:none;"></p>
+
             <br>
-            <section class="justifyBetween gap10">
-                <a href="" class="nav width50">Cancel</a>
+            
+            <section class="justifyBetween gap10 padding0">
+                <a href="#" class="nav width50 closeModal">Cancel</a>
                 <button type="submit" class="nav pnav pointer width50">Update Vitals</button>
             </section>
         </form>
@@ -295,36 +228,36 @@
         <section class="justifyBetween padding0">
             <p class="size20 str600 colorPrimary">Treatment</p>
             <% if(v.treatment) { %>
-                <form action="/visit/treatment/delete/<%= v._id %>" method="POST" class="width0 height0">
+                <form action="/visit/treatment2/delete/<%= v._id %>" method="POST" class="width0 height0">
                     <button type="submit" class="nav red borderNone pointer size12">Remove</button>
                 </form>
             <% } %>
         </section>
-        <form action="/visit/update-treatment/<%= v._id %>" method="POST" class="col gap10 widthFull" id="treatmentForm">
-            <textarea name="treatment" class="input widthFull" rows="5" placeholder="Enter treatment..." maxlength="1000" required><%= v.treatment %></textarea>
+        <form action="/visit/update-treatment2/<%= v._id %>" method="POST" class="col gap10 width100" id="treatmentForm">
+            <textarea name="treatment" class="input width100" rows="5" placeholder="Enter treatment..." maxlength="1000" required><%= v.treatment %></textarea>
             <p id="treatmentError" class="size12" style="color:red; display:none;"></p>
             <br>
             <section class="justifyBetween gap10">
-                <a href="" class="nav width50">Cancel</a>
+                <a href="#" class="nav width50 closeModal">Cancel</a>
                 <button type="submit" class="nav pnav pointer width50 "> Save Treatment</button>
             </section>
         </form>
     </div>
 </div>
 
-<div id="medicineModal" class="modal-overlay absolute">
-    <div class="modal-content glass bgWhite padding20 corner16 col gap15">
-                    <a href="" id="lgBtn" class="nav cnav absolute right10 top10"><i class="fas fa-times"></i></a>
+<div id="medicineModal" class="modal-overlay">
+    <div class="modal-content bgWhite padding20 corner16 col gap15">
+        <a href="#" id="lgBtn" class="nav cnav absolute right10 top10"><i class="fas fa-times"></i></a>
         <p class="size20 str600 colorPrimary">Dispense Medicine</p>
 
         <% const availableMedicines = (typeof medicines !== 'undefined' ? medicines : []).filter(m => m.remaining > 0); %>
 
         <% if (availableMedicines.length === 0) { %>
-            <div class="padding10 corner10 bgRed size14 str500 colorWhite">
+            <div class="padding10 corner10 size14 str500 colorWhite">
                 <i class="fas fa-exclamation-triangle"></i> No medicines currently in stock.
             </div>
         <% } else { %>
-            <form action="/visit/add-medicine/<%= v._id %>" method="POST" class="col gap10 alignStart widthFull" id="dispenseMedicineForm">
+            <form action="/visit/add-medicine2/<%= v._id %>" method="POST" class="col gap10 alignStart width100" id="dispenseMedicineForm">
 
                 <div class="col alignStart gap5 width100">
                     <label class="size12 opacity50">Medicine Name</label>
@@ -346,18 +279,18 @@
                 <div class="row gap10 width100">
                     <div class="col width50 alignStart gap5">
                         <label class="size12 opacity50">Qty</label>
-                        <input type="number" name="qty" id="qtyInput" placeholder="Qty" class="input widthFull" min="1" step="1" inputmode="numeric" required>
+                        <input type="number" name="qty" id="qtyInput" placeholder="Qty" class="input width100" min="1" step="1" inputmode="numeric" required>
                     </div>
                     <div class="col width50 alignStart gap5">
                         <label class="size12 opacity50">Unit</label>
-                        <input type="text" name="unit" id="unitInput" placeholder="Unit" class="input widthFull" readonly required>
+                        <input type="text" name="unit" id="unitInput" placeholder="Unit" class="input width100" readonly required>
                     </div>
                 </div>
                 <div class="section justifyStart">
                     <p id="qtyHint" class="size12 gray"></p>
                 </div>
 
-                <textarea name="remarks" class="input widthFull" placeholder="Instructions (e.g. 1 tab after meal)" maxlength="300" required></textarea>
+                <textarea name="remarks" class="input width100" placeholder="Instructions (e.g. 1 tab after meal)" maxlength="300" required></textarea>
 
                 <p id="dispenseError" class="size13" style="color:red; display:none;"></p>
 
@@ -369,10 +302,10 @@
 </div>
 
 <div id="complaintModal" class="modal-overlay">
-    <div class="modal-content glass bgWhite padding20 corner16 col gap15">
+    <div class="modal-content bgWhite padding20 corner16 col gap15 corner20 shadow1">
         <p class="size20 str600 colorPrimary">Add Complaint</p>
-        <form action="/visit/complaint/add/<%= v._id %>" method="POST" class="col gap10 alignStart widthFull" id="complaintForm">
-            <div class="field widthFull">
+        <form action="/visit/complaint2/add/<%= v._id %>" method="POST" class="col gap10 alignStart width100" id="complaintForm">
+            <div class="field width100">
                 <label for="complaintSelect" class="size12 opacity50">Complaint</label>
                 <div class="selectBar width100" style="width: 100% !important; min-width: 100%;">
                     <select name="type" id="complaintSelect" class="input" required>
@@ -395,16 +328,29 @@
                 </div>
             </div>
 
-            <div id="othersFieldWrap" class="field widthFull" style="display:none;">
+            <div id="othersFieldWrap" class="field width100" style="display:none;">
                 <label for="othersInput" class="size12 opacity50">Please specify</label>
-                <input type="text" name="typeOther" id="othersInput" placeholder="Specify complaint" class="input widthFull" maxlength="50">
+                <input type="text" name="typeOther" id="othersInput" placeholder="Specify complaint" class="input width100" maxlength="50">
             </div>
 
             <p id="complaintError" class="size12" style="color:red; display:none;"></p>
             <br>
             <section class="justifyBetween gap10 width100">
-                <a href="" class="nav width50">Cancel</a>
+                <a href="#" class="nav width50 closeModal">Cancel</a>
                 <button type="submit" class="nav pnav pointer borderNone width50">Add Complaint</button>
+            </section>
+        </form>
+    </div>
+</div>
+
+<div id="successModal" class="modal-overlay">
+    <div class="modal-content glass bgWhite padding20 corner16 col gap15">
+        <p class="size20 str600 colorPrimary">Confirm</p>
+        <p class="size14">Mark this visit as attended?</p>
+        <form id="successForm" method="POST" class="col gap10 width100">
+            <section class="justifyBetween gap10">
+                <a href="#" id="cancelSuccess" class="nav width50">Cancel</a>
+                <button type="submit" class="nav pnav pointer width50">Confirm</button>
             </section>
         </form>
     </div>
@@ -412,7 +358,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // Mapping: HTML Button ID -> Modal Element ID
     const modalButtons = {
         'openVitals': 'vitalModal',
         'openComplaint': 'complaintModal',
@@ -422,90 +367,42 @@ document.addEventListener('DOMContentLoaded', () => {
         'openMedicine2': 'medicineModal'
     };
 
-    // Attach click listeners to all buttons
+    function openModal(modal) {
+        if (modal) modal.classList.add('active');
+    }
+    function closeModal(modal) {
+        if (modal) modal.classList.remove('active');
+    }
+
     Object.keys(modalButtons).forEach(btnId => {
         const btn = document.getElementById(btnId);
         if (btn) {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const modalId = modalButtons[btnId];
-                const modal = document.getElementById(modalId);
-                if (modal) modal.style.display = 'flex';
+                openModal(document.getElementById(modalButtons[btnId]));
             });
         }
     });
 
-    // Close logic: Click on the dark background to close
     document.querySelectorAll('.modal-overlay').forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                modal.style.display = 'none';
+                closeModal(modal);
             }
         });
     });
-});
-</script>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const rComplaintModal = document.getElementById('rComplaintModal');
-    const rComplaintForm = document.getElementById('rComplaintForm');
-    const cancelRComplaint = document.getElementById('cancelRComplaint');
-
-    document.querySelectorAll('.removeComplaintBtn').forEach(btn => {
+    document.querySelectorAll('.closeModal, #lgBtn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            rComplaintForm.setAttribute('action', btn.getAttribute('data-url'));
-            rComplaintModal.classList.remove('hidden');
+            closeModal(btn.closest('.modal-overlay'));
         });
-    });
-
-    if (cancelRComplaint) {
-        cancelRComplaint.addEventListener('click', () => {
-            rComplaintModal.classList.add('hidden');
-        });
-    }
-
-    rComplaintModal.addEventListener('click', (e) => {
-        if (e.target === rComplaintModal) {
-            rComplaintModal.classList.add('hidden');
-        }
     });
 });
 </script>
-
-<script>
-    
-const rMedicationModal = document.getElementById("rMedicationModal");
-const rMedicationForm = document.getElementById("rMedicationForm");
-const cancelrMedication = document.getElementById("cancelrMedication");
-
-// Open modal
-document.querySelectorAll(".removeMedicationBtn").forEach(button => {
-    button.addEventListener("click", function () {
-        rMedicationForm.action = this.dataset.action;
-        rMedicationModal.classList.remove("hidden");
-    });
-});
-
-// Cancel
-cancelrMedication.addEventListener("click", function () {
-    rMedicationModal.classList.add("hidden");
-});
-
-// Click outside modal
-rMedicationModal.addEventListener("click", function (e) {
-    if (e.target === rMedicationModal) {
-        rMedicationModal.classList.add("hidden");
-    }
-});
-</script>
-
-
 
 <script>
 (function(){
-    // ---- Vitals validation ----
     const vitalsForm = document.getElementById('vitalsForm');
     const vitalsError = document.getElementById('vitalsError');
 
@@ -515,15 +412,11 @@ rMedicationModal.addEventListener("click", function (e) {
         const hBeatInput = vitalsForm.querySelector('[name="hBeat"]');
         const temperatureInput = vitalsForm.querySelector('[name="temperature"]');
 
-        // Live clamp: stop the value from ever exceeding min/max while typing
         function clampLive(input, allowDecimal){
             input.addEventListener('input', () => {
                 let raw = input.value;
-
-                // strip anything that isn't a digit, minus, or (optionally) a dot
                 raw = allowDecimal ? raw.replace(/[^0-9.]/g, '') : raw.replace(/[^0-9]/g, '');
 
-                // only one decimal point allowed
                 if (allowDecimal) {
                     const parts = raw.split('.');
                     if (parts.length > 2) raw = parts[0] + '.' + parts.slice(1).join('');
@@ -539,11 +432,8 @@ rMedicationModal.addEventListener("click", function (e) {
                 const num = Number(raw);
 
                 if (max !== null && num > max) {
-                    // don't let them type past the max at all
                     raw = String(max);
                 }
-                // don't force-clamp min while typing (e.g. typing "4" for "40" would get stuck),
-                // min is still checked on submit
                 input.value = raw;
             });
         }
@@ -570,7 +460,6 @@ rMedicationModal.addEventListener("click", function (e) {
             const hb = hBeatInput.value.trim();
             const temp = temperatureInput.value.trim();
 
-            // If one of the BP fields is filled, the other is required too
             if ((sys && !dia) || (dia && !sys)) {
                 e.preventDefault();
                 return showVitalsError("Please fill in both systolic and diastolic values.");
@@ -603,19 +492,11 @@ rMedicationModal.addEventListener("click", function (e) {
         });
     }
 
-    // ---- Treatment validation ----
     const treatmentForm = document.getElementById('treatmentForm');
     const treatmentError = document.getElementById('treatmentError');
-    const treatmentCount = document.getElementById('treatmentCount');
 
     if (treatmentForm) {
         const textarea = treatmentForm.querySelector('[name="treatment"]');
-
-        function updateTreatmentCount(){
-            if (treatmentCount) treatmentCount.textContent = textarea.value.length;
-        }
-        updateTreatmentCount();
-        textarea.addEventListener('input', updateTreatmentCount);
 
         treatmentForm.addEventListener('submit', (e) => {
             treatmentError.style.display = "none";
@@ -634,7 +515,6 @@ rMedicationModal.addEventListener("click", function (e) {
         });
     }
 
-    // ---- Complaint validation ----
     const complaintForm = document.getElementById('complaintForm');
     const complaintError = document.getElementById('complaintError');
 
@@ -649,7 +529,6 @@ rMedicationModal.addEventListener("click", function (e) {
             complaintError.textContent = "";
         }
 
-        // Show/hide the "specify" field when "Others" is selected
         typeSelect.addEventListener('change', () => {
             clearComplaintError();
             if (typeSelect.value === 'Others') {
@@ -694,8 +573,6 @@ rMedicationModal.addEventListener("click", function (e) {
                     complaintError.style.display = "block";
                     return;
                 }
-                // Send the custom text as "type" instead of the select, since
-                // a select's value can't be set to something outside its options.
                 typeSelect.removeAttribute('name');
                 othersInput.setAttribute('name', 'type');
             }
@@ -707,7 +584,7 @@ rMedicationModal.addEventListener("click", function (e) {
 <script>
 (function(){
     const medicineSelect = document.getElementById('medicineSelect');
-    if (!medicineSelect) return; // no available medicines, form wasn't rendered
+    if (!medicineSelect) return;
 
     const qtyInput = document.getElementById('qtyInput');
     const unitInput = document.getElementById('unitInput');
@@ -748,7 +625,6 @@ rMedicationModal.addEventListener("click", function (e) {
         qtyInput.value = "";
     });
 
-    // Live clamp: block typing a qty greater than the remaining stock
     qtyInput.addEventListener('input', () => {
         let raw = qtyInput.value.replace(/[^0-9]/g, '');
         const max = qtyInput.hasAttribute('max') ? parseInt(qtyInput.getAttribute('max'), 10) : null;
@@ -796,37 +672,33 @@ rMedicationModal.addEventListener("click", function (e) {
 </script>
 
 <script>
+(function(){
     const successBtn = document.getElementById("successVisit");
-const successModal = document.getElementById("successModal");
-const cancelSuccess = document.getElementById("cancelSuccess");
-const successForm = document.getElementById("successForm");
+    const successModal = document.getElementById("successModal");
+    const cancelSuccess = document.getElementById("cancelSuccess");
+    const successForm = document.getElementById("successForm");
+    const visitId = "<%= v._id %>";
 
-// Current visit id
-const visitId = "<%= v._id %>";
-
-successBtn.addEventListener("click", () => {
-
-    successModal.classList.remove("hidden");
-
-    successForm.action = `/successVisit/${visitId}`;
-
-});
-
-cancelSuccess.addEventListener("click", () => {
-
-    successModal.classList.add("hidden");
-
-});
-
-// Click outside modal
-successModal.addEventListener("click", (e)=>{
-
-    if(e.target === successModal){
-        successModal.classList.add("hidden");
+    if (successBtn) {
+        successBtn.addEventListener("click", () => {
+            successModal.classList.add("active");
+            successForm.action = `/successVisit/${visitId}`;
+        });
     }
 
-});
+    if (cancelSuccess) {
+        cancelSuccess.addEventListener("click", (e) => {
+            e.preventDefault();
+            successModal.classList.remove("active");
+        });
+    }
 
-
+    if (successModal) {
+        successModal.addEventListener("click", (e) => {
+            if (e.target === successModal) {
+                successModal.classList.remove("active");
+            }
+        });
+    }
+})();
 </script>
-

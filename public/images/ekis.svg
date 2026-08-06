@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="10" dy="18" stdDeviation="0" flood-color="#14609b" flood-opacity="0.8"/>
+    </filter>
+  </defs>
+
+  <!-- Blue Circle Background -->
+  <circle cx="250" cy="250" r="230" fill="#1e88e5" />
+
+  <!-- Sparkles / Stars -->
+  <!-- Top Left Large Sparkle -->
+  <path d="M 130 180 Q 130 150 100 150 Q 130 150 130 120 Q 130 150 160 150 Q 130 150 130 180 Z" fill="#ffffff" />
+  
+  <!-- Top Right Sparkle -->
+  <path d="M 340 150 Q 340 130 320 130 Q 340 130 340 110 Q 340 130 360 130 Q 340 130 340 150 Z" fill="#ffffff" />
+  
+  <!-- Far Left Small Sparkle -->
+  <path d="M 90 240 Q 90 225 75 225 Q 90 225 90 210 Q 90 225 105 225 Q 90 225 90 240 Z" fill="#ffffff" />
+
+  <!-- Bottom Right Large Sparkle -->
+  <path d="M 390 340 Q 390 315 365 315 Q 390 315 390 290 Q 390 315 415 315 Q 390 315 390 340 Z" fill="#ffffff" />
+
+  <!-- Bottom Small Sparkle -->
+  <path d="M 305 410 Q 305 395 290 395 Q 305 395 305 380 Q 305 395 320 395 Q 305 395 305 410 Z" fill="#ffffff" />
+
+  <!-- White Cross (Ekis) with Shadow -->
+  <path d="M 175 135 
+           L 250 210 
+           L 325 135 
+           C 335 125, 355 125, 365 135 
+           C 375 145, 375 165, 365 175 
+           L 290 250 
+           L 365 325 
+           C 375 335, 375 355, 365 365 
+           C 355 375, 335 375, 325 365 
+           L 250 290 
+           L 175 365 
+           C 165 375, 145 375, 135 365 
+           C 125 355, 125 335, 135 325 
+           L 210 250 
+           L 135 175 
+           C 125 165, 125 145, 135 135 
+           C 145 125, 165 125, 175 135 Z" 
+        fill="#ffffff" 
+        filter="url(#shadow)" />
+</svg>

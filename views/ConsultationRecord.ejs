@@ -23,7 +23,7 @@
 
             <% if (visits && visits.length > 0) { %>
                 <% visits.forEach(visit => { %>
-                    <a href="/vv2/<%= visit._id %>" class="width100 gap5 bgWhite corner10 shadow1 alignStart col relative padding10">
+                    <a href="/crv/<%= visit._id %>" class="width100 gap5 bgWhite corner10 shadow1 alignStart col relative padding10">
                         <p class="size16 str5">
                             <%= visit.complaints && visit.complaints.length > 0
                                 ? visit.complaints.map(c => c.type).join(', ')

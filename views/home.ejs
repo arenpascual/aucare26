@@ -9,7 +9,6 @@
 
         <% if (!isClinicOpen) { %>
             <p class="size18 str400 noteBlue"><i class="fas fa-exclamation-circle"></i> Clinic is closed. Open 7:30 AM - 5:30 PM</p>
-            <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20 width25">Visit Now</a>
         <% } else if (hasActiveVisit) { %>
             <p class="size18 str400 noteBlue"><i class="fas fa-exclamation-circle"></i> You already have a pending request. Please wait for it to be attended.</p>
         <% } else { %>
@@ -71,7 +70,11 @@
    <% if (recentVisits && recentVisits.length > 0) { %>
         <% recentVisits.forEach(v => { %>
             <a href="/vv1/<%= v._id %>" class="width100 gap5 bgWhite corner10 shadow1 alignStart col relative padding10">
-                <p class="size16 str5"><%= v.complaint %></p>
+                <p class="size16 str5">
+                    <%= v.complaints.length
+                        ? v.complaints.map(c => c.type).join(', ')
+                        : 'No Complaint' %>
+                </p>
                 <p class="size12 str4 <%= v.status === 'Attended' ? 'noteBlue' : 'noteGreen' %>"><%= v.status %></p>
                 <p class="size12 gray absolute right10 top10">
                     <%= new Date(v.createdAt).toLocaleString('en-US', { 

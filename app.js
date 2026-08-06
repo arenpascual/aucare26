@@ -471,12 +471,10 @@ app.post('/login', async (req, res) => {
 
 app.get('/h', isLogin, isStocks, async (req, res) => {
     try {
-        const recentVisits = await Visits.find({
-            patient: req.session.user._id,
-            archive: false
-        })
-            .sort({ createdAt: -1 })
-            .limit(3);
+        const recentVisits = res.locals.visits
+        .filter(v => !v.archive)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 3);
 
         // Check kung may pending pa (hindi pa Attended) na request ngayong araw
         const startOfDay = dayjs().startOf('day').toDate();
@@ -1487,7 +1485,10 @@ app.post('/profile/update', isLogin, async (req, res) => {
             gender,
             address,
             schoolId,
-            campus
+            campus,
+            bMonth,
+            bDay,
+            bYear
         } = req.body;
 
         const updatedUser = await Users.findByIdAndUpdate(
@@ -1502,12 +1503,14 @@ app.post('/profile/update', isLogin, async (req, res) => {
                 gender,
                 address,
                 schoolId,
-                campus
+                campus,
+                bMonth,
+                bDay,
+                bYear
             },
             { new: true }
         );
 
-        // Update session para makita agad ang changes
         req.session.user = updatedUser;
 
         await Logs.create({
@@ -1959,6 +1962,9 @@ app.get('/cr/:id', isLogin, async (req, res) => {
     }
 });
 
+app.get('/crv/:id', isLogin, itsVisit,  isStocks, async (req, res) => {
+    res.render('crView', { title: 'crView', active: 'crv' });
+});
 
 app.post('/api/notifications/read/:id', isLogin, async (req, res) => {
     try {
@@ -2989,7 +2995,7 @@ app.post('/visitnow', async (req, res) => {
         const userId = req.session.user._id;
         const { concern, complaint, item, qty } = req.body;
 
-        // 0a. I-check kung bukas pa ang clinic (7:30 AM - 5:30 PM)
+        // 0a. Check clinic hours (7:30 AM - 5:30 PM)
         const now = dayjs();
         const openTime = dayjs().hour(7).minute(30).second(0);
         const closeTime = dayjs().hour(17).minute(30).second(0);
@@ -2999,7 +3005,7 @@ app.post('/visitnow', async (req, res) => {
             return req.session.save(() => res.redirect('/h'));
         }
 
-        // 0b. I-check kung may pending pa (hindi Attended) na request ngayong araw
+        // 0b. Check if user already has a pending visit today
         const startOfDay = dayjs().startOf('day').toDate();
         const endOfDay = dayjs().endOf('day').toDate();
 
@@ -3007,7 +3013,10 @@ app.post('/visitnow', async (req, res) => {
             patient: userId,
             archive: false,
             status: { $ne: 'Attended' },
-            createdAt: { $gte: startOfDay, $lte: endOfDay }
+            createdAt: {
+                $gte: startOfDay,
+                $lte: endOfDay
+            }
         });
 
         if (existingVisit) {
@@ -3015,11 +3024,13 @@ app.post('/visitnow', async (req, res) => {
             return req.session.save(() => res.redirect('/h'));
         }
 
-        // 0c. Kung may piniling gamot, i-check at i-deduct MUNA ang stock
-        // bago pa gumawa ng Visit record, para hindi tayo maiwan ng
-        // Visit na walang katumbas na na-deduct na stock kapag nabigo ito
+        // 0c. Check and deduct medicine stock first
         let updatedStock = null;
-        const hasMedicineRequest = item && qty && item.trim() !== "" && Number(qty) > 0;
+        const hasMedicineRequest =
+            item &&
+            qty &&
+            item.trim() !== "" &&
+            Number(qty) > 0;
 
         if (hasMedicineRequest) {
             const quantity = Number(qty);
@@ -3029,16 +3040,24 @@ app.post('/visitnow', async (req, res) => {
                     name: item,
                     type: 'medicine',
                     archive: false,
-                    remaining: { $gte: quantity } // dapat sapat ang stock
+                    remaining: { $gte: quantity }
                 },
                 {
-                    $inc: { remaining: -quantity }
+                    $inc: {
+                        remaining: -quantity
+                    }
                 },
-                { new: true }
+                {
+                    new: true
+                }
             );
 
             if (!updatedStock) {
-                const stockCheck = await Stocks.findOne({ name: item, type: 'medicine', archive: false });
+                const stockCheck = await Stocks.findOne({
+                    name: item,
+                    type: 'medicine',
+                    archive: false
+                });
 
                 if (!stockCheck) {
                     req.session.error = `Medicine "${item}" is no longer available.`;
@@ -3051,40 +3070,37 @@ app.post('/visitnow', async (req, res) => {
         }
 
         try {
-            // 1. I-save ang Visit (Mother Record)
-            const newVisit = new Visits({
+
+            // 1. Save Visit (Mother Record)
+            const savedVisit = await Visits.create({
                 patient: userId,
                 concern: concern || "Health Consultation",
-                complaint: complaint || "No specific complaint",
-                status: 'Pending',
+                status: "Pending",
                 archive: false,
                 verify: true
             });
-            const savedVisit = await newVisit.save();
 
-            // 2. I-save ang Complaint sa sariling collection (kung may input ang user)
+            // 2. Save Complaint (Child Record)
             if (complaint && complaint.trim() !== "") {
-                const newComplaint = new Complaint({
+                await Complaint.create({
                     visitId: savedVisit._id,
-                    type: complaint
+                    type: complaint.trim()
                 });
-                await newComplaint.save();
             }
 
-            // 3. I-save sa Dispense collection kung may piniling gamot at quantity
+            // 3. Save Dispensed Medicine
             if (hasMedicineRequest && updatedStock) {
-                const newDispense = new Dispense({
+                await Dispense.create({
                     visitId: savedVisit._id,
                     who: userId,
-                    type: 'medicine',
+                    type: "medicine",
                     item: item,
                     qty: Number(qty),
-                    unit: updatedStock.unit // galing sa stock record, hindi sa hardcoded 'pcs'
+                    unit: updatedStock.unit
                 });
-                await newDispense.save();
             }
 
-            // 4. I-record sa Activity Logs
+            // 4. Activity Log
             await Logs.create({
                 who: userId,
                 what: hasMedicineRequest
@@ -3093,26 +3109,33 @@ app.post('/visitnow', async (req, res) => {
                 archive: false
             });
 
-            // 5. Set success message sa session
             req.session.success = "Request Submitted Successfully!";
-            res.redirect('/h');
+            return res.redirect("/h");
 
         } catch (innerErr) {
-            // Kung nabigo ang pag-save ng Visit/Complaint/Dispense PAGKATAPOS na-deduct na ang stock,
-            // ibalik ang stock para hindi mapunta sa limbo ang bawas
+
+            // Restore deducted stock if something failed
             if (hasMedicineRequest && updatedStock) {
-                await Stocks.findByIdAndUpdate(updatedStock._id, { $inc: { remaining: Number(qty) } });
+                await Stocks.findByIdAndUpdate(
+                    updatedStock._id,
+                    {
+                        $inc: {
+                            remaining: Number(qty)
+                        }
+                    }
+                );
             }
+
             throw innerErr;
         }
 
     } catch (err) {
-        console.error('Submission Error:', err.message);
+        console.error("Submission Error:", err);
+
         req.session.error = "An error occurred while submitting.";
-        req.session.save(() => res.redirect('/h'));
+        req.session.save(() => res.redirect("/h"));
     }
 });
-
 app.post('/visitnow2', async (req, res) => {
     try {
         const sessionUserId = req.session.user._id;
@@ -3399,6 +3422,54 @@ app.post('/visit/vitals/delete/:id', async (req, res) => {
     }
 });
 
+app.post('/visit/vitals2/:id', async (req, res) => {
+    try {
+        const { systolic, diastolic, hBeat, temperature } = req.body;
+        await Visits.findByIdAndUpdate(req.params.id, {
+            $set: {
+                'bloodPressure.systolic': systolic,
+                'bloodPressure.diastolic': diastolic,
+                'hBeat': hBeat,
+                'temperature': temperature // Save temperature here
+            }
+        });
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Updated vitals for visit ID: ${req.params.id}`,
+            archive: false
+        });
+
+        res.redirect(`/crv/${req.params.id}`);
+    } catch (err) {
+        console.error(err);
+        res.redirect('back');
+    }
+});
+
+// 2. DELETE/CLEAR VITALS
+app.post('/visit/vitals2/delete/:id', async (req, res) => {
+    try {
+        await Visits.findByIdAndUpdate(req.params.id, {
+            $set: {
+                bloodPressure: { systolic: null, diastolic: null },
+                hBeat: null,
+                temperature: '' // Clear temperature
+            }
+        });
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Cleared vitals for visit ID: ${req.params.id}`,
+            archive: false
+        });
+
+        res.redirect(`/crv/${req.params.id}`);
+    } catch (err) {
+        res.redirect('back');
+    }
+});
+
 app.post('/successVisit/:id', async (req, res) => {
     try {
 
@@ -3573,6 +3644,38 @@ app.post('/visit/treatment/delete/:id', async (req, res) => {
     } catch (err) { res.redirect('back'); }
 });
 
+app.post('/visit/update-treatment2/:id', async (req, res) => {
+    try {
+        const visit = await Visits.findByIdAndUpdate(req.params.id, {
+            treatment: req.body.treatment,
+        }, { new: true });
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Updated treatment for visit ID: ${req.params.id}`,
+            archive: false
+        });
+
+        res.redirect(`/crv/${req.params.id}`);
+    } catch (err) {
+        res.redirect('back');
+    }
+});
+
+app.post('/visit/treatment2/delete/:id', async (req, res) => {
+    try {
+        await Visits.findByIdAndUpdate(req.params.id, { treatment: '', status: 'Proceed' });
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Cleared treatment for visit ID: ${req.params.id}`,
+            archive: false
+        });
+
+        res.redirect(`/crv/${req.params.id}`);
+    } catch (err) { res.redirect('back'); }
+});
+
 // --- 3. MEDICINE (Add & Delete) ---
 
 app.post('/visit/add-medicine/:id', async (req, res) => {
@@ -3681,6 +3784,112 @@ app.post('/visit/medicine/delete/:id', async (req, res) => {
     }
 });
 
+app.post('/visit/add-medicine2/:id', async (req, res) => {
+    try {
+        const { item, qty, unit, remarks } = req.body;
+        const quantity = parseInt(qty, 10);
+
+        // Basic validation
+        if (!item || !quantity || quantity <= 0) {
+            req.session.errorMsg = "Please select a valid medicine and quantity.";
+            return res.redirect('back');
+        }
+
+        const visit = await Visits.findById(req.params.id);
+        if (!visit) {
+            req.session.errorMsg = "Visit not found.";
+            return res.redirect('back');
+        }
+
+        // Atomically deduct stock ONLY if enough remaining exists
+        // Prevents race conditions (two people dispensing at the same time)
+        const updatedStock = await Stocks.findOneAndUpdate(
+            {
+                name: item,
+                type: 'medicine',
+                archive: false,
+                remaining: { $gte: quantity } // must have enough stock
+            },
+            {
+                $inc: { remaining: -quantity }
+            },
+            { new: true }
+        );
+
+        // If null, either the medicine doesn't exist, or not enough stock remaining
+        if (!updatedStock) {
+            const stockCheck = await Stocks.findOne({ name: item, type: 'medicine', archive: false });
+
+            if (!stockCheck) {
+                req.session.errorMsg = `Medicine "${item}" not found in stocks.`;
+            } else {
+                req.session.errorMsg = `Not enough stock for "${item}". Only ${stockCheck.remaining} ${stockCheck.unit} left.`;
+            }
+
+            return res.redirect('back');
+        }
+
+        // Record the dispense using the actual unit from stocks (not user input)
+        await Dispense.create({
+            visitId: req.params.id,
+            who: visit.patient,
+            type: 'medicine',
+            item,
+            qty: quantity,
+            unit: updatedStock.unit,
+            remarks
+        });
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Added medicine "${item}" (${quantity} ${updatedStock.unit}) to visit ID: ${req.params.id}`,
+            archive: false
+        });
+
+        res.redirect(`/crv/${req.params.id}`);
+    } catch (err) {
+        console.error('Error in add-medicine route:', err.message);
+        res.redirect('back');
+    }
+});
+
+app.post('/visit/medicine2/delete/:id', async (req, res) => {
+    try {
+        const dispensedItem = await Dispense.findByIdAndDelete(req.params.id);
+
+        if (!dispensedItem) {
+            return res.redirect('back');
+        }
+
+        // Ibalik ang stock na nabawas noong na-dispense ito
+        const restoredStock = await Stocks.findOneAndUpdate(
+            {
+                name: dispensedItem.item,
+                type: 'medicine'
+                // hindi natin nilagyan ng archive:false dito, para kahit na-archive na yung
+                // stock item pagkatapos i-dispense, mababawi pa rin ang tamang quantity
+            },
+            {
+                $inc: { remaining: dispensedItem.qty }
+            },
+            { new: true }
+        );
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: restoredStock
+                ? `Removed medicine "${dispensedItem.item}" (${dispensedItem.qty} ${dispensedItem.unit}) from visit ID: ${dispensedItem.visitId} — stock restored (now ${restoredStock.remaining} ${restoredStock.unit})`
+                : `Removed medicine "${dispensedItem.item}" from visit ID: ${dispensedItem.visitId} — WARNING: matching stock item not found, stock not restored`,
+            archive: false
+        });
+
+        res.redirect(`/crv/${dispensedItem.visitId}`);
+    } catch (err) {
+        console.error('Error in medicine delete route:', err.message);
+        res.redirect('back');
+    }
+});
+
 // --- 4. COMPLAINTS (Add & Delete) ---
 app.post('/visit/complaint/add/:id', async (req, res) => {
     try {
@@ -3709,6 +3918,35 @@ app.post('/visit/complaint/delete/:id', async (req, res) => {
         res.redirect(`/vv2/${item.visitId}`);
     } catch (err) { res.redirect('back'); }
 });
+
+app.post('/visit/complaint2/add/:id', async (req, res) => {
+    try {
+        await Complaint.create({ visitId: req.params.id, type: req.body.type });
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Added complaint "${req.body.type}" to visit ID: ${req.params.id}`,
+            archive: false
+        });
+
+        res.redirect(`/crv/${req.params.id}`);
+    } catch (err) { res.redirect('back'); }
+});
+
+app.post('/visit/complaint2/delete/:id', async (req, res) => {
+    try {
+        const item = await Complaint.findByIdAndDelete(req.params.id);
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Removed complaint "${item ? item.type : 'Unknown'}" from visit ID: ${item ? item.visitId : req.params.id}`,
+            archive: false
+        });
+
+        res.redirect(`/crv/${item.visitId}`);
+    } catch (err) { res.redirect('back'); }
+});
+
 app.post('/signup', async (req, res) => {
     try {
         const {

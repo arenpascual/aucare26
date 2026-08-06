@@ -267,12 +267,12 @@
 
     <div class="width70 shadow1 height0 bgWhite corner10 col alignStart justifyStart padding30">
         <p class="size30 str500">Employee Information</p>
-        <section class="gap padding0">
-            <div class="field padding10">
+        <section class="gap10 ">
+            <div class="field">
                 <label>Role</label>
                 <input type="text" disabled placeholder="Admin">
             </div>
-            <div class="field">
+            <div class="field ">
                     <label for="">Campus</label>
                     <input type="text" value="<%= user.campus %>" disabled>
             </div>
@@ -309,9 +309,9 @@
         <div class="field">
                     <label>Date of Birth</label>
                     <div class="row gap5">
-                        <input type="text" name="bMonth" id="" value="<% user.bMonth %>" disabled>
-                        <input type="text" name="bDay" id="" value="<% user.bDay %>" disabled>
-                        <input type="text" name="bYear" id="" value="<% user.bYear %>" disabled>
+                        <input type="text" name="bMonth" id="" value="<%= user.bMonth %>" disabled>
+                        <input type="text" name="bDay" id="" value="<%= user.bDay %>" disabled>
+                        <input type="text" name="bYear" id="" value="<%= user.bYear %>" disabled>
                     </div>
                     <p class="field-error" id="dobError"></p>
                 </div>
@@ -402,28 +402,30 @@
                     <div class="row gap5">
                         <div class="selectBar">
                             <select name="bMonth" id="bMonth" required>
-                                <option value="" selected disabled>--Month--</option>
-                                <option value="1">01</option>
-                                <option value="2">02</option>
-                                <option value="3">03</option>
-                                <option value="4">04</option>
-                                <option value="5">05</option>
-                                <option value="6">06</option>
-                                <option value="7">07</option>
-                                <option value="8">08</option>
-                                <option value="9">09</option>
-                                <option value="10">10</option>
-                                <option value="11">11</option>
-                                <option value="12">12</option>
+                            <option value="" disabled <%= !user.bMonth ? 'selected' : '' %>>--Month--</option>
+                            <option value="1" <%= user.bMonth == 1 ? 'selected' : '' %>>01</option>
+                            <option value="2" <%= user.bMonth == 2 ? 'selected' : '' %>>02</option>
+                            <option value="3" <%= user.bMonth == 3 ? 'selected' : '' %>>03</option>
+                            <option value="4" <%= user.bMonth == 4 ? 'selected' : '' %>>04</option>
+                            <option value="5" <%= user.bMonth == 5 ? 'selected' : '' %>>05</option>
+                            <option value="6" <%= user.bMonth == 6 ? 'selected' : '' %>>06</option>
+                            <option value="7" <%= user.bMonth == 7 ? 'selected' : '' %>>07</option>
+                            <option value="8" <%= user.bMonth == 8 ? 'selected' : '' %>>08</option>
+                            <option value="9" <%= user.bMonth == 9 ? 'selected' : '' %>>09</option>
+                            <option value="10" <%= user.bMonth == 10 ? 'selected' : '' %>>10</option>
+                            <option value="11" <%= user.bMonth == 11 ? 'selected' : '' %>>11</option>
+                            <option value="12" <%= user.bMonth == 12 ? 'selected' : '' %>>12</option>
                             </select>
                         </div>
-                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" pattern="^(0?[1-9]|[12][0-9]|3[01])$" title="Enter a valid day (1-31)" required>
+                       <input type="text"name="bDay"id="bDay"value="<%= user.bDay %>"placeholder="Day"inputmode="numeric"maxlength="2"pattern="^(0?[1-9]|[12][0-9]|3[01])$"required >
                         <div class="selectBar">
                             <select name="bYear" id="bYear" required>
-                                <option value="" selected disabled>--Year--</option>
+                                <option value="" disabled <%= !user.bYear ? 'selected' : '' %>>--Year--</option>
                                 <% const currentYear = new Date().getFullYear(); %>
                                 <% for (let y = currentYear - 10; y >= currentYear - 80; y--) { %>
-                                    <option value="<%= y %>"><%= y %></option>
+                                    <option value="<%= y %>" <%= user.bYear == y ? 'selected' : '' %>>
+                                        <%= y %>
+                                    </option>
                                 <% } %>
                             </select>
                         </div>
@@ -436,10 +438,10 @@
                     <label>Gender</label>
                     <div class="selectBar">
                         <select name="gender" required>
-                            <option value="" selected disabled>--Select--</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                        </select>
+                        <option value="" disabled <%= !user.gender ? 'selected' : '' %>>--Select--</option>
+                        <option value="Male" <%= user.gender === 'Male' ? 'selected' : '' %>>Male</option>
+                        <option value="Female" <%= user.gender === 'Female' ? 'selected' : '' %>>Female</option>
+                    </select>
                     </div>
                 </div>
         <div class="field">
@@ -877,11 +879,14 @@ editForm.addEventListener('submit', function (e) {
         }
     }
 
-    const genderChecked = editForm.querySelector('input[name="gender"]:checked');
-    if (!genderChecked) {
-        e.preventDefault();
-        showEditFormError("Please select a gender.");
-    }
+   const gender = editForm.querySelector('select[name="gender"]');
+
+        if (!gender.value) {
+          e.preventDefault();
+            showEditFormError("Please select a gender.");
+            gender.focus();
+            return;
+    }   
 });
 
     </script>

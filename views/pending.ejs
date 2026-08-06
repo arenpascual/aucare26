@@ -48,7 +48,7 @@
                                     <i class="fas fa-check"></i> Approve
                                 </a>
                                 <a href="javascript:void(0)" class="rejectBtn nav" data-id="<%= u._id %>" title="Reject">
-                                    <i class="fas fa-times"></i>Reject
+                                    <i class="fas fa-times"></i>Decline
                                 </a>
                             </section>
                         </td>
@@ -62,6 +62,29 @@
         </tbody>
     </table>
     <p id="noResultsMsg" class="size14 gray hidden" style="padding: 15px 0;">No matching pending accounts found.</p>
+
+    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="appnotif">
+        <img class="h100 w100" src="/images/like.png" alt="">
+            <section class="padding0 col alignCenter">
+                <p class="size20 str500 textCenter textBalance ">Everything looks in order -Ready to approve.</p>
+            </section>
+            <section class="justifyBetween gap10 padding0 ">
+                <a class="nav width50 " href="javascript:void(0)">Cancel</a>
+                <button class="nav pnav width50">Approve</button>
+            </section>
+    </section>
+
+    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="rejnotif">
+        <img class="h100 w100" src="/images/ekis.svg" alt="">
+            <section class="padding0 col alignCenter">
+                <p class="size20 str500 textCenter textBalance ">Are you sure you want to reject this account request?</p>
+            </section>
+            <section class="justifyBetween gap10 padding0 ">
+                <a class="nav width50 " href="javascript:void(0)">Cancel</a>
+                <button class="nav pnav width50">Decline</button>
+            </section>
+    </section>
+
 </div>
 
 <script>
@@ -91,45 +114,97 @@ if (pendingSearchInput && pendingTableBody) {
     });
 }
 
+// =============================
+// APPROVE MODAL
+// =============================
+const appnotif = document.getElementById('appnotif');
+const appCancelBtn = appnotif.querySelector('a.nav');
+const appApproveBtn = appnotif.querySelector('button');
+
+let selectedApproveId = null;
+
 document.querySelectorAll('.approveBtn').forEach(btn => {
-    btn.addEventListener('click', async function () {
-        const id = this.dataset.id;
-        if (!confirm('Approve this account?')) return;
-
-        try {
-            const response = await fetch(`/api/users/approve/${id}`, { method: 'POST' });
-            const data = await response.json();
-
-            if (data.success) {
-                document.getElementById(`row-${id}`).remove();
-            } else {
-                alert(data.message || 'Failed to approve account.');
-            }
-        } catch (err) {
-            console.error('Approve error:', err);
-            alert('An error occurred while approving.');
-        }
+    btn.addEventListener('click', function () {
+        selectedApproveId = this.dataset.id;
+        appnotif.classList.remove('hidden');
     });
 });
 
-document.querySelectorAll('.rejectBtn').forEach(btn => {
-    btn.addEventListener('click', async function () {
-        const id = this.dataset.id;
-        if (!confirm('Reject and remove this registration? This cannot be undone.')) return;
+appCancelBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    appnotif.classList.add('hidden');
+    selectedApproveId = null;
+});
 
-        try {
-            const response = await fetch(`/api/users/reject/${id}`, { method: 'POST' });
-            const data = await response.json();
+appApproveBtn.addEventListener('click', async function () {
+    if (!selectedApproveId) return;
 
-            if (data.success) {
-                document.getElementById(`row-${id}`).remove();
-            } else {
-                alert(data.message || 'Failed to reject account.');
-            }
-        } catch (err) {
-            console.error('Reject error:', err);
-            alert('An error occurred while rejecting.');
+    try {
+        const response = await fetch(`/api/users/approve/${selectedApproveId}`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const row = document.getElementById(`row-${selectedApproveId}`);
+            if (row) row.remove();
+
+            appnotif.classList.add('hidden');
+            selectedApproveId = null;
+        } else {
+            alert(data.message || 'Failed to approve account.');
         }
+    } catch (err) {
+        console.error('Approve error:', err);
+        alert('An error occurred while approving.');
+    }
+});
+
+// =============================
+// REJECT MODAL
+// =============================
+const rejnotif = document.getElementById('rejnotif');
+const rejCancelBtn = rejnotif.querySelector('a.nav');
+const rejDeclineBtn = rejnotif.querySelector('button');
+
+let selectedRejectId = null;
+
+document.querySelectorAll('.rejectBtn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        selectedRejectId = this.dataset.id;
+        rejnotif.classList.remove('hidden');
     });
+});
+
+rejCancelBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    rejnotif.classList.add('hidden');
+    selectedRejectId = null;
+});
+
+rejDeclineBtn.addEventListener('click', async function () {
+    if (!selectedRejectId) return;
+
+    try {
+        const response = await fetch(`/api/users/reject/${selectedRejectId}`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const row = document.getElementById(`row-${selectedRejectId}`);
+            if (row) row.remove();
+
+            rejnotif.classList.add('hidden');
+            selectedRejectId = null;
+        } else {
+            alert(data.message || 'Failed to reject account.');
+        }
+    } catch (err) {
+        console.error('Reject error:', err);
+        alert('An error occurred while rejecting.');
+    }
 });
 </script>

@@ -58,7 +58,7 @@
     <% if ( user.reset === true ) { %>
     <div class="fgCard bgWhite absolute left0 top0 index100">
         <section class="height0 width30 bgWhite shadow1 col padding30 corner30 gap10">
-            <p class="size30">Reset Password</p>
+            <p class="size30">Change Password</p>
             <section class="height0 bgWhite alignStart col borderGray corner12">
                 <p>Take Note! Password must contain the following:</p>
                 <p>&bull; Minimum of 8 characters</p>
@@ -88,10 +88,19 @@
                 <button type="button" id="resetUpdateBtn" class="nav pnav w150" style="margin:0 auto;">Update</button>
             </section>
         </section>
+
+        <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="upPass" style="z-index: 99999999;">
+            <img class="h100 w100" src="/images/like.png" alt="">
+                <section class="padding0 alignCenter textCenter textBalance">
+            <p class="size17">Your password has been changed successfully.</p>
+                </section>
+            <a class="nav w120 size15" href="/r">Got It!</a>
+        </section>
     </div>
 
     <script>
         const resetPassError = document.getElementById('resetPassError');
+        const upPass = document.getElementById('upPass');
 
         function showResetError(msg){
             resetPassError.textContent = msg;
@@ -125,8 +134,7 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    alert("Password updated successfully!");
-                    window.location.href = data.redirect || '/h';
+                    upPass.classList.remove('hidden');
                 } else {
                     showResetError(data.message || "Failed to update password.");
                 }
@@ -134,22 +142,23 @@
                 showResetError("Something went wrong. Please try again.");
             }
         };
-            // Show / Hide Password
-            document.querySelectorAll('.toggle-password').forEach(icon => {
-        icon.addEventListener('click', function () {
-            const input = this.parentElement.querySelector('input');
 
-            if (input.type === 'password') {
-                input.type = 'text';
-                this.classList.remove('fa-eye');
-                this.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                this.classList.remove('fa-eye-slash');
-                this.classList.add('fa-eye');
-            }
+        // Show / Hide Password
+        document.querySelectorAll('toggle-password').forEach(icon => {
+            icon.addEventListener('click', function () {
+                const input = this.parentElement.querySelector('input');
+
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    this.classList.remove('fa-eye');
+                    this.classList.add('fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    this.classList.remove('fa-eye-slash');
+                    this.classList.add('fa-eye');
+                }
+            });
         });
-    });
     </script>
 <% } %>
     <div class="sidef">
