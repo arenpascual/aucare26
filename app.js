@@ -305,6 +305,11 @@ const uploadPhoto = multer({
     }
 });
 
+
+const sgMail = require('@sendgrid/mail');
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 // routes
 
 app.get('/', async (req, res) => {
@@ -2006,7 +2011,7 @@ app.post('/new-employee', isLogin, async (req, res) => {
             return req.session.save(() => res.redirect('/ne'));
         }
 
-       const normalizedEmail = email.trim().toLowerCase();
+        const normalizedEmail = email.trim().toLowerCase();
 
         const emailExist = await Users.findOne({ email: normalizedEmail });
         if (emailExist) {
@@ -2018,7 +2023,6 @@ app.post('/new-employee', isLogin, async (req, res) => {
         if (schoolIdExist) {
             return res.status(400).json({ success: false, message: "That School/Employee ID is already registered." });
         }
-
 
         // Generate temporary password
         const tempPassword = crypto.randomBytes(4).toString('hex');
@@ -2059,9 +2063,11 @@ app.post('/new-employee', isLogin, async (req, res) => {
             archive: false
         });
 
-        // Send Email
-        await transporter.sendMail({
-            from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+        // ==========================
+        // SEND EMAIL (SENDGRID)
+        // ==========================
+        const mailOptions = {
+            from: `AuCare Support <${process.env.EMAIL_USER}>`,
             to: newEmployee.email,
             subject: "Your AuCare Employee Account",
             html: `
@@ -2097,7 +2103,24 @@ app.post('/new-employee', isLogin, async (req, res) => {
                     <p>Thank you.</p>
                 </div>
             `
-        });
+        };
+
+        try {
+            await sgMail.send(mailOptions);
+            console.log("Employee email sent successfully:", newEmployee.email);
+        } catch (emailErr) {
+            console.error("========== SENDGRID EMAIL ERROR ==========");
+            console.error(emailErr);
+
+            if (emailErr.response) {
+                console.error(emailErr.response.body);
+            }
+
+            console.error("Failed to send employee email to:", newEmployee.email);
+
+            // Huwag i-throw ang error.
+            // Tuloy pa rin ang route kahit pumalya ang email.
+        }
 
         req.session.success = `${newEmployee.fName} ${newEmployee.lName} has been added successfully.`;
 
@@ -2195,9 +2218,6 @@ app.get('/seed-admins', async (req, res) => {
    // }
 //});
 
-const sgMail = require('@sendgrid/mail');
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // ============================================================
 // SEND TEMPORARY PASSWORD SA IBANG EMPLOYEE (Super Admin lang)
@@ -2205,20 +2225,30 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 app.post('/api/users/change-password/:id', isLogin, async (req, res) => {
     try {
         if (req.session.user.role !== 'Super Admin') {
-            return res.json({ success: false, message: "You are not authorized to perform this action." });
+            return res.json({
+                success: false,
+                message: "You are not authorized to perform this action."
+            });
         }
 
         const { id } = req.params;
 
         const tempPassword = crypto.randomBytes(4).toString('hex');
 
-        const employee = await Users.findByIdAndUpdate(id, {
-            password: tempPassword,
-            reset: true
-        }, { new: true });
+        const employee = await Users.findByIdAndUpdate(
+            id,
+            {
+                password: tempPassword,
+                reset: true
+            },
+            { new: true }
+        );
 
         if (!employee) {
-            return res.json({ success: false, message: "Employee not found." });
+            return res.json({
+                success: false,
+                message: "Employee not found."
+            });
         }
 
         await Logs.create({
@@ -2227,40 +2257,92 @@ app.post('/api/users/change-password/:id', isLogin, async (req, res) => {
             archive: false
         });
 
+        // ==========================
+        // SEND EMAIL (SENDGRID)
+        // ==========================
         try {
+
             const mailOptions = {
-                from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+                from: `AuCare Support <${process.env.EMAIL_USER}>`,
                 to: employee.email,
                 subject: "Your AuCare Temporary Password",
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
-                        <h2 style="color: #0056b3; text-align: center;">Password Reset</h2>
+                        <h2 style="color: #0056b3; text-align: center;">
+                            Password Reset
+                        </h2>
+
                         <p>Hello ${employee.fName},</p>
-                        <p>A Super Admin has issued you a new temporary password. Use this to log in:</p>
-                        <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 4px;">
+
+                        <p>
+                            A Super Admin has issued you a new temporary password.
+                            Use this to log in:
+                        </p>
+
+                        <div style="
+                            background:#f4f4f4;
+                            padding:15px;
+                            text-align:center;
+                            font-size:28px;
+                            font-weight:bold;
+                            letter-spacing:4px;
+                        ">
                             ${tempPassword}
                         </div>
-                        <p style="color: red;">You'll be required to set a new password immediately after logging in.</p>
-                    </div>`
+
+                        <p style="color:red;">
+                            You'll be required to set a new password immediately after logging in.
+                        </p>
+                    </div>
+                `
             };
-            await transporter.sendMail(mailOptions);
+
+            await sgMail.send(mailOptions);
+
+            console.log("Temporary password email sent to:", employee.email);
+
         } catch (mailErr) {
-            console.error('Send Temp Password Email Error:', mailErr.message);
+
+            console.error("========== SENDGRID EMAIL ERROR ==========");
+            console.error(mailErr);
+
+            if (mailErr.response) {
+                console.error(mailErr.response.body);
+            }
+
+            console.error("Failed to send temporary password email to:", employee.email);
+
+            // Huwag i-throw ang error.
+            // Tuloy pa rin ang route kahit pumalya ang email.
         }
 
-        res.json({ success: true, message: `A temporary password has been sent to ${employee.email}.` });
+        res.json({
+            success: true,
+            message: `A temporary password has been sent to ${employee.email}.`
+        });
 
     } catch (err) {
-        console.error('Send Temp Password Error:', err.message);
-        res.json({ success: false, message: "Failed to send temporary password." });
+
+        console.error("Send Temp Password Error:", err);
+
+        res.json({
+            success: false,
+            message: "Failed to send temporary password."
+        });
+
     }
 });
-
 app.post('/api/verify-email', async (req, res) => {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ message: "Email is required." });
+
+    if (!email) {
+        return res.status(400).json({
+            message: "Email is required."
+        });
+    }
 
     try {
+
         // 1. Find the user in your MongoDB Users model
         const user = await Users.findOne({
             email: email.trim().toLowerCase(),
@@ -2268,42 +2350,97 @@ app.post('/api/verify-email', async (req, res) => {
         });
 
         if (!user) {
-            return res.status(404).json({ message: "That email is not registered with AuCare." });
+            return res.status(404).json({
+                message: "That email is not registered with AuCare."
+            });
         }
 
         // 2. Generate a 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // 3. Store OTP and Email in session for verification on the /otp page
+        // 3. Store OTP and Email in session
         req.session.otpCode = otp;
         req.session.resetEmail = user.email;
-        req.session.otpExpires = Date.now() + 600000; // Code valid for 10 mins
+        req.session.otpExpires = Date.now() + 600000; // 10 minutes
 
-        // 4. Send the Email
+        // ==========================
+        // SEND EMAIL (SENDGRID)
+        // ==========================
         const mailOptions = {
-            from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+            from: `AuCare Support <${process.env.EMAIL_USER}>`,
             to: user.email,
             subject: "Your AuCare Verification Code",
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
-                    <h2 style="color: #0056b3; text-align: center;">AuCare Verification</h2>
+                    <h2 style="color: #0056b3; text-align: center;">
+                        AuCare Verification
+                    </h2>
+
                     <p>Hello,</p>
-                    <p>You requested a password reset. Please use the following code:</p>
-                    <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px;">
+
+                    <p>
+                        You requested a password reset.
+                        Please use the following verification code:
+                    </p>
+
+                    <div style="
+                        background:#f4f4f4;
+                        padding:15px;
+                        text-align:center;
+                        font-size:32px;
+                        font-weight:bold;
+                        letter-spacing:5px;
+                    ">
                         ${otp}
                     </div>
-                    <p>This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
-                </div>`
+
+                    <p>
+                        This code will expire in
+                        <strong>10 minutes</strong>.
+                    </p>
+
+                    <p>
+                        If you did not request this password reset,
+                        you may safely ignore this email.
+                    </p>
+                </div>
+            `
         };
 
-        await transporter.sendMail(mailOptions);
+        try {
 
-        // 5. Send success back to your frontend script
-        return res.status(200).json({ success: true });
+            await sgMail.send(mailOptions);
+
+            console.log("Verification email sent to:", user.email);
+
+        } catch (mailErr) {
+
+            console.error("========== SENDGRID EMAIL ERROR ==========");
+            console.error(mailErr);
+
+            if (mailErr.response) {
+                console.error(mailErr.response.body);
+            }
+
+            console.error("Failed to send verification email to:", user.email);
+
+            // Huwag i-throw ang error.
+            // Hindi masisira ang route.
+        }
+
+        // Success response
+        return res.status(200).json({
+            success: true
+        });
 
     } catch (error) {
+
         console.error("Forgot Password Error:", error);
-        res.status(500).json({ message: "Failed to send verification email." });
+
+        return res.status(500).json({
+            message: "Failed to send verification email."
+        });
+
     }
 });
 
@@ -2312,26 +2449,33 @@ app.post('/api/verify-otp', async (req, res) => {
     const { otp } = req.body;
     const sessionOtp = req.session.otpCode;
     const expiry = req.session.otpExpires;
-    const userEmail = req.session.resetEmail; // Sinave natin ito sa /verify-email route
+    const userEmail = req.session.resetEmail;
 
     // 1. Validations
     if (!sessionOtp || !userEmail) {
-        return res.status(400).json({ message: "Session expired. Please start over." });
+        return res.status(400).json({
+            message: "Session expired. Please start over."
+        });
     }
+
     if (Date.now() > expiry) {
-        return res.status(400).json({ message: "OTP has expired." });
+        return res.status(400).json({
+            message: "OTP has expired."
+        });
     }
+
     if (otp !== sessionOtp) {
-        return res.status(400).json({ message: "Invalid OTP code." });
+        return res.status(400).json({
+            message: "Invalid OTP code."
+        });
     }
 
     try {
-        // 2. Generate Random Temporary Password (8 characters)
+
+        // 2. Generate Random Temporary Password
         const tempPassword = crypto.randomBytes(4).toString('hex');
 
-        // 3. Update User Password sa MongoDB
-        // TANDAAN: Kung gumagamit ka ng bcrypt, i-hash mo muna ang tempPassword bago i-save.
-        // Pero base sa code mo kanina, plain text ang gamit mo (user.password === password)
+        // 3. Update User Password
         const updatedUser = await Users.findOneAndUpdate(
             { email: userEmail },
             {
@@ -2342,39 +2486,93 @@ app.post('/api/verify-otp', async (req, res) => {
         );
 
         if (!updatedUser) {
-            return res.status(404).json({ message: "User not found." });
+            return res.status(404).json({
+                message: "User not found."
+            });
         }
 
-        // 4. Send the Temporary Password to Email
+        // ==========================
+        // SEND EMAIL (SENDGRID)
+        // ==========================
         const mailOptions = {
-            from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+            from: `AuCare Support <${process.env.EMAIL_USER}>`,
             to: userEmail,
             subject: "Your Temporary Password - AuCare",
             html: `
-                <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
-                    <h2 style="color: #0056b3;">Password Reset Successful</h2>
-                    <p>Your password has been reset. Use the temporary password below to log in:</p>
-                    <div style="background: #fdfdfd; padding: 10px; border: 1px dashed #ccc; font-size: 20px; text-align: center; font-weight: bold;">
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                    <h2 style="color:#0056b3;text-align:center;">
+                        Password Reset Successful
+                    </h2>
+
+                    <p>
+                        Your password has been reset successfully.
+                    </p>
+
+                    <p>
+                        Use the temporary password below to log in:
+                    </p>
+
+                    <div style="
+                        background:#f5f5f5;
+                        padding:15px;
+                        text-align:center;
+                        font-size:28px;
+                        font-weight:bold;
+                        letter-spacing:5px;
+                        border-radius:8px;
+                    ">
                         ${tempPassword}
                     </div>
-                    <p style="color: red;">Important: Please change this password immediately after logging in for your security.</p>
-                    <br>
-                    
-                </div>`
+
+                    <p style="color:red;">
+                        Please change this password immediately after logging in.
+                    </p>
+
+                    <p>
+                        Thank you,<br>
+                        <strong>AuCare Team</strong>
+                    </p>
+                </div>
+            `
         };
 
-        await transporter.sendMail(mailOptions);
+        try {
+
+            await sgMail.send(mailOptions);
+
+            console.log("Temporary password email sent to:", userEmail);
+
+        } catch (mailErr) {
+
+            console.error("========== SENDGRID EMAIL ERROR ==========");
+            console.error(mailErr);
+
+            if (mailErr.response) {
+                console.error(mailErr.response.body);
+            }
+
+            console.error("Failed to send temporary password email to:", userEmail);
+
+            // Huwag i-throw ang error.
+            // Tuloy pa rin ang password reset kahit pumalya ang email.
+        }
 
         // 5. Clean up session
         req.session.otpCode = null;
         req.session.otpExpires = null;
-        // Keep req.session.resetEmail temporarily if needed for the success page
 
-        return res.status(200).json({ success: true });
+        return res.status(200).json({
+            success: true
+        });
 
     } catch (error) {
+
         console.error("OTP Success Error:", error);
-        res.status(500).json({ message: "Something went wrong while resetting your password." });
+
+        return res.status(500).json({
+            message: "Something went wrong while resetting your password."
+        });
+
     }
 });
 
@@ -2390,40 +2588,107 @@ app.get('/success', (req, res) => {
 // Step 1: Send / Resend OTP papunta sa email ng naka-login na user
 app.post('/api/account/send-password-otp', isLogin, async (req, res) => {
     try {
+
         const user = await Users.findById(req.session.user._id);
-        if (!user) return res.status(404).json({ success: false, message: "User not found." });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found."
+            });
+        }
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
         req.session.changePassOtp = otp;
         req.session.changePassOtpExpires = Date.now() + 600000; // 10 minutes
 
+        // ==========================
+        // SEND EMAIL (SENDGRID)
+        // ==========================
         const mailOptions = {
-            from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+            from: `AuCare Support <${process.env.EMAIL_USER}>`,
             to: user.email,
             subject: "Your AuCare Password Change Verification Code",
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
-                    <h2 style="color: #0056b3; text-align: center;">Password Change Verification</h2>
+                    <h2 style="color:#0056b3;text-align:center;">
+                        Password Change Verification
+                    </h2>
+
                     <p>Hello ${user.fName},</p>
-                    <p>You requested to change your password. Please use the following code:</p>
-                    <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px;">
+
+                    <p>
+                        You requested to change your password.
+                        Please use the verification code below:
+                    </p>
+
+                    <div style="
+                        background:#f4f4f4;
+                        padding:15px;
+                        text-align:center;
+                        font-size:32px;
+                        font-weight:bold;
+                        letter-spacing:5px;
+                    ">
                         ${otp}
                     </div>
-                    <p>This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
-                </div>`
+
+                    <p>
+                        This verification code will expire in
+                        <strong>10 minutes</strong>.
+                    </p>
+
+                    <p>
+                        If you did not request this password change,
+                        you may safely ignore this email.
+                    </p>
+
+                    <p>
+                        Thank you,<br>
+                        <strong>AuCare Team</strong>
+                    </p>
+                </div>
+            `
         };
 
-        await transporter.sendMail(mailOptions);
+        try {
 
-        return res.status(200).json({ success: true, message: "OTP sent to your email." });
+            await sgMail.send(mailOptions);
+
+            console.log("Password Change OTP sent to:", user.email);
+
+        } catch (mailErr) {
+
+            console.error("========== SENDGRID EMAIL ERROR ==========");
+            console.error(mailErr);
+
+            if (mailErr.response) {
+                console.error(mailErr.response.body);
+            }
+
+            console.error("Failed to send password change OTP to:", user.email);
+
+            // Huwag i-throw ang error.
+            // Tuloy pa rin ang route kahit pumalya ang email.
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "OTP sent to your email."
+        });
 
     } catch (err) {
-        console.error('Send Change-Password OTP Error:', err.message);
-        res.status(500).json({ success: false, message: "Failed to send OTP." });
+
+        console.error("Send Change-Password OTP Error:", err);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to send OTP."
+        });
+
     }
 });
-
 // Step 2: I-verify ang OTP + i-update ang password
 app.post('/api/account/verify-password-otp', isLogin, async (req, res) => {
     try {
@@ -2979,13 +3244,18 @@ app.get('/proceed-request/:id', async (req, res) => {
     try {
         const requestId = req.params.id;
 
-        const visit = await Visits.findByIdAndUpdate(requestId, {
-            status: 'Proceed',
-            verify: false
-        }, { new: true });
+        const visit = await Visits.findByIdAndUpdate(
+            requestId,
+            {
+                status: 'Proceed',
+                verify: false
+            },
+            { new: true }
+        );
 
         // ✅ Notification (in-app)
         if (visit) {
+
             await Notification.create({
                 who: visit.patient,
                 message: 'You may now proceed to the clinic.',
@@ -2998,35 +3268,85 @@ app.get('/proceed-request/:id', async (req, res) => {
 
             await Logs.create({
                 who: req.session.user._id,
-                what: `Approved visit request to proceed: ${patient ? patient.fName + ' ' + patient.lName : 'Unknown patient'}`,
+                what: `Approved visit request to proceed: ${
+                    patient ? patient.fName + ' ' + patient.lName : 'Unknown patient'
+                }`,
                 archive: false
             });
 
-            // ✅ Email Notification
+            // ==========================
+            // SEND EMAIL (SENDGRID)
+            // ==========================
             try {
+
                 if (patient && patient.email) {
+
                     const mailOptions = {
-                        from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+                        from: `AuCare Support <${process.env.EMAIL_USER}>`,
                         to: patient.email,
                         subject: "AuCare: You May Now Proceed to the Clinic",
                         html: `
                             <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
-                                <h2 style="color: #0056b3; text-align: center;">Visit Update</h2>
+
+                                <h2 style="color:#0056b3;text-align:center;">
+                                    Visit Update
+                                </h2>
+
                                 <p>Hello ${patient.fName},</p>
-                                <p>Your clinic visit request has been reviewed. You may now proceed to the clinic.</p>
-                                <p style="color: red;">Please head to the clinic at your earliest convenience.</p>
-                            </div>`
+
+                                <p>
+                                    Your clinic visit request has been reviewed.
+                                </p>
+
+                                <p>
+                                    <strong>You may now proceed to the clinic.</strong>
+                                </p>
+
+                                <p style="color:red;">
+                                    Please head to the clinic at your earliest convenience.
+                                </p>
+
+                                <p>
+                                    Thank you,<br>
+                                    <strong>AuCare Team</strong>
+                                </p>
+
+                            </div>
+                        `
                     };
-                    await transporter.sendMail(mailOptions);
+
+                    await sgMail.send(mailOptions);
+
+                    console.log("Proceed request email sent to:", patient.email);
+
                 }
+
             } catch (mailErr) {
-                console.error('Proceed Request Email Error:', mailErr.message);
+
+                console.error("========== SENDGRID EMAIL ERROR ==========");
+                console.error(mailErr);
+
+                if (mailErr.response) {
+                    console.error(mailErr.response.body);
+                }
+
+                console.error("Failed to send proceed request email to:", patient?.email);
+
+                // Huwag i-throw ang error.
+                // Tuloy pa rin ang route kahit pumalya ang email.
+
             }
+
         }
+
         res.redirect('/r');
+
     } catch (err) {
+
         console.error("Error updating status and verify:", err);
+
         res.status(500).send("Nagkaroon ng error sa pag-update.");
+
     }
 });
 // --- 1. VITALS (Update & Clear) ---
@@ -3132,28 +3452,77 @@ app.post('/successVisit/:id', async (req, res) => {
 
         await Logs.create({
             who: req.session.user._id,
-            what: `Marked visit as Attended for ${patient ? patient.fName + ' ' + patient.lName : 'Unknown patient'}`,
+            what: `Marked visit as Attended for ${
+                patient ? patient.fName + ' ' + patient.lName : 'Unknown patient'
+            }`,
             archive: false
         });
 
-        // ✅ Email Notification
+        // ==========================
+        // SEND EMAIL (SENDGRID)
+        // ==========================
         try {
+
             if (patient && patient.email) {
+
                 const mailOptions = {
-                    from: `"AuCare Support" <${process.env.EMAIL_USER}>`,
+                    from: `AuCare Support <${process.env.EMAIL_USER}>`,
                     to: patient.email,
                     subject: "AuCare: Your Visit Has Been Attended",
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
-                            <h2 style="color: #0056b3; text-align: center;">Visit Completed</h2>
+
+                            <h2 style="color:#0056b3;text-align:center;">
+                                Visit Completed
+                            </h2>
+
                             <p>Hello ${patient.fName},</p>
-                            <p>Your clinic visit has been marked as attended. Thank you for visiting AuCare.</p>
-                        </div>`
+
+                            <p>
+                                Your clinic visit has been successfully marked as
+                                <strong>Attended</strong>.
+                            </p>
+
+                            <p>
+                                Thank you for visiting the AuCare Clinic.
+                            </p>
+
+                            <p>
+                                We hope you're feeling better. If you need further
+                                medical assistance, don't hesitate to visit us again.
+                            </p>
+
+                            <br>
+
+                            <p>
+                                Thank you,<br>
+                                <strong>AuCare Team</strong>
+                            </p>
+
+                        </div>
+                    `
                 };
-                await transporter.sendMail(mailOptions);
+
+                await sgMail.send(mailOptions);
+
+                console.log("Visit completion email sent to:", patient.email);
+
             }
+
         } catch (mailErr) {
-            console.error('Success Visit Email Error:', mailErr.message);
+
+            console.error("========== SENDGRID EMAIL ERROR ==========");
+            console.error(mailErr);
+
+            if (mailErr.response) {
+                console.error(mailErr.response.body);
+            }
+
+            console.error("Failed to send visit completion email to:", patient?.email);
+
+            // Huwag i-throw ang error.
+            // Tuloy pa rin ang route kahit pumalya ang email.
+
         }
 
         req.session.success = "Visit completed successfully.";
@@ -3161,9 +3530,13 @@ app.post('/successVisit/:id', async (req, res) => {
         res.redirect(`/vv2/${visit._id}`);
 
     } catch (err) {
+
         console.error(err);
+
         req.session.error = "Unable to complete visit.";
+
         res.redirect('back');
+
     }
 });
 
