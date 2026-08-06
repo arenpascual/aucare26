@@ -3406,15 +3406,24 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
         // Real temp password, generated only now that the account is approved
         const tempPassword = crypto.randomBytes(4).toString('hex');
 
-        const user = await Users.findByIdAndUpdate(id, {
-            verify: false,
-            verifyAt: Date.now(),
-            isVerify: req.session.user.username,
-            password: tempPassword,
-            reset: true
-        }, { new: true });
+        const user = await Users.findByIdAndUpdate(
+            id,
+            {
+                verify: false,
+                verifyAt: Date.now(),
+                isVerify: req.session.user.username,
+                password: tempPassword,
+                reset: true
+            },
+            { new: true }
+        );
 
-        if (!user) return res.json({ success: false, message: 'User not found.' });
+        if (!user) {
+            return res.json({
+                success: false,
+                message: 'User not found.'
+            });
+        }
 
         await Logs.create({
             who: req.session.user._id,
@@ -3422,54 +3431,7 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
             archive: false
         });
 
-        const mailOptions = {
-    from: {
-        email: process.env.EMAIL_USER,
-        name: "AuCare Support"
-    },
-    to: user.email,
-    subject: "Your AuCare Account Has Been Approved",
-    html: `
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
-            <h2 style="color:#0056b3;text-align:center;">
-                Account Approved
-            </h2>
-
-            <p>Hello ${user.fName},</p>
-
-            <p>
-                Your AuCare account has been reviewed and approved.
-                Log in using your email and the temporary password below:
-            </p>
-
-            <p>
-                <strong>Email (Username):</strong> ${user.email}
-            </p>
-
-            <div style="
-                background:#f4f4f4;
-                padding:15px;
-                text-align:center;
-                font-size:28px;
-                font-weight:bold;
-                letter-spacing:4px;
-            ">
-                ${tempPassword}
-            </div>
-
-            <p style="color:red;">
-                You'll be required to set a new password immediately after logging in.
-            </p>
-
-            <p>
-                Thank you,<br>
-                <strong>AuCare Team</strong>
-            </p>
-        </div>
-    `
-};
-        await sgMail.send(mailOptions);
-
+        // Create notification regardless of email result
         await Notification.create({
             who: user._id,
             message: 'Your account is approved. Check your email for a temporary password.',
@@ -3477,11 +3439,77 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
             link: '/p2'
         });
 
+        // Return success immediately
         res.json({ success: true });
 
+        // Send email in the background
+        const mailOptions = {
+            from: `AuCare Support <${process.env.EMAIL_USER}>`,
+            to: user.email,
+            subject: "Your AuCare Account Has Been Approved",
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                    <h2 style="color:#0056b3;text-align:center;">
+                        Account Approved
+                    </h2>
+
+                    <p>Hello ${user.fName},</p>
+
+                    <p>
+                        Your AuCare account has been reviewed and approved.
+                        Log in using your email and the temporary password below:
+                    </p>
+
+                    <p>
+                        <strong>Email (Username):</strong> ${user.email}
+                    </p>
+
+                    <div style="
+                        background:#f4f4f4;
+                        padding:15px;
+                        text-align:center;
+                        font-size:28px;
+                        font-weight:bold;
+                        letter-spacing:4px;
+                    ">
+                        ${tempPassword}
+                    </div>
+
+                    <p style="color:red;">
+                        You'll be required to set a new password immediately after logging in.
+                    </p>
+
+                    <p>
+                        Thank you,<br>
+                        <strong>AuCare Team</strong>
+                    </p>
+                </div>
+            `
+        };
+
+        try {
+            await sgMail.send(mailOptions);
+            console.log(`Approval email sent to ${user.email}`);
+        } catch (emailErr) {
+            console.error('================ EMAIL ERROR ================');
+            console.error(emailErr);
+
+            if (emailErr.response) {
+                console.error(emailErr.response.body);
+            }
+
+            console.error('Failed to send approval email to:', user.email);
+            // Don't throw the error.
+            // The account is already approved.
+        }
+
     } catch (err) {
-        console.error('Approve Error:', err.message);
-        res.json({ success: false, message: 'Failed to approve account.' });
+        console.error('Approve Error:', err);
+
+        return res.json({
+            success: false,
+            message: 'Failed to approve account.'
+        });
     }
 });
 
