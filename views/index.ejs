@@ -9,23 +9,123 @@
         #tnc {
             transition: all 0.3s ease;
         }
+         @media (max-width: 1024px) {
+            body {
+                flex-direction: column;
+                justify-content: start;
+                overflow-y: auto;
+                display: block;
+                position: relative;
+            }
+            #tnc {
+                width: 100%;
+                border-radius: 0;
+                height: 100%;
+                position: absolute;
+                top: 0;
+                align-items: center;
+                p {
+                text-align: center;
+                }
+            }
+                #agreeBtn {
+                    width: 100% !important;
+                    margin-left: 0 !important;
+                }
+                .kiy {
+                    font-size: 16px;
+                    text-align: center !important;
+                }
+                .kix {
+                    font-size: 12px;
+                    text-align: center;
+                }
+                .kiz {
+                    height: auto !important;
+                    padding: 0;
+                    text-align: center;
+                    label {
+                        margin-right: 0 !important;
+                    }
+                    input {
+                        width: auto;
+                    }
+                }
+            #lC, #rC {
+                height: auto;
+                width: 100%;
+                padding: 5px;
+            }
+            #h1 {
+                height: auto;
+                gap: 0;
+                padding: 5px;
+                flex-direction: column;
+            }
+            #h2 {
+                display: none;
+            }
+            #h3, #h5 {
+                display: none;
+            }
+            #h4, #h6 {
+                display: flex;
+            }
+            #h6 {
+                margin-top: 10px;
+            }
+            .down, .up {
+                width: 100% !important;
+            }
+            .g {
+                width: 100%;
+                p {
+                    text-align: center;
+                }
+            }
+            #stet {
+                display: none;
+            }
+            .ht {
+                font-size: 14px;
+            }
+            #h8 {
+                display: flex;
+                height: auto;
+                p {
+                    font-size: 12px;
+                }
+            }
+            #dg {
+                display: flex;
+            }
+
+         }
     </style>
 </head>
 <body class="polaroid">
+    <i class="fas fa-stethoscope absolute opacity1 size15 h20 w20 padding20 corner500 porcelain top10 hidden" style="left: 50%;" id="dg"></i>
     <a href="/h" class="hidden">home</a>
 
-    <div class="left width60 col">
-        <div class="top relative justifyStart padding30">
-            <i class="fas fa-stethoscope absolute opacity1 top38 size90 h160 w160 padding20 corner500 porcelain" style="left: 150px;"></i>
-            <div class="height0 width0 index50 " style="margin-left: 80px;">
+    <div class="left width60 col" id="lC">
+        <div class="top relative justifyStart padding30" id="h1">
+            <i class="fas fa-stethoscope absolute opacity1 top38 size90 h160 w160 padding20 corner500 porcelain" id="stet" style="left: 150px;"></i>
+            <div class="height0 width0 index50 " style="margin-left: 80px;" id="h5">
                 <img src="/images/logo.png" alt="" class="corner500 h140">
             </div>
-            <div class="col width0 alignStart colorPrimary index50">
+            <div class="height0 width0 index50 hidden" id="h6">
+                <img src="/images/logo.png" alt="" class="corner500 h60">
+            </div>
+            <div class="col width0 alignStart colorPrimary index50" id="h3">
                 <p class="size90 str500">AuCare</p>
                 <p class="size30 textWrap" style="margin-top:-25px !important;">PHINMA Araullo University </p>
             </div>
+            <div class="col width0 colorPrimary index50 hidden" id="h4">
+                <p class="size20 str500">AuCare</p>
+                <p class="size14 textWrap" style="margin-top:-5px !important;">PHINMA Araullo University </p>
+            </div>
         </div>
-        <div class="bottom justifyStart paddingInline75 paddingBottom70 paddingTop20">
+        <div class="bottom justifyStart paddingInline75 paddingBottom70 paddingTop20" id="h2">
             <section class="h300 corner15 padding20 glass col alignStart gap15">
                 <p class="size18 str500 marginLeft10 colorPrimary">Need Help? <a href="" class="inline sizeInherit underline">Learn More </a></p>
                 <video class="abstractBG2 width100 height100 corner15" src="/image/video.mp4"></video>
@@ -33,17 +133,17 @@
         </div>
     </div>
 
-    <div class="right width40 col relative">
+    <div class="right width40 col relative" id="rC">
         <section class="down">
-            <section class="bgWhite shadow1 width80 col padding20 gap10 corner15">
-                <p class="size20 str500">Welcome User! New Here?</p>
+            <section class="bgWhite shadow1 width80 col padding20 gap10 corner15 g">
+                <p class="size20 str500 ht">Welcome User! New Here?</p>
                 <a href="#" id="getStartedBtn" class="nav snav width100">Get Started Here!</a>
             </section>
         </section>
 
         <div class="up height0 padding20">
-            <form class="bgWhite shadow1 height0 gap10 padding30 width80" action="/login" method="POST">
-                <p class="size20 str500">Already have an account?</p>
+            <form class="bgWhite shadow1 height0 gap10 padding30 width80 g" action="/login" method="POST">
+                <p class="size20 str500 ht">Already have an account?</p>
 
                 <% if (error) { %>
                 <section class="noteRed"><%= error %></section>
@@ -81,19 +181,26 @@
             </form>
         </div>
     </div>
+    
+    <div class="hidden" id="h8">
+        <section class="h250 corner15 padding20 glass col alignStart gap15">
+            <p class="size18 str500 marginLeft10 colorPrimary">Need Help? <a href="" class="inline sizeInherit underline">Learn More </a></p>
+            <video class="abstractBG2 width100 height100 corner15" src="/image/video.mp4"></video>
+        </section>
+    </div>
 
     <!-- TERMS AND CONDITIONS -->
     <section class="shadow1 col absolute bgWhite gap15 corner10 padding25 index100 height0 width45 alignStart hidden" id="tnc">
         <a href="" id="lgBtn" class="nav cnav absolute right20 top20"><i class="fas fa-times"></i></a>
-        <p class="size29 colorPrimary str600">Magandang AraU Students!</p>
-        <p class="size13 red " style="font-style: italic;">At PHINMA Araullo University, we are committed to protecting your personal and health information in compliance with the Data Privacy Act of 2012 (RA 10173). By registering an account with AU Care, you agree to the following terms:</p>
-        <p class="size13 black ">Purpose of Data Collection: Your personal details and medical history are collected solely for the purpose of creating your digital health profile, managing clinic visits, and ensuring accurate medicine dispensing at the AU South Campus Clinic.</p>
-        <p class="size13 black ">Data Security: We implement Strong technical and organizational security measures to safeguard your sensitive health information from unauthorized access, use, or disclosure.</p>
-        <p class="size13 black ">Access and Rights: You have the right to access your health records and request corrections to any inaccuracies. For assistance, please visit the School Clinic Office.</p>
-        <p class="size13 black ">Confidentiality: All provided information will be treated with the utmost confidentiality and shared only with authorized clinic personnel and school officials involved in health and safety operations.</p>
-        <p class="size13 black">Thank you for your cooperation in making our campus safer and healthier.</p>
+        <p class="size29 colorPrimary str600 kiy">Magandang AraU Students!</p>
+        <p class="size13 red kix" style="font-style: italic;">At PHINMA Araullo University, we are committed to protecting your personal and health information in compliance with the Data Privacy Act of 2012 (RA 10173). By registering an account with AU Care, you agree to the following terms:</p>
+        <p class="size13 black kix">Purpose of Data Collection: Your personal details and medical history are collected solely for the purpose of creating your digital health profile, managing clinic visits, and ensuring accurate medicine dispensing at the AU South Campus Clinic.</p>
+        <p class="size13 black kix">Data Security: We implement Strong technical and organizational security measures to safeguard your sensitive health information from unauthorized access, use, or disclosure.</p>
+        <p class="size13 black kix">Access and Rights: You have the right to access your health records and request corrections to any inaccuracies. For assistance, please visit the School Clinic Office.</p>
+        <p class="size13 black kix">Confidentiality: All provided information will be treated with the utmost confidentiality and shared only with authorized clinic personnel and school officials involved in health and safety operations.</p>
+        <p class="size13 blackkix">Thank you for your cooperation in making our campus safer and healthier.</p>
         <!-- ✅ CHECKBOX -->
-        <div class="row gap10 alignCenter">
+        <div class="row gap10 alignCenter kiz">
             <input type="checkbox" id="agreeCheck">
             <label for="agreeCheck" class="size13 colorPrimary str500" style="margin-right: 58%;">
                 I agree to the Terms and Conditions

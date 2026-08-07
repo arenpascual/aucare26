@@ -28,6 +28,19 @@
         .stCard:hover a {
             color: var(--blue500);
         }
+         @media (max-width: 1024px) {
+            body {
+                flex-direction: column;
+                justify-content: start;
+                overflow-y: auto;
+                display: block;
+                position: relative;
+            }
+            #bdy {
+                height: auto;
+                flex-direction: column;
+            }
+         }
     </style>
 </head>
 <body class="col polaroid">

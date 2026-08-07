@@ -56,29 +56,165 @@
     #notificationBox{
         z-index: 1000;
     }
+         @media (max-width: 1024px) {
+            body {
+                flex-direction: column;
+                justify-content: start;
+                overflow-y: auto;
+                display: block;
+                position: relative;
+            }
+            .left, .right {
+                width: 100%;
+                height: auto;
+            }
+            #tnc {
+                width: 100%;
+                border-radius: 0;
+                height: 100%;
+                position: absolute;
+                top: 0;
+                align-items: center;
+                p {
+                text-align: center;
+                }
+            }
+                #agreeBtn {
+                    width: 100% !important;
+                    margin-left: 0 !important;
+                }
+                .kiy {
+                    font-size: 16px;
+                    text-align: center !important;
+                }
+                .kix {
+                    font-size: 12px;
+                    text-align: center;
+                }
+                .kiz {
+                    height: auto !important;
+                    padding: 0;
+                    text-align: center;
+                    label {
+                        margin-right: 0 !important;
+                    }
+                    input {
+                        width: auto;
+                    }
+                }
+            #lC, #rC {
+                height: auto;
+                width: 100%;
+                padding: 5px;
+            }
+            #h1 {
+                height: auto;
+                gap: 0;
+                padding: 5px;
+                flex-direction: column;
+            }
+            #h2 {
+                display: none;
+            }
+            #h3, #h5 {
+                display: none;
+            }
+            #h4, #h6 {
+                display: flex;
+            }
+            #h6 {
+                margin-top: 10px;
+            }
+            .down, .up {
+                width: 100% !important;
+            }
+            .g {
+                width: 100%;
+                p {
+                    text-align: center;
+                }
+            }
+            #stet {
+                display: none;
+            }
+            .ht {
+                font-size: 14px;
+            }
+            #h8 {
+                display: flex;
+                height: auto;
+                border-radius: 0;
+                p {
+                    font-size: 12px;
+                }
+            }
+            #dg {
+                display: flex;
+            }
+            #birth {
+                height: auto;
+                flex-direction: column;
+            }
+            #step-2, #step-3 {
+                height: auto;
+            }
+            #notificationBox {
+                width: 100%;
+                height: 100%;
+                border-radius: 0;
+                p {
+                    text-align: center;
+                }
+                button, a {
+                    width: 100%;
+                }
+                color: white;
+                background: 
+                    radial-gradient(circle at 50% 90%, var(--tint10), transparent 50%),  /* Light Gray */
+                    radial-gradient(circle at 88% 99%,  var(--tint9), transparent 26%),  /* Very Light Blue */
+                    radial-gradient(circle at 20% 1%,  var(--tint8), transparent 70%); /* White */
+                background-blend-mode: multiply;
+                backdrop-filter: blur(50px);
+                background-color: white;
+                }
+                .le2 {
+                    font-size: 20px;
+                }
+                .le1 {
+                    font-size: 12px;
+                }
+        }
 </style>
 </head>
 <body class="polaroid">
-<a href="/h" class="hidden">home</a>
+    <i class="fas fa-stethoscope absolute opacity1 size15 h20 w20 padding20 corner500 porcelain top10 hidden" style="left: 50%;" id="dg"></i>
+    <a href="/h" class="hidden">home</a>
 
-<div class="left width60 col">
-    <div class="top relative">
-        <i class="fas fa-stethoscope absolute opacity2 top40 size90 h160 w160 padding20 corner500 porcelain" style="left: 120px;"></i>
-        <div class="height0 width0 index500">
-            <img src="/images/logo.png" alt="" class="corner500 h140">
+    <div class="left width60 col" id="lC">
+        <div class="top relative justifyStart padding30" id="h1">
+            <i class="fas fa-stethoscope absolute opacity1 top38 size90 h160 w160 padding20 corner500 porcelain" id="stet" style="left: 150px;"></i>
+            <div class="height0 width0 index50 " style="margin-left: 80px;" id="h5">
+                <img src="/images/logo.png" alt="" class="corner500 h140">
+            </div>
+            <div class="height0 width0 index50 hidden" id="h6">
+                <img src="/images/logo.png" alt="" class="corner500 h60">
+            </div>
+            <div class="col width0 alignStart colorPrimary index50" id="h3">
+                <p class="size90 str500">AuCare</p>
+                <p class="size30 textWrap" style="margin-top:-25px !important;">PHINMA Araullo University </p>
+            </div>
+            <div class="col width0 colorPrimary index50 hidden" id="h4">
+                <p class="size20 str500">AuCare</p>
+                <p class="size14 textWrap" style="margin-top:-5px !important;">PHINMA Araullo University </p>
+            </div>
         </div>
-        <div class="col width0 alignStart colorPrimary index50">
-            <p class="size90 str500">AuCare</p>
-            <p class="size30 textWrap" style="margin-top:-25px !important;">PHINMA Araullo University South Campus</p>
+        <div class="bottom justifyStart paddingInline75 paddingBottom70 paddingTop20" id="h2">
+            <section class="h300 corner15 padding20 glass col alignStart gap15">
+                <p class="size18 str500 marginLeft10 colorPrimary">Need Help? <a href="" class="inline sizeInherit underline">Learn More </a></p>
+                <video class="abstractBG2 width100 height100 corner15" src="/image/video.mp4"></video>
+            </section>
         </div>
     </div>
-    <div class="bottom justifyStart paddingInline75 paddingBottom70 paddingTop20">
-        <section class="h300 corner15 padding20 glass col alignStart gap15">
-            <p class="size18 str500 marginLeft10 colorPrimary">Need Help? <a href="" class="inline sizeInherit underline">Learn More </a></p>
-            <video class="abstractBG2 width100 height100 corner15" src="/image/video.mp4"></video>
-        </section>
-    </div>
-</div>
 
 <div class="right width40 col alignStart">
     <div class="up height0 padding10 block width90">
@@ -121,7 +257,7 @@
                 </div>
                 <div class="field">
                     <label>Date of Birth</label>
-                    <div class="row gap5">
+                    <div class="row gap5" id="birth">
                         <div class="selectBar">
                             <select name="bMonth" id="bMonth" required>
                                 <option value="" selected disabled>--Month--</option>
@@ -168,7 +304,8 @@
                 </div>
 
                 <div class="pagination-buttons">
-                    <div class="side-spacer"></div> <div class="pagination-wrapper">
+                    <div class="side-spacer">
+                        <div class="pagination-wrapper"></div>
                         <span class="nav-arrow">&lt;</span>
                         <div class="step-circle active">1</div>
                         <div class="step-circle">2</div>
@@ -332,14 +469,22 @@
         </form>
     </div>
     
-    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="notificationBox">
-        <img class="h100 w100" src="/images/like.png" alt="">
-            <section class="padding0 col alignCenter">
-        <p class="size23 str500">Request Submitted</p>
-        <p class="size17">Wait for the admin's approval within this day.</p>
-            </section>
-        <a class="nav w120 size15" href="/" id="gotItBtn">Got It!</a>
+    <section class="absolute translateCenter shadow3 width25 padding35 gap10 index500 bgWhite col corner15 height0 hidden" id="notificationBox">
+        <img class="h100" src="/images/like.png" alt="">
+        <section class="padding0 col alignCenter">
+            <p class="size30 str500 le2">Request Submitted</p>
+            <p class="size16 textBalance textCenter le1">Wait for the admin's approval within this day.</p>
+        </section>
+        <a class="nav pnav width75 marginTop10" href="/" id="gotItBtn">Got It!</a>
     </section>
+    
+    
+    <div class="hidden" id="h8">
+        <section class="h250 corner15 padding20 glass col alignStart gap15">
+            <p class="size18 str500 marginLeft10 colorPrimary">Need Help? <a href="" class="inline sizeInherit underline">Learn More </a></p>
+            <video class="abstractBG2 width100 height100 corner15" src="/image/video.mp4"></video>
+        </section>
+    </div>
 
 </div>
 
