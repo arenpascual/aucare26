@@ -247,12 +247,22 @@ width: 100%;
 gap: 5px;
 }
 .insight-item {
-    justify-content: start;
-text-align: left;
+justify-content: start;
+align-items: left;
+flex-direction: column;
+text-align: left !important;
 padding: 12px;
 font-size: 13px;
 line-height: 1.5;
 background-color:rgb(235,245,255); border:0.5px solid rgba(0,102,255,0.4);color:royalblue; padding: 5px; border-radius: 0.7rem;
+}
+strong.jessBol {
+    text-align: left !important;
+    width: 100%;
+    font-weight: 600;
+    font-size: 14px;
+    color: rgb(14, 10, 120);
+    
 }
 
 /* =========================================================
@@ -777,6 +787,21 @@ Key Insights
 <p> Automatically generated observations based on current data.</p>
 <br>
 <div id="insightList" class="insight-list shadow1 padding10 corner10" ></div>
+</article>
+
+<!-- AI FEEDBACK & SUGGESTIONS -->
+<article class="dashboard-card width100 ">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>AI Feedback &amp; Suggestions</h2>
+        <button class="nav pnav" type="button" id="refreshAiInsightsBtn">
+            Refresh
+        </button>
+    </div>
+    <p>AI-generated recommendations based on clinic trends, inventory, and demographics.</p>
+    <br>
+    <div id="aiInsightList" class="insight-list shadow1 padding10 corner10">
+        <div class="empty-state">Loading AI insights...</div>
+    </div>
 </article>
 
 <!-- VISITS BY ROLE -->
@@ -2170,12 +2195,72 @@ loadDashboard();
 );
 
 /* =========================================================
+AI INSIGHTS (DeepSeek-generated)
+========================================================= */
+async function loadAiInsights() {
+    const aiInsightList = document.getElementById('aiInsightList');
+    aiInsightList.innerHTML = '<div class="empty-state">Loading AI insights...</div>';
+
+    try {
+        const res = await fetch('/api/ai-insights');
+        const data = await res.json();
+
+        if (!data.success || !data.insights || data.insights.length === 0) {
+            aiInsightList.innerHTML = '<div class="empty-state">No AI insights yet. Click Refresh to generate.</div>';
+            return;
+        }
+
+        aiInsightList.innerHTML = '';
+        data.insights.forEach(insight => {
+            const el = document.createElement('div');
+            el.className = 'insight-item';
+            el.innerHTML = `<strong class="jessBol" style="text-align: left !important;">${insight.title}:</strong> ${insight.message}`;
+            aiInsightList.appendChild(el);
+        });
+
+    } catch (err) {
+        console.error('AI Insights Fetch Error:', err);
+        aiInsightList.innerHTML = '<div class="empty-state">Failed to load AI insights.</div>';
+    }
+}
+
+async function generateAiInsights() {
+    const aiInsightList = document.getElementById('aiInsightList');
+    const btn = document.getElementById('refreshAiInsightsBtn');
+
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+    aiInsightList.innerHTML = '<div class="empty-state">Generating new AI insights, please wait...</div>';
+
+    try {
+        const res = await fetch('/api/ai-insights/generate', { method: 'POST' });
+        const data = await res.json();
+
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to generate insights.');
+        }
+
+        await loadAiInsights();
+
+    } catch (err) {
+        console.error('AI Insights Generate Error:', err);
+        aiInsightList.innerHTML = `<div class="empty-state">${err.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Refresh';
+    }
+}
+
+document.getElementById('refreshAiInsightsBtn')
+    .addEventListener('click', generateAiInsights);
+/* =========================================================
 INITIAL LOAD
 ========================================================= */
 document.addEventListener(
 'DOMContentLoaded',
 function () {
 loadDashboard();
+loadAiInsights();
 }
 );
 </script>

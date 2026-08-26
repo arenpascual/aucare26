@@ -5,7 +5,7 @@ const visitSchema = new mongoose.Schema({
  verify: { type: Boolean, default: true },
 
 status: { type: String, enum: ['Pending', 'Attended', 'Not Attended', 'Proceed'], default: 'Pending' },
-complaint: { type: String, required: true, trim: true },
+complaint: { type: String, required: false, trim: true },
 concern: { type: String, required: true },
 treatment: { type: String, trim: true },
 patient: {type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },

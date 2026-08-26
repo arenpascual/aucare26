@@ -303,7 +303,7 @@
         <section class="gap10 padding10">
         <div class="field">
             <label>Employee ID</label>
-            <input type="text" name="schoolId" id="editSchoolId" value="<%= user.schoolId %>" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
+            <input type="text" name="schoolId" id="editSchoolId" value="<%= user.schoolId %>" disabled>
         </div>
 
         <div class="field">
@@ -417,7 +417,15 @@
                             <option value="12" <%= user.bMonth == 12 ? 'selected' : '' %>>12</option>
                             </select>
                         </div>
-                       <input type="text"name="bDay"id="bDay"value="<%= user.bDay %>"placeholder="Day"inputmode="numeric"maxlength="2"pattern="^(0?[1-9]|[12][0-9]|3[01])$"required >
+                        <input type="text"
+                            name="bDay"
+                            id="bDay"
+                            value="<%= user.bDay %>"
+                            placeholder="Day"
+                            inputmode="numeric"
+                            maxlength="2"
+                            pattern="^(0?[1-9]|[12][0-9]|3[01])$"
+                            required>
                         <div class="selectBar">
                             <select name="bYear" id="bYear" required>
                                 <option value="" disabled <%= !user.bYear ? 'selected' : '' %>>--Year--</option>
@@ -890,3 +898,21 @@ editForm.addEventListener('submit', function (e) {
 });
 
     </script>
+
+    <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const bDayInput = document.getElementById('bDay');
+
+    if (bDayInput) {
+      bDayInput.addEventListener('input', function() {
+        // 1. Tatanggalin ang anumang character na hindi numero (letters, symbols)
+        this.value = this.value.replace(/[^0-9]/g, '');
+
+        // 2. Kapag mas malaki sa 31 ang na-type, gagawing 31
+        if (parseInt(this.value, 10) > 31) {
+          this.value = '31';
+        }
+      });
+    }
+  });
+</script>

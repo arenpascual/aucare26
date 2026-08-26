@@ -1,0 +1,199 @@
+<% layout('layout') %>
+
+<style>
+    .profile-name{
+    width:100%;
+    text-align:center !important;
+    overflow: hidden;
+    font-weight:500;
+    margin-top:10px;
+    line-height:1.3;
+    }
+</style>
+
+<div class="height10 justifyBetween ">
+    <div class="width0 gap15">
+        <a href="/pd" class="nav"><i class="fas fa-chevron-left"></i> Return</a>
+        <p class="size40 str400">Pending Account Details</p>
+    </div>
+</div>
+
+<div class="gap20 polaroid alignStart justifyStart row padding20 height90">
+    <div class="width25 bgWhite corner15 justifyStart col padding20">
+        <section class="col ">
+            <img class="h80 w80 bura corner500" src="/images/profile.png" alt="">
+            <p class="size28 colorPrimary profile-name ">
+                <%= pendingUser.fName %> <%= pendingUser.mName %> <%= pendingUser.lName %> <%= pendingUser.xName %>
+            </p>
+            <p class="size16 blue "><%= pendingUser.schoolId %></p>
+            <p class="size16 gray"><%= pendingUser.email %></p>
+        </section>
+        <section class="col gap5">
+            <a href="javascript:void(0)" class="approveBtn nav pnav width100">
+                <i class="fas fa-check"></i> Approve
+            </a>
+            <a href="javascript:void(0)" class="rejectBtn nav width100" >
+                <i class="fas fa-times"></i>Decline
+            </a>
+        </section>
+    </div>
+    <div class="width70 shadow1 height100 bgWhite corner10 col alignStart justifyStart padding30 overflow-y1 block ">
+        <p class="size30 str500"><%= pendingUser.fName %> <%= pendingUser.lName %> Information</p>
+
+        <!-- ROLE + CAMPUS -->
+        <section class="gap10">
+            <div class="field">
+                <label>Role</label>
+                <input type="text" value="<%= pendingUser.role %>" disabled>
+            </div>
+            <div class="field">
+                <label>Campus</label>
+                <input type="text" value="<%= pendingUser.campus || '—' %>" disabled>
+            </div>
+        </section>
+
+        <!-- NAME -->
+        <section class="gap10">
+            <div class="field">
+                <label>First Name</label>
+                <input type="text" value="<%= pendingUser.fName %>" disabled>
+            </div>
+            <div class="field">
+                <label>Middle Name</label>
+                <input type="text" value="<%= pendingUser.mName || '—' %>" disabled>
+            </div>
+        </section>
+
+        <section class="gap10">
+            <div class="field">
+                <label>Last Name</label>
+                <input type="text" value="<%= pendingUser.lName %>" disabled>
+            </div>
+            <div class="field">
+                <label>Extension Name</label>
+                <input type="text" value="<%= pendingUser.xName || '—' %>" disabled>
+            </div>
+        </section>
+
+        <!-- ID + DOB -->
+        <section class="gap10 padding10">
+            <div class="field">
+                <label><%= pendingUser.role === 'Student' ? 'School ID' : 'Employee ID' %></label>
+                <input type="text" value="<%= pendingUser.schoolId %>" disabled>
+            </div>
+            <div class="field">
+                <label>Date of Birth</label>
+                <div class="row gap5">
+                    <input type="text" value="<%= pendingUser.bMonth %>" disabled>
+                    <input type="text" value="<%= pendingUser.bDay %>" disabled>
+                    <input type="text" value="<%= pendingUser.bYear %>" disabled>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section class="gap10">
+            <div class="field">
+                <label>Email</label>
+                <input type="email" value="<%= pendingUser.email %>" disabled>
+            </div>
+            <div class="field">
+                <label>Contact Number</label>
+                <input type="text" value="<%= pendingUser.phone %>" disabled>
+            </div>
+        </section>
+
+        <!-- GENDER + ADDRESS -->
+        <section class="gap10">
+            <div class="field">
+                <label>Gender</label>
+                <input type="text" value="<%= pendingUser.gender %>" disabled>
+            </div>
+            <div class="field">
+                <label>Address</label>
+                <input type="text" value="<%= pendingUser.address %>" disabled>
+            </div>
+        </section>
+
+        <!-- YEAR LEVEL + COURSE (Student only) -->
+        <% if (pendingUser.role === 'Student') { %>
+            <section class="gap10">
+                <div class="field">
+                    <label>Year Level</label>
+                    <input type="text" value="<%= pendingUser.yearLevel || '—' %>" disabled>
+                </div>
+                <div class="field">
+                    <label>Course</label>
+                    <input type="text" value="<%= pendingUser.course || '—' %>" disabled>
+                </div>
+            </section>
+        <% } %>
+
+        <!-- ALLERGIES -->
+        <section class="gap10">
+            <div class="field">
+                <label>Medicine Allergies</label>
+                <input type="text" value="<%= pendingUser.mAllergy || '—' %>" disabled>
+            </div>
+            <div class="field">
+                <label>Food Allergies</label>
+                <input type="text" value="<%= pendingUser.fAllergy || '—' %>" disabled>
+            </div>
+        </section>
+
+        <!-- EMERGENCY CONTACT -->
+        <p class="size18 str500 marginTop10">Emergency Contact Person</p>
+        <section class="gap10">
+            <div class="field">
+                <label>Emergency Name</label>
+                <input type="text" value="<%= pendingUser.eName || '—' %>" disabled>
+            </div>
+            <div class="field">
+                <label>Emergency Contact Number</label>
+                <input type="text" value="<%= pendingUser.ePhone || '—' %>" disabled>
+            </div>
+        </section>
+
+        <section class="gap10">
+            <div class="field">
+                <label>Emergency Address</label>
+                <input type="text" value="<%= pendingUser.eAddress || '—' %>" disabled>
+            </div>
+        </section>
+    </div>
+
+</div>
+
+<script>
+document.querySelector('.approveBtn')?.addEventListener('click', async function () {
+    const id = this.dataset.id;
+    try {
+        const res = await fetch(`/api/users/approve/${id}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            window.location.href = '/pd';
+        } else {
+            alert(data.message || 'Failed to approve account.');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('An error occurred while approving.');
+    }
+});
+
+document.querySelector('.rejectBtn')?.addEventListener('click', async function () {
+    const id = this.dataset.id;
+    try {
+        const res = await fetch(`/api/users/reject/${id}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            window.location.href = '/pd';
+        } else {
+            alert(data.message || 'Failed to reject account.');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('An error occurred while rejecting.');
+    }
+});
+</script>

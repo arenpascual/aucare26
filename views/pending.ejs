@@ -38,7 +38,7 @@
                 <% pendingUsers.forEach((u, index) => { %>
                     <tr id="row-<%= u._id %>">
                         <td><%= index + 1 %></td>
-                        <td><a href="/uv?id=<%= u._id %>" class="underline navy"><%= u.fName %> <%= u.lName %></a></td>
+                        <td><a href="/pdview/<%= u._id %>" class="underline navy"><%= u.fName %> <%= u.lName %></a></td>
                         <td><%= u.schoolId || '' %></td>
                         <td><%= u.role %></td>
                         <td><%= u.course || u.department || '' %></td>

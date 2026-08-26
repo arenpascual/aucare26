@@ -77,14 +77,14 @@
         </section>
             
         <div class="height0 gap10">
-            <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
+            <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height100">
                 <a href="javascript:void(0)"class="nav cnav absolute right16 top10 lgBtn"data-target="eaeditForm">
                     <i class="fas fa-pen"></i>
                 </a>
                 <p class="size20 str400">Allergies</p>
                 <p class="size14 gray">Food Allergies: <%= patient.fAllergy || 'None' %></p>
                 <p class="size14 gray">Medicines Allergies: <%= patient.mAllergy || 'None' %></p>
-                <p class="size14 gray">Other Allergies: <%= patient.oAllergy || 'None' %></p>
+                <p class="size14 gray hidden">Other Allergies: <%= patient.oAllergy || 'None' %></p>
             </section>
             <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
                 <a href="javascript:void(0)"class="nav cnav absolute right16 top10 lgBtn"data-target="eceditForm">
@@ -152,215 +152,661 @@
         <section class="bgIndigo950"></section>
         <br>
     </div>
-    <!-- EDIT PERSONAL INFORMATION -->
-        <form id="editForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
-            <p class="size30 str500">Edit Personal Information</p>
-            <div class="field">
-                <section class="gap10 justifyStart">
-                    <label>
-                        <input type="radio" name="gender" value="Male" <%= user.gender === 'Male' ? 'checked' : '' %> required> Male
-                    </label>
-                    <label>
-                        <input type="radio" name="gender" value="Female" <%= user.gender === 'Female' ? 'checked' : '' %> required> Female
-                    </label>
-                </section>
+ <!-- ========================================================= -->
+<!-- EDIT PERSONAL INFORMATION -->
+<!-- ========================================================= -->
+
+<form id="editForm"
+      action="/uv/update/<%= patient._id %>"
+      method="POST"
+      class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden"
+      style="z-index:700;"
+      novalidate>
+
+    <p class="size30 str500">Edit Personal Information</p>
+
+    <!-- GENDER -->
+    <div class="field">
+        <section class="gap10 justifyStart">
+
+            <label>
+                <input type="radio"
+                       name="gender"
+                       value="Male"
+                       <%= patient.gender === 'Male' ? 'checked' : '' %>
+                       required>
+                Male
+            </label>
+
+            <label>
+                <input type="radio"
+                       name="gender"
+                       value="Female"
+                       <%= patient.gender === 'Female' ? 'checked' : '' %>
+                       required>
+                Female
+            </label>
+
+        </section>
+    </div>
+
+
+    <!-- FIRST + MIDDLE NAME -->
+    <section class="gap10">
+
+        <div class="field">
+            <label>First Name</label>
+
+            <input type="text"
+                   name="fName"
+                   id="editFName"
+                   value="<%= patient.fName || '' %>"
+                   maxlength="50"
+                   pattern="^[A-Za-z\s\-']+$"
+                   title="Letters, spaces, hyphens and apostrophes only"
+                   required>
+        </div>
+
+
+        <div class="field">
+            <label>Middle Name</label>
+
+            <input type="text"
+                   name="mName"
+                   id="editMName"
+                   value="<%= patient.mName || '' %>"
+                   maxlength="50"
+                   pattern="^[A-Za-z\s\-']*$"
+                   title="Letters, spaces, hyphens and apostrophes only">
+        </div>
+
+    </section>
+
+
+    <!-- LAST + EXTENSION NAME -->
+    <section class="gap10">
+
+        <div class="field">
+            <label>Last Name</label>
+
+            <input type="text"
+                   name="lName"
+                   id="editLName"
+                   value="<%= patient.lName || '' %>"
+                   maxlength="50"
+                   pattern="^[A-Za-z\s\-']+$"
+                   title="Letters, spaces, hyphens and apostrophes only"
+                   required>
+        </div>
+
+
+        <div class="field">
+            <label>Extension Name</label>
+
+            <input type="text"
+                   name="xName"
+                   id="editXName"
+                   value="<%= patient.xName || '' %>"
+                   maxlength="10"
+                   pattern="^[A-Za-z.\s]*$"
+                   title="e.g. Jr., Sr., III"
+                   placeholder="e.g. Jr., III">
+        </div>
+
+    </section>
+
+
+    <!-- EMAIL + PHONE -->
+    <section class="gap10">
+
+        <div class="field">
+            <label>Email</label>
+
+            <input type="email"
+                   name="email"
+                   id="editEmail"
+                   value="<%= patient.email || '' %>"
+                   maxlength="100"
+                   required>
+        </div>
+
+
+        <div class="field">
+            <label>Contact Number</label>
+
+            <input type="tel"
+                   name="phone"
+                   id="editPhone"
+                   value="<%= patient.phone || '' %>"
+                   placeholder="09XXXXXXXXX"
+                   inputmode="numeric"
+                   maxlength="11"
+                   pattern="^09[0-9]{9}$"
+                   title="Enter an 11-digit PH mobile number starting with 09"
+                   required>
+        </div>
+
+    </section>
+
+
+    <!-- ADDRESS -->
+    <section>
+
+        <div class="field">
+            <label>Address</label>
+
+            <input type="text"
+                   name="address"
+                   id="editAddress"
+                   value="<%= patient.address || '' %>"
+                   maxlength="150"
+                   required>
+        </div>
+
+    </section>
+
+
+    <!-- DATE OF BIRTH -->
+    <div class="field padding10">
+
+        <label>Date of Birth</label>
+
+        <div class="row gap5">
+
+            <!-- MONTH -->
+            <div class="selectBar">
+
+                <select name="bMonth"
+                        id="bMonth"
+                        required>
+
+                    <option value=""
+                            disabled
+                            <%= !patient.bMonth ? 'selected' : '' %>>
+                        --Month--
+                    </option>
+
+                    <option value="1"
+                        <%= String(patient.bMonth) === '1' ? 'selected' : '' %>>
+                        01
+                    </option>
+
+                    <option value="2"
+                        <%= String(patient.bMonth) === '2' ? 'selected' : '' %>>
+                        02
+                    </option>
+
+                    <option value="3"
+                        <%= String(patient.bMonth) === '3' ? 'selected' : '' %>>
+                        03
+                    </option>
+
+                    <option value="4"
+                        <%= String(patient.bMonth) === '4' ? 'selected' : '' %>>
+                        04
+                    </option>
+
+                    <option value="5"
+                        <%= String(patient.bMonth) === '5' ? 'selected' : '' %>>
+                        05
+                    </option>
+
+                    <option value="6"
+                        <%= String(patient.bMonth) === '6' ? 'selected' : '' %>>
+                        06
+                    </option>
+
+                    <option value="7"
+                        <%= String(patient.bMonth) === '7' ? 'selected' : '' %>>
+                        07
+                    </option>
+
+                    <option value="8"
+                        <%= String(patient.bMonth) === '8' ? 'selected' : '' %>>
+                        08
+                    </option>
+
+                    <option value="9"
+                        <%= String(patient.bMonth) === '9' ? 'selected' : '' %>>
+                        09
+                    </option>
+
+                    <option value="10"
+                        <%= String(patient.bMonth) === '10' ? 'selected' : '' %>>
+                        10
+                    </option>
+
+                    <option value="11"
+                        <%= String(patient.bMonth) === '11' ? 'selected' : '' %>>
+                        11
+                    </option>
+
+                    <option value="12"
+                        <%= String(patient.bMonth) === '12' ? 'selected' : '' %>>
+                        12
+                    </option>
+
+                </select>
+
             </div>
-                <section class="gap10">
-                    <div class="field">
-                        <label>First Name</label>
-                        <input type="text" name="fName" id="editFName" value="<%= user.fName %>" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
-                    </div>
-                    <div class="field">
-                        <label>Middle Name</label>
-                        <input type="text" name="mName" id="editMName" value="<%= user.mName %>" maxlength="50" pattern="^[A-Za-z\s\-']*$" title="Letters, spaces, hyphens and apostrophes only">
-                    </div>
-                </section>
-                <section class="gap10">
-                    <div class="field">
-                        <label>Last Name</label>
-                        <input type="text" name="lName" id="editLName" value="<%= user.lName %>" maxlength="50" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
-                    </div>
-                    <div class="field">
-                        <label>Extension Name</label>
-                        <input type="text" name="xName" id="editXName" value="<%= user.xName %>" maxlength="10" pattern="^[A-Za-z.\s]*$" title="e.g. Jr., Sr., III" placeholder="e.g. Jr., III">
-                    </div>
-                </section>
-                <section class="gap10">
-                    <div class="field">
-                        <label>Email</label>
-                        <input type="email" name="email" id="editEmail" value="<%= user.email %>" maxlength="100" required>
-                    </div>
-                    <div class="field">
-                        <label>Contact Number</label>
-                        <input type="tel" name="phone" id="editPhone" value="<%= user.phone %>" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="^09[0-9]{9}$" title="Enter an 11-digit PH mobile number starting with 09" required>
-                    </div>
-                </section>
-                <section>
-                    <div class="field">
-                        <label>Address</label>
-                        <input type="text" name="address" id="editAddress" value="<%= user.address %>" maxlength="150" required>
-                    </div>
-                </section>
-                <div class="field padding10">
-                    <label>Date of Birth</label>
-                    <div class="row gap5">
+
+
+            <!-- DAY -->
+            <input type="text"
+                name="bDay"
+                id="bDay"
+                value="<%= patient.bDay || '' %>"
+                placeholder="Day"
+                inputmode="numeric"
+                maxlength="2"
+                pattern="^(0?[1-9]|[12][0-9]|3[01])$"
+                title="Enter a valid day from 1 to 31"
+                required>
+
+
+            <!-- YEAR -->
+            <div class="selectBar">
+
+                <select name="bYear"
+                        id="bYear"
+                        required>
+
+                    <option value=""
+                            disabled
+                            <%= !patient.bYear ? 'selected' : '' %>>
+                        --Year--
+                    </option>
+
+                    <% const currentYear = new Date().getFullYear(); %>
+
+                    <% for (let y = currentYear - 10; y >= currentYear - 80; y--) { %>
+
+                        <option value="<%= y %>"
+                            <%= String(patient.bYear) === String(y) ? 'selected' : '' %>>
+                            <%= y %>
+                        </option>
+
+                    <% } %>
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <p class="field-error" id="dobError"></p>
+
+    </div>
+
+
+    <p class="field-error"></p>
+
+
+    <!-- BUTTONS -->
+    <section class="gap20">
+
+        <a href="javascript:void(0)"
+           class="nav width100 closeEditBtn">
+            Cancel
+        </a>
+
+        <button type="submit"
+                class="nav pnav width100">
+            Save Changes
+        </button>
+
+    </section>
+
+</form>
+
+
+
+<!-- ========================================================= -->
+<!-- EDIT SCHOOL INFORMATION -->
+<!-- ========================================================= -->
+
+<form id="eseditForm"
+      action="/uv/update/<%= patient._id %>"
+      method="POST"
+      class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden"
+      style="z-index:700;"
+      novalidate>
+
+    <p class="size30 str500">Edit School Information</p>
+
+
+    <!-- SCHOOL ID -->
+    <div class="field">
+
+        <label>School ID</label>
+
+        <input type="text"
+               name="schoolId"
+               id="editSchoolId"
+               value="<%= patient.schoolId || '' %>"
+               maxlength="20"
+               pattern="^[A-Za-z0-9\-]+$"
+               title="Letters, numbers and hyphens only"
+               required>
+
+    </div>
+
+
+    <!-- YEAR LEVEL -->
+    <div class="field">
+
+        <label>Year Level</label>
+
+        <div class="selectBar">
+
+            <select name="yearLevel"
+                    required>
+
+                <option value=""
+                        disabled
+                        <%= !patient.yearLevel ? 'selected' : '' %>>
+                    --Select--
+                </option>
+
+                <option value="4th Year"
+                    <%= patient.yearLevel === '4th Year' ? 'selected' : '' %>>
+                    4th Year
+                </option>
+
+                <option value="3rd Year"
+                    <%= patient.yearLevel === '3rd Year' ? 'selected' : '' %>>
+                    3rd Year
+                </option>
+
+                <option value="2nd Year"
+                    <%= patient.yearLevel === '2nd Year' ? 'selected' : '' %>>
+                    2nd Year
+                </option>
+
+                <option value="1st Year"
+                    <%= patient.yearLevel === '1st Year' ? 'selected' : '' %>>
+                    1st Year
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <!-- COURSE -->
+    
+                <div class="field" id="courseField">
+                        <label>Course</label>
                         <div class="selectBar">
-                            <select name="bMonth" id="bMonth" required>
-                                <option value="" selected disabled>--Month--</option>
-                                <option value="1">01</option>
-                                <option value="2">02</option>
-                                <option value="3">03</option>
-                                <option value="4">04</option>
-                                <option value="5">05</option>
-                                <option value="6">06</option>
-                                <option value="7">07</option>
-                                <option value="8">08</option>
-                                <option value="9">09</option>
-                                <option value="10">10</option>
-                                <option value="11">11</option>
-                                <option value="12">12</option>
-                            </select>
-                        </div>
-                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" required>
-                        <div class="selectBar">
-                            <select name="bYear" id="bYear" required>
-                                <option value="" selected disabled>--Year--</option>
-                                <% const currentYear = new Date().getFullYear(); %>
-                                <% for (let y = currentYear - 10; y >= currentYear - 80; y--) { %>
-                                    <option value="<%= y %>"><%= y %></option>
-                                <% } %>
-                            </select>
-                        </div>
+                        <select name="course" id="course" required>
+                            <option value="Bachelor of Arts in Political Science">Bachelor of Arts in Political Science</option>
+                            <option value="Bachelor of Early Childhood Education">Bachelor of Early Childhood Education</option>
+                            <option value="Bachelor of Elementary Education">Bachelor of Elementary Education</option>
+                            <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy</option>
+                            <option value="Bachelor of Science in Accounting Information System">Bachelor of Science in Accounting Information System</option>
+                            <option value="Bachelor of Science in Business Administration - Banking and Microfinance">Bachelor of Science in Business Administration - Banking and Microfinance</option>
+                            <option value="Bachelor of Science in Business Administration - Financial Management">Bachelor of Science in Business Administration - Financial Management</option>
+                            <option value="Bachelor of Science in Business Administration - Human Resource Management">Bachelor of Science in Business Administration - Human Resource Management</option>
+                            <option value="Bachelor of Science in Business Administration - Marketing Management">Bachelor of Science in Business Administration - Marketing Management</option>
+                            <option value="Bachelor of Science in Civil Engineering">Bachelor of Science in Civil Engineering</option>
+                            <option value="Bachelor of Science in Criminology">Bachelor of Science in Criminology</option>
+                            <option value="Bachelor of Science in Electrical Engineering">Bachelor of Science in Electrical Engineering</option>
+                            <option value="Bachelor of Science in Entrepreneurship">Bachelor of Science in Entrepreneurship</option>
+                            <option value="Bachelor of Science in Hospitality Management">Bachelor of Science in Hospitality Management</option>
+                            <option value="Bachelor of Science in Information Technology">Bachelor of Science in Information Technology</option>
+                            <option value="Bachelor of Science in Management Accounting">Bachelor of Science in Management Accounting</option>
+                            <option value="Bachelor of Science in Medical Laboratory Science">Bachelor of Science in Medical Laboratory Science</option>
+                            <option value="Bachelor of Science in Nursing">Bachelor of Science in Nursing</option>
+                            <option value="Bachelor of Science in Pharmacy">Bachelor of Science in Pharmacy</option>
+                            <option value="Bachelor of Science in Psychology">Bachelor of Science in Psychology</option>
+                            <option value="Bachelor of Secondary Education - English">Bachelor of Secondary Education - English</option>
+                            <option value="Bachelor of Secondary Education - Filipino">Bachelor of Secondary Education - Filipino</option>
+                            <option value="Bachelor of Secondary Education - Mathematics">Bachelor of Secondary Education - Mathematics</option>
+                            <option value="Bachelor of Secondary Education - Science">Bachelor of Secondary Education - Science</option>
+                            <option value="Doctor of Philosophy major in Educational Management">Doctor of Philosophy major in Educational Management</option>
+                            <option value="Doctor of Philosophy major in Filipino">Doctor of Philosophy major in Filipino</option>
+                            <option value="Doctor of Philosophy major in Psychology and Guidance">Doctor of Philosophy major in Psychology and Guidance</option>
+                            <option value="Doctor of Philosophy major in Science Education">Doctor of Philosophy major in Science Education</option>
+                            <option value="Master of Arts Major in Educational Management (Thesis & Non-Thesis)">Master of Arts Major in Educational Management (Thesis & Non-Thesis)</option>
+                            <option value="Master of Arts Major in English (Thesis & Non-Thesis)">Master of Arts Major in English (Thesis & Non-Thesis)</option>
+                            <option value="Master of Arts Major in Guidance and Counseling (Thesis & Non-Thesis)">Master of Arts Major in Guidance and Counseling (Thesis & Non-Thesis)</option>
+                            <option value="Master of Arts Major in Mathematics (Thesis & Non-Thesis)">Master of Arts Major in Mathematics (Thesis & Non-Thesis)</option>
+                            <option value="Master of Arts Major in Physical Education (Thesis & Non-Thesis)">Master of Arts Major in Physical Education (Thesis & Non-Thesis)</option>
+                            <option value="Master of Arts Major in Psychology (Thesis & Non-Thesis)">Master of Arts Major in Psychology (Thesis & Non-Thesis)</option>
+                            <option value="Master of Arts Major in Public Management">Master of Arts Major in Public Management</option>
+                            <option value="Master of Arts Major in Science Education">Master of Arts Major in Science Education</option>
+                            <option value="Master of Science in Business Administration major in Management">Master of Science in Business Administration major in Management</option>
+                            <option value="ABM Specializes in Hospitality and Tourism">ABM Specializes in Hospitality and Tourism</option>
+                            <option value="GAS - Criminology">GAS - Criminology</option>
+                            <option value="GAS - Education">GAS - Education</option>
+                            <option value="GAS - Information Technology">GAS - Information Technology</option>
+                            <option value="HUMSS">HUMSS</option>
+                            <option value="STEM">STEM</option>
+                            <option value="STEM Health (Nursing, Pharmacy, Medical Laboratory Science, Psychology)">STEM Health (Nursing, Pharmacy, Medical Laboratory Science, Psychology)</option>
+                        </select>
                     </div>
-                    <p class="field-error" id="dobError"></p>
                 </div>
-                <p class="field-error"></p>
-                <section class="gap20">
-                    <a href="javascript:void(0)" class="nav width100 closeEditBtn">Cancel</a>
-                    <button type="submit" class="nav pnav width100">Save Changes</button>
-                </section>
-    </form>
 
-    <!-- EDIT SCHOOL INFORMATION -->
-    <form id="eseditForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
-            <p class="size30 str500">Edit School Information</p>
-                <div class="field">
-                    <label>School ID</label>
-                    <input type="text" name="schoolId" id="editSchoolId" value="<%= user.schoolId %>" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
-                </div>
-                <div class="field">
-                    <label>Year Level</label>
-                    <div class="selectBar">
-                        <select name="yearLevel" required>
-                            <option value="" disabled <%= !user.yearLevel ? 'selected' : '' %>>--Select--</option>
-                            <option value="4th Year" <%= user.yearLevel === '4th Year' ? 'selected' : '' %>>4th Year</option>
-                            <option value="3rd Year" <%= user.yearLevel === '3rd Year' ? 'selected' : '' %>>3rd Year</option>
-                            <option value="2nd Year" <%= user.yearLevel === '2nd Year' ? 'selected' : '' %>>2nd Year</option>
-                            <option value="1st Year" <%= user.yearLevel === '1st Year' ? 'selected' : '' %>>1st Year</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="field">
-                    <label>Course</label>
-                    <div class="selectBar">
-                        <select name="course" id="editCourse" required>
-                            <option value="" disabled <%= !user.course ? 'selected' : '' %>>--Select--</option>
-                            <option value="BS Architecture">BS Architecture (BSArch)</option>
-                            <option value="BS Accountancy">BS Accountancy (BSA)</option>
-                            <option value="BS Accounting Information System">BS Accounting Information System (BSAIS)</option>
-                            <option value="BS Biology">BS Biology (BS Bio)</option>
-                            <option value="BS Business Administration">BS Business Administration (BSBA)</option>
-                            <option value="BS Civil Engineering">BS Civil Engineering (BSCE)</option>
-                            <option value="BS Computer Engineering">BS Computer Engineering (BSCpE)</option>
-                            <option value="BS Computer Science">BS Computer Science (BSCS)</option>
-                            <option value="BS Criminology">BS Criminology (BSCrim)</option>
-                            <option value="BS Dentistry">BS Dentistry (DMD)</option>
-                            <option value="BS Education">BS Education (BSEd)</option>
-                            <option value="BS Electrical Engineering">BS Electrical Engineering (BSEE)</option>
-                            <option value="BS Electronics Engineering">BS Electronics Engineering (BSECE)</option>
-                            <option value="BS Hospitality Management">BS Hospitality Management (BSHM)</option>
-                            <option value="BS Hotel and Restaurant Management">BS Hotel and Restaurant Management (BSHRM)</option>
-                            <option value="BS Information Systems">BS Information Systems (BSIS)</option>
-                            <option value="BS Information Technology">BS Information Technology (BSIT)</option>
-                            <option value="BS Industrial Engineering">BS Industrial Engineering (BSIE)</option>
-                            <option value="BS Mechanical Engineering">BS Mechanical Engineering (BSME)</option>
-                            <option value="BS Medical Technology">BS Medical Technology (BSMT)</option>
-                            <option value="BS Midwifery">BS Midwifery</option>
-                            <option value="BS Nursing">BS Nursing (BSN)</option>
-                            <option value="BS Pharmacy">BS Pharmacy</option>
-                            <option value="BS Physical Therapy">BS Physical Therapy (BSPT)</option>
-                            <option value="BS Psychology">BS Psychology (BSPsych)</option>
-                            <option value="BS Public Administration">BS Public Administration (BSPA)</option>
-                            <option value="BS Tourism Management">BS Tourism Management (BSTM)</option>
-                            <option value="Doctor of Medicine">Doctor of Medicine (MD)</option>
-                            <option value="Juris Doctor">Juris Doctor (JD)</option>
-                            <option value="Others">Others</option>
-                        </select>
-                    </div>
-                </div>
-                <p class="field-error"></p>
-                <section class="gap20">
-                    <a href="javascript:void(0)" class="nav width100 closeEditBtn">Cancel</a>
-                    <button type="submit" class="nav pnav width100">Save Changes</button>
-                </section>
-    </form>
 
-    <!-- EDIT EMERGENCY CONTACT -->
-    <form id="eceditForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
-            <p class="size30 str500">Edit Emergency Contact</p>
-                <section class="gap10">
-                    <div class="field">
-                        <label>Full Name</label>
-                        <input type="text" name="eName" id="editEName" value="<%= user.eName %>" maxlength="100" pattern="^[A-Za-z\s\-']+$" title="Letters, spaces, hyphens and apostrophes only" required>
-                    </div>
-                    <div class="field">
-                        <label>Contact Number</label>
-                        <input type="tel" name="ePhone" id="editEPhone" value="<%= user.ePhone %>" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="^09[0-9]{9}$" title="Enter an 11-digit PH mobile number starting with 09" required>
-                    </div>
-                </section>
-                <section>
-                    <div class="field">
-                        <label>Address</label>
-                        <input type="text" name="eAddress" id="editEAddress" value="<%= user.eAddress %>" maxlength="150" required>
-                    </div>
-                </section>
-                <p class="field-error"></p>
-                <section class="gap20">
-                    <a href="javascript:void(0)" class="nav width100 closeEditBtn">Cancel</a>
-                    <button type="submit" class="nav pnav width100">Save Changes</button>
-                </section>
-    </form>
+    <p class="field-error"></p>
 
-    <!-- EDIT ALLERGIES -->
-    <form id="eaeditForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
-            <p class="size30 str500">Edit Allergies</p>
-                <div class="field">
-                    <label>Any Food Allergies?</label>
-                    <div class="selectBar">
-                        <select name="fAllergy" id="editFAllergy" required>
-                            <option value="" disabled <%= !user.fAllergy ? 'selected' : '' %>>--Select--</option>
-                            <option value="Yes" <%= user.fAllergy === 'Yes' ? 'selected' : '' %>>Yes</option>
-                            <option value="No" <%= user.fAllergy === 'No' ? 'selected' : '' %>>No</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="field">
-                    <label>Any Allergies to Medicines?</label>
-                    <div class="selectBar">
-                        <select name="mAllergy" id="editMAllergy" required>
-                            <option value="" disabled <%= !user.mAllergy ? 'selected' : '' %>>--Select--</option>
-                            <option value="Yes" <%= user.mAllergy === 'Yes' ? 'selected' : '' %>>Yes</option>
-                            <option value="No" <%= user.mAllergy === 'No' ? 'selected' : '' %>>No</option>
-                        </select>
-                    </div>
-                </div>
-                <p class="field-error"></p>
-                <section class="gap20">
-                    <a href="javascript:void(0)" class="nav width100 closeEditBtn">Cancel</a>
-                    <button type="submit" class="nav pnav width100">Save Changes</button>
-                </section>
-    </form>
-</div>
+
+    <!-- BUTTONS -->
+    <section class="gap20">
+
+        <a href="javascript:void(0)"
+           class="nav width100 closeEditBtn">
+            Cancel
+        </a>
+
+        <button type="submit"
+                class="nav pnav width100">
+            Save Changes
+        </button>
+
+    </section>
+
+</form>
+
+
+
+<!-- ========================================================= -->
+<!-- EDIT EMERGENCY CONTACT -->
+<!-- ========================================================= -->
+
+<form id="eceditForm"
+      action="/uv/update/<%= patient._id %>"
+      method="POST"
+      class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden"
+      style="z-index:700;"
+      novalidate>
+
+    <p class="size30 str500">Edit Emergency Contact</p>
+
+
+    <!-- NAME + PHONE -->
+    <section class="gap10">
+
+        <div class="field">
+
+            <label>Full Name</label>
+
+            <input type="text"
+                   name="eName"
+                   id="editEName"
+                   value="<%= patient.eName || '' %>"
+                   maxlength="100"
+                   pattern="^[A-Za-z\s\-']+$"
+                   title="Letters, spaces, hyphens and apostrophes only"
+                   required>
+
+        </div>
+
+
+        <div class="field">
+
+            <label>Contact Number</label>
+
+            <input type="tel"
+                   name="ePhone"
+                   id="editEPhone"
+                   value="<%= patient.ePhone || '' %>"
+                   placeholder="09XXXXXXXXX"
+                   inputmode="numeric"
+                   maxlength="11"
+                   pattern="^09[0-9]{9}$"
+                   title="Enter an 11-digit PH mobile number starting with 09"
+                   required>
+
+        </div>
+
+    </section>
+
+
+    <!-- ADDRESS -->
+    <section>
+
+        <div class="field">
+
+            <label>Address</label>
+
+            <input type="text"
+                   name="eAddress"
+                   id="editEAddress"
+                   value="<%= patient.eAddress || '' %>"
+                   maxlength="150"
+                   required>
+
+        </div>
+
+    </section>
+
+
+    <p class="field-error"></p>
+
+
+    <!-- BUTTONS -->
+    <section class="gap20">
+
+        <a href="javascript:void(0)"
+           class="nav width100 closeEditBtn">
+            Cancel
+        </a>
+
+        <button type="submit"
+                class="nav pnav width100">
+            Save Changes
+        </button>
+
+    </section>
+
+</form>
+
+
+
+<!-- ========================================================= -->
+<!-- EDIT ALLERGIES -->
+<!-- ========================================================= -->
+
+<form id="eaeditForm"
+      action="/uv/update/<%= patient._id %>"
+      method="POST"
+      class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden"
+      style="z-index:700;"
+      novalidate>
+
+    <p class="size30 str500">Edit Allergies</p>
+
+
+    <!-- FOOD ALLERGY -->
+    <div class="field">
+
+        <label>Any Food Allergies?</label>
+
+        <div class="selectBar">
+
+            <select name="fAllergy"
+                    id="editFAllergy"
+                    required>
+
+                <option value=""
+                        disabled
+                        <%= !patient.fAllergy ? 'selected' : '' %>>
+                    --Select--
+                </option>
+
+                <option value="Yes"
+                    <%= patient.fAllergy === 'Yes' ? 'selected' : '' %>>
+                    Yes
+                </option>
+
+                <option value="No"
+                    <%= patient.fAllergy === 'No' ? 'selected' : '' %>>
+                    No
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <!-- MEDICINE ALLERGY -->
+    <div class="field">
+
+        <label>Any Allergies to Medicines?</label>
+
+        <div class="selectBar">
+
+            <select name="mAllergy"
+                    id="editMAllergy"
+                    required>
+
+                <option value=""
+                        disabled
+                        <%= !patient.mAllergy ? 'selected' : '' %>>
+                    --Select--
+                </option>
+
+                <option value="Yes"
+                    <%= patient.mAllergy === 'Yes' ? 'selected' : '' %>>
+                    Yes
+                </option>
+
+                <option value="No"
+                    <%= patient.mAllergy === 'No' ? 'selected' : '' %>>
+                    No
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <p class="field-error"></p>
+
+
+    <!-- BUTTONS -->
+    <section class="gap20">
+
+        <a href="javascript:void(0)"
+           class="nav width100 closeEditBtn">
+            Cancel
+        </a>
+
+        <button type="submit"
+                class="nav pnav width100">
+            Save Changes
+        </button>
+
+    </section>
+
+</form>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
@@ -457,4 +903,20 @@ modal.addEventListener("click",function(e){
     }
 
 });
+
+
+</script>
+
+<script>
+  const bDayInput = document.getElementById('bDay');
+
+  bDayInput.addEventListener('input', function() {
+    // 1. Burahin ang hindi numero
+    this.value = this.value.replace(/[^0-9]/g, '');
+
+    // 2. Gawing 31 kapag sumobra sa 31
+    if (parseInt(this.value, 10) > 31) {
+      this.value = 31;
+    }
+  });
 </script>

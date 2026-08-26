@@ -401,7 +401,15 @@
                                 <option value="12">12</option>
                             </select>
                         </div>
-                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" pattern="^(0?[1-9]|[12][0-9]|3[01])$" title="Enter a valid day (1-31)" required>
+                        <input type="text"
+                            name="bDay"
+                            id="bDay"
+                            value="<%= user.bDay %>"
+                            placeholder="Day"
+                            inputmode="numeric"
+                            maxlength="2"
+                            pattern="^(0?[1-9]|[12][0-9]|3[01])$"
+                            required>
                         <div class="selectBar">
                             <select name="bYear" id="bYear" required>
                                 <option value="" selected disabled>--Year--</option>
@@ -426,8 +434,17 @@
             <p class="size30 str500">Edit School Information</p>
                 <div class="field">
                     <label>School ID</label>
-                    <input type="text" name="schoolId" id="editSchoolId" value="<%= user.schoolId %>" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
-                </div>
+                    <input type="text" 
+                        name="schoolId" 
+                        id="editSchoolId" 
+                        value="<%= user.schoolId %>" 
+                        maxlength="14" 
+                        inputmode="numeric"
+                        placeholder="01-2223-037126"
+                        pattern="^\d{2}-\d{4}-\d{6}$" 
+                        title="Format: 01-2223-037126" 
+                        required>
+</div>
                 <div class="field">
                     <label>Year Level</label>
                     <div class="selectBar">
@@ -440,41 +457,54 @@
                         </select>
                     </div>
                 </div>
-                <div class="field">
-                    <label>Course</label>
-                    <div class="selectBar">
-                        <select name="course" id="editCourse" required>
-                            <option value="" disabled <%= !user.course ? 'selected' : '' %>>--Select--</option>
-                            <option value="BS Architecture">BS Architecture (BSArch)</option>
-                            <option value="BS Accountancy">BS Accountancy (BSA)</option>
-                            <option value="BS Accounting Information System">BS Accounting Information System (BSAIS)</option>
-                            <option value="BS Biology">BS Biology (BS Bio)</option>
-                            <option value="BS Business Administration">BS Business Administration (BSBA)</option>
-                            <option value="BS Civil Engineering">BS Civil Engineering (BSCE)</option>
-                            <option value="BS Computer Engineering">BS Computer Engineering (BSCpE)</option>
-                            <option value="BS Computer Science">BS Computer Science (BSCS)</option>
-                            <option value="BS Criminology">BS Criminology (BSCrim)</option>
-                            <option value="BS Dentistry">BS Dentistry (DMD)</option>
-                            <option value="BS Education">BS Education (BSEd)</option>
-                            <option value="BS Electrical Engineering">BS Electrical Engineering (BSEE)</option>
-                            <option value="BS Electronics Engineering">BS Electronics Engineering (BSECE)</option>
-                            <option value="BS Hospitality Management">BS Hospitality Management (BSHM)</option>
-                            <option value="BS Hotel and Restaurant Management">BS Hotel and Restaurant Management (BSHRM)</option>
-                            <option value="BS Information Systems">BS Information Systems (BSIS)</option>
-                            <option value="BS Information Technology">BS Information Technology (BSIT)</option>
-                            <option value="BS Industrial Engineering">BS Industrial Engineering (BSIE)</option>
-                            <option value="BS Mechanical Engineering">BS Mechanical Engineering (BSME)</option>
-                            <option value="BS Medical Technology">BS Medical Technology (BSMT)</option>
-                            <option value="BS Midwifery">BS Midwifery</option>
-                            <option value="BS Nursing">BS Nursing (BSN)</option>
-                            <option value="BS Pharmacy">BS Pharmacy</option>
-                            <option value="BS Physical Therapy">BS Physical Therapy (BSPT)</option>
-                            <option value="BS Psychology">BS Psychology (BSPsych)</option>
-                            <option value="BS Public Administration">BS Public Administration (BSPA)</option>
-                            <option value="BS Tourism Management">BS Tourism Management (BSTM)</option>
-                            <option value="Doctor of Medicine">Doctor of Medicine (MD)</option>
-                            <option value="Juris Doctor">Juris Doctor (JD)</option>
-                            <option value="Others">Others</option>
+                <div class="field" id="courseField">
+                        <label>Course</label>
+                        <div class="selectBar">
+                        <select name="course" id="course" required>
+                            <option value="Bachelor of Arts in Political Science">Bachelor of Arts in Political Science</option>
+                            <option value="Bachelor of Early Childhood Education">Bachelor of Early Childhood Education</option>
+                            <option value="Bachelor of Elementary Education">Bachelor of Elementary Education</option>
+                            <option value="Bachelor of Science in Accountancy">Bachelor of Science in Accountancy</option>
+                            <option value="Bachelor of Science in Accounting Information System">Bachelor of Science in Accounting Information System</option>
+                            <option value="Bachelor of Science in Business Administration - Banking and Microfinance">Bachelor of Science in Business Administration - Banking and Microfinance</option>
+                            <option value="Bachelor of Science in Business Administration - Financial Management">Bachelor of Science in Business Administration - Financial Management</option>
+                            <option value="Bachelor of Science in Business Administration - Human Resource Management">Bachelor of Science in Business Administration - Human Resource Management</option>
+                            <option value="Bachelor of Science in Business Administration - Marketing Management">Bachelor of Science in Business Administration - Marketing Management</option>
+                            <option value="Bachelor of Science in Civil Engineering">Bachelor of Science in Civil Engineering</option>
+                            <option value="Bachelor of Science in Criminology">Bachelor of Science in Criminology</option>
+                            <option value="Bachelor of Science in Electrical Engineering">Bachelor of Science in Electrical Engineering</option>
+                            <option value="Bachelor of Science in Entrepreneurship">Bachelor of Science in Entrepreneurship</option>
+                            <option value="Bachelor of Science in Hospitality Management">Bachelor of Science in Hospitality Management</option>
+                            <option value="Bachelor of Science in Information Technology">Bachelor of Science in Information Technology</option>
+                            <option value="Bachelor of Science in Management Accounting">Bachelor of Science in Management Accounting</option>
+                            <option value="Bachelor of Science in Medical Laboratory Science">Bachelor of Science in Medical Laboratory Science</option>
+                            <option value="Bachelor of Science in Nursing">Bachelor of Science in Nursing</option>
+                            <option value="Bachelor of Science in Pharmacy">Bachelor of Science in Pharmacy</option>
+                            <option value="Bachelor of Science in Psychology">Bachelor of Science in Psychology</option>
+                            <option value="Bachelor of Secondary Education - English">Bachelor of Secondary Education - English</option>
+                            <option value="Bachelor of Secondary Education - Filipino">Bachelor of Secondary Education - Filipino</option>
+                            <option value="Bachelor of Secondary Education - Mathematics">Bachelor of Secondary Education - Mathematics</option>
+                            <option value="Bachelor of Secondary Education - Science">Bachelor of Secondary Education - Science</option>
+                            <option value="Doctor of Philosophy major in Educational Management">Doctor of Philosophy major in Educational Management</option>
+                            <option value="Doctor of Philosophy major in Filipino">Doctor of Philosophy major in Filipino</option>
+                            <option value="Doctor of Philosophy major in Psychology and Guidance">Doctor of Philosophy major in Psychology and Guidance</option>
+                            <option value="Doctor of Philosophy major in Science Education">Doctor of Philosophy major in Science Education</option>
+                            <option value="Master of Arts Major in Educational Management (Thesis & Non-Thesis)">Master of Arts Major in Educational Management (Thesis & Non-Thesis)</option>
+                            <option value="Master of Arts Major in English (Thesis & Non-Thesis)">Master of Arts Major in English (Thesis & Non-Thesis)</option>
+                            <option value="Master of Arts Major in Guidance and Counseling (Thesis & Non-Thesis)">Master of Arts Major in Guidance and Counseling (Thesis & Non-Thesis)</option>
+                            <option value="Master of Arts Major in Mathematics (Thesis & Non-Thesis)">Master of Arts Major in Mathematics (Thesis & Non-Thesis)</option>
+                            <option value="Master of Arts Major in Physical Education (Thesis & Non-Thesis)">Master of Arts Major in Physical Education (Thesis & Non-Thesis)</option>
+                            <option value="Master of Arts Major in Psychology (Thesis & Non-Thesis)">Master of Arts Major in Psychology (Thesis & Non-Thesis)</option>
+                            <option value="Master of Arts Major in Public Management">Master of Arts Major in Public Management</option>
+                            <option value="Master of Arts Major in Science Education">Master of Arts Major in Science Education</option>
+                            <option value="Master of Science in Business Administration major in Management">Master of Science in Business Administration major in Management</option>
+                            <option value="ABM Specializes in Hospitality and Tourism">ABM Specializes in Hospitality and Tourism</option>
+                            <option value="GAS - Criminology">GAS - Criminology</option>
+                            <option value="GAS - Education">GAS - Education</option>
+                            <option value="GAS - Information Technology">GAS - Information Technology</option>
+                            <option value="HUMSS">HUMSS</option>
+                            <option value="STEM">STEM</option>
+                            <option value="STEM Health (Nursing, Pharmacy, Medical Laboratory Science, Psychology)">STEM Health (Nursing, Pharmacy, Medical Laboratory Science, Psychology)</option>
                         </select>
                     </div>
                 </div>
@@ -854,6 +884,40 @@
         });
     }
 
+    // ---- Live format: XX-XXXX-XXXXXX (School ID) ----
+    // Awtomatikong maglalagay ng dash habang nagta-type ang user, at
+    // ino-normalize din ang existing value kapag binuksan ang edit form
+    // (kung sakaling walang dash o mali ang format ng naka-store na value).
+    function schoolIdFormatLive(input){
+        if (!input) return;
+
+        function formatDigits(digits){
+            digits = digits.replace(/[^0-9]/g, '').slice(0, 12); // 2 + 4 + 6 = 12 digits max
+            let formatted = digits;
+            if (digits.length > 2) {
+                formatted = digits.slice(0, 2) + '-' + digits.slice(2);
+            }
+            if (digits.length > 6) {
+                formatted = digits.slice(0, 2) + '-' + digits.slice(2, 6) + '-' + digits.slice(6);
+            }
+            return formatted;
+        }
+
+        // I-normalize agad ang value kapag na-load ang form
+        input.value = formatDigits(input.value);
+
+        input.addEventListener('input', () => {
+            input.value = formatDigits(input.value);
+        });
+
+        // hadlangan ang paste ng invalid characters, i-format din agad
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            input.value = formatDigits(input.value + text);
+        });
+    }
+
     // Personal Info form
     digitsOnlyLive(document.getElementById('editPhone'), 11);
     digitsOnlyLive(document.getElementById('bDay'), 2);
@@ -862,6 +926,9 @@
     lettersOnlyLive(document.getElementById('editLName'), '\\-\'');
     // Extension name: letters, dots, spaces lang (Jr., Sr., III)
     lettersOnlyLive(document.getElementById('editXName'), '.');
+
+    // School Information form
+    schoolIdFormatLive(document.getElementById('editSchoolId'));
 
     // Emergency Contact form
     digitsOnlyLive(document.getElementById('editEPhone'), 11);
@@ -910,3 +977,21 @@
     });
 
     </script>
+
+    <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const bDayInput = document.getElementById('bDay');
+
+    if (bDayInput) {
+      bDayInput.addEventListener('input', function() {
+        // 1. Tatanggalin ang anumang character na hindi numero (letters, symbols)
+        this.value = this.value.replace(/[^0-9]/g, '');
+
+        // 2. Kapag mas malaki sa 31 ang na-type, gagawing 31
+        if (parseInt(this.value, 10) > 31) {
+          this.value = '31';
+        }
+      });
+    }
+  });
+</script>

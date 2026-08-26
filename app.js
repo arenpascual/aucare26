@@ -26,6 +26,8 @@ const Visits = require('./model/visit');
 const Complaint = require('./model/complaint');
 const Dispense = require('./model/dispense');
 const Notification = require('./model/notification');
+const { generateInsights } = require('./service/aiInsightService');
+const AiInsight = require('./model/aiInsight');
 
 // Auth Middleware
 const isLogin = require('./middleware/isLogin');
@@ -1399,6 +1401,42 @@ error.message ||
 }
 );
 
+// ============================================================
+// AI INSIGHTS ROUTES
+// ============================================================
+
+// GET: kunin yung cached insights (dashboard reads this)
+app.get('/api/ai-insights', isLogin, async (req, res) => {
+    try {
+        const insights = await AiInsight.find().sort({ generatedAt: -1 });
+        res.json({ success: true, insights });
+    } catch (err) {
+        console.error('Fetch AI Insights Error:', err.message);
+        res.status(500).json({ success: false, message: 'Failed to load insights.' });
+    }
+});
+
+// POST: manual trigger (admin button — "Generate/Refresh Insights")
+app.post('/api/ai-insights/generate', isLogin, async (req, res) => {
+    try {
+        const { insights } = await generateInsights();
+
+        await AiInsight.deleteMany({});
+        await AiInsight.insertMany(insights);
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Generated new AI insights (${insights.length} insight/s)`,
+            archive: false
+        });
+
+        res.json({ success: true, insights });
+    } catch (err) {
+        console.error('Generate AI Insights Error:', err.message);
+        res.status(500).json({ success: false, message: 'Failed to generate insights.' });
+    }
+});
+
 app.get('/r', isRequest, isLogin, async (req, res) => {
     res.render('request', { title: 'Request', active: 'r' });
 });
@@ -1590,6 +1628,142 @@ app.get('/uv/:id', isLogin, async (req, res) => {
         console.error('UserView Fetch Error:', err.message);
         req.session.error = "Failed to load user details.";
         res.redirect('/um');
+    }
+});
+
+// ============================================================
+// UPDATE STUDENT INFORMATION
+// ADMIN / SUPER ADMIN
+// ============================================================
+
+app.post('/uv/update/:id', isLogin, async (req, res) => {
+    try {
+        // ====================================================
+        // CHECK ADMIN / SUPER ADMIN
+        // ====================================================
+        if (
+            req.session.user.role !== 'Admin' &&
+            req.session.user.role !== 'Super Admin'
+        ) {
+            req.session.error =
+                'You are not authorized to edit student information.';
+
+            return req.session.save(() => {
+                res.redirect(`/uv/${req.params.id}`);
+            });
+        }
+
+        // ====================================================
+        // STUDENT ID
+        // ====================================================
+        const { id } = req.params;
+
+        // ====================================================
+        // GET FORM DATA
+        // ====================================================
+        const {
+            gender,
+            fName,
+            mName,
+            lName,
+            xName,
+            email,
+            phone,
+            address,
+            bMonth,
+            bDay,
+            bYear,
+            schoolId,
+            yearLevel,
+            course,
+            eName,
+            ePhone,
+            eAddress,
+            fAllergy,
+            mAllergy
+        } = req.body;
+
+        // ====================================================
+        // DATA TO UPDATE
+        // ====================================================
+        const updateData = {};
+
+        // Personal Information
+        if (gender !== undefined) updateData.gender = gender;
+        if (fName !== undefined) updateData.fName = fName.trim();
+        if (mName !== undefined) updateData.mName = mName.trim();
+        if (lName !== undefined) updateData.lName = lName.trim();
+        if (xName !== undefined) updateData.xName = xName.trim();
+        if (email !== undefined) updateData.email = email.trim().toLowerCase();
+        if (phone !== undefined) updateData.phone = phone.trim();
+        if (address !== undefined) updateData.address = address.trim();
+
+        // Date of Birth
+        if (bMonth !== undefined) updateData.bMonth = bMonth;
+        if (bDay !== undefined) updateData.bDay = bDay;
+        if (bYear !== undefined) updateData.bYear = bYear;
+
+        // School Information
+        if (schoolId !== undefined) updateData.schoolId = schoolId.trim();
+        if (yearLevel !== undefined) updateData.yearLevel = yearLevel;
+        if (course !== undefined) updateData.course = course;
+
+        // Emergency Contact
+        if (eName !== undefined) updateData.eName = eName.trim();
+        if (ePhone !== undefined) updateData.ePhone = ePhone.trim();
+        if (eAddress !== undefined) updateData.eAddress = eAddress.trim();
+
+        // Allergies
+        if (fAllergy !== undefined) updateData.fAllergy = fAllergy;
+        if (mAllergy !== undefined) updateData.mAllergy = mAllergy;
+
+        // ====================================================
+        // FIND AND UPDATE STUDENT
+        // ====================================================
+        const updatedPatient = await Users.findByIdAndUpdate(
+            id,
+            updateData,
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        // ====================================================
+        // STUDENT NOT FOUND
+        // ====================================================
+        if (!updatedPatient) {
+            req.session.error = 'Student not found.';
+
+            return req.session.save(() => {
+                res.redirect('/um');
+            });
+        }
+
+        // ====================================================
+        // ACTIVITY LOG
+        // ====================================================
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Updated student information of ${updatedPatient.fName} ${updatedPatient.lName}.`,
+            archive: false
+        });
+
+        // ====================================================
+        // SUCCESS
+        // ====================================================
+        req.session.success = 'Student information updated successfully.';
+
+        return req.session.save(() => {
+            res.redirect(`/uv/${id}`);
+        });
+
+    } catch (error) {
+        console.error(error);
+        req.session.error = 'Something went wrong while updating.';
+        return req.session.save(() => {
+            res.redirect(`/uv/${req.params.id}`);
+        });
     }
 });
 
@@ -2144,6 +2318,31 @@ app.post('/new-employee', isLogin, async (req, res) => {
             res.redirect('/ne');
         });
 
+    }
+});
+
+app.get('/pdview/:id', isLogin, async (req, res) => {
+    try {
+        const pendingUser = await Users.findOne({
+            _id: req.params.id,
+            archive: false
+        }).lean();
+
+        if (!pendingUser) {
+            req.session.error = "Pending account not found.";
+            return req.session.save(() => res.redirect('/pd'));
+        }
+
+        res.render('PendingView', {
+            title: 'PendingView',
+            active: 'pdview',
+            pendingUser
+        });
+
+    } catch (err) {
+        console.error('PendingView Fetch Error:', err.message);
+        req.session.error = "Failed to load pending account details.";
+        res.redirect('/pd');
     }
 });
 
@@ -4121,6 +4320,30 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
             success: false,
             message: 'Failed to approve account.'
         });
+    }
+});
+
+app.post('/api/users/reject/:id', isLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await Users.findByIdAndDelete(id);
+
+        if (!user) {
+            return res.json({ success: false, message: 'User not found.' });
+        }
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Rejected pending account: ${user.username} (${user.fName} ${user.lName})`,
+            archive: false
+        });
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error('Reject Error:', err);
+        res.json({ success: false, message: 'Failed to reject account.' });
     }
 });
 
