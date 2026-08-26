@@ -25,8 +25,6 @@
             <p class="size28 colorPrimary profile-name ">
                 <%= pendingUser.fName %> <%= pendingUser.mName %> <%= pendingUser.lName %> <%= pendingUser.xName %>
             </p>
-            <p class="size16 blue "><%= pendingUser.schoolId %></p>
-            <p class="size16 gray"><%= pendingUser.email %></p>
         </section>
         <section class="col gap5">
             <a href="javascript:void(0)" class="approveBtn nav pnav width100">
@@ -81,10 +79,11 @@
                 <label><%= pendingUser.role === 'Student' ? 'School ID' : 'Employee ID' %></label>
                 <input type="text" value="<%= pendingUser.schoolId %>" disabled>
             </div>
+            
             <div class="field">
                 <label>Date of Birth</label>
                 <div class="row gap5">
-                    <input type="text" value="<%= pendingUser.bMonth %>" disabled>
+                    <input type="text" value="<%= ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][pendingUser.bMonth] || pendingUser.bMonth %>" disabled>
                     <input type="text" value="<%= pendingUser.bDay %>" disabled>
                     <input type="text" value="<%= pendingUser.bYear %>" disabled>
                 </div>

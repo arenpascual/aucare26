@@ -301,20 +301,20 @@
         </section>
 
         <section class="gap10 padding10">
-        <div class="field">
-            <label>Employee ID</label>
-            <input type="text" name="schoolId" id="editSchoolId" value="<%= user.schoolId %>" disabled>
-        </div>
+            <div class="field">
+                <label>Employee ID</label>
+                <input type="text" name="schoolId" id="editSchoolId" value="<%= user.schoolId %>" disabled>
+            </div>
 
-        <div class="field">
-                    <label>Date of Birth</label>
-                    <div class="row gap5">
-                        <input type="text" name="bMonth" id="" value="<%= user.bMonth %>" disabled>
-                        <input type="text" name="bDay" id="" value="<%= user.bDay %>" disabled>
-                        <input type="text" name="bYear" id="" value="<%= user.bYear %>" disabled>
-                    </div>
-                    <p class="field-error" id="dobError"></p>
+            <div class="field">
+                <label>Date of Birth</label>
+                <div class="row gap5">
+                    <input type="text" name="bMonth" id="" value="<%= ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][user.bMonth] || user.bMonth %>" disabled>
+                    <input type="text" name="bDay" id="" value="<%= user.bDay %>" disabled>
+                    <input type="text" name="bYear" id="" value="<%= user.bYear %>" disabled>
                 </div>
+                <p class="field-error" id="dobError"></p>
+            </div>
         </section>
 
 

@@ -1,5 +1,42 @@
 <% layout('layout') %>
 
+<style>
+    /* Styling para sa Reject Modal dropdown at custom textarea */
+    .reason-box {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+        box-sizing: border-box;
+        text-align: left;
+    }
+    .reason-select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px;
+        font-size: 14px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        cursor: pointer;
+        background-color: #fff;
+        color: #333;
+    }
+    .reason-select:focus {
+        outline: none;
+        border-color: #999;
+    }
+    .custom-reason-area {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 13px;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+</style>
+
 <div class="height10 justifyBetween">
     <div class="width0 gap15">
         <a href="/um" class="nav "><i class="fas fa-chevron-left"></i> Return</a>
@@ -9,17 +46,23 @@
         <a href="" class="nav w100 marginTop5">Archive</a>
     </div>
 </div>
+
 <div class="height90 col justifyStart padding10">
     <div class="height0 justifyBetween">
         <div class="width0">
-            <div class="selectBar w190"><i class="fas fa-filter"></i><select name="" id="">
-                <option value=""></i> Filter By</option>
-            </select></div>
+            <div class="selectBar w190">
+                <i class="fas fa-filter"></i>
+                <select name="" id="">
+                    <option value="">Filter By</option>
+                </select>
+            </div>
         </div>
         <div class="width0 gap8 ">
-            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id="pendingSearchInput" placeholder="Search name, ID, role, dept..."></div>
+            <div class="searchBar w220">
+                <i class="fas fa-search"></i>
+                <input type="search" name="" id="pendingSearchInput" placeholder="Search name, ID, role, dept...">
+            </div>
         </div>
-    
     </div>
     <br>
     <table id="pendingTable">
@@ -48,7 +91,7 @@
                                     <i class="fas fa-check"></i> Approve
                                 </a>
                                 <a href="javascript:void(0)" class="rejectBtn nav" data-id="<%= u._id %>" title="Reject">
-                                    <i class="fas fa-times"></i>Decline
+                                    <i class="fas fa-times"></i> Decline
                                 </a>
                             </section>
                         </td>
@@ -63,28 +106,50 @@
     </table>
     <p id="noResultsMsg" class="size14 gray hidden" style="padding: 15px 0;">No matching pending accounts found.</p>
 
+    <!-- APPROVE MODAL -->
     <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="appnotif">
         <img class="h100 w100" src="/images/like.png" alt="">
-            <section class="padding0 col alignCenter">
-                <p class="size20 str500 textCenter textBalance ">Everything looks in order -Ready to approve.</p>
-            </section>
-            <section class="justifyBetween gap10 padding0 ">
-                <a class="nav width50 " href="javascript:void(0)">Cancel</a>
-                <button class="nav pnav width50">Approve</button>
-            </section>
+        <section class="padding0 col alignCenter">
+            <p class="size20 str500 textCenter textBalance">Everything looks in order - Ready to approve.</p>
+        </section>
+        <section class="justifyBetween gap10 padding0">
+            <a class="nav width50" href="javascript:void(0)">Cancel</a>
+            <button class="nav pnav width50">Approve</button>
+        </section>
     </section>
 
-    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="rejnotif">
-        <img class="h100 w100" src="/images/ekis.svg" alt="">
-            <section class="padding0 col alignCenter">
-                <p class="size20 str500 textCenter textBalance ">Are you sure you want to reject this account request?</p>
-            </section>
-            <section class="justifyBetween gap10 padding0 ">
-                <a class="nav width50 " href="javascript:void(0)">Cancel</a>
-                <button class="nav pnav width50">Decline</button>
-            </section>
-    </section>
+    <!-- ENHANCED REJECT / DECLINE MODAL -->
+    <section class="absolute translateCenter shadow3 width35 padding25 gap15 index500 bgWhite col corner15 height0 hidden" id="rejnotif">
+        <img class="h80 w80" src="/images/ekis.svg" alt="">
+        <section class="padding0 col alignCenter gap5">
+            <p class="size20 str600 textCenter textBalance">Decline Account Request</p>
+            <p class="size14 gray textCenter">Please select a reason for declining this request:</p>
+        </section>
 
+        <!-- Dynamic Form Options -->
+        <form id="declineReasonForm" class="width100 col gap10 padding0">
+            <div class="reason-box">
+                <select class="reason-select" id="declineReasonSelect" required>
+                    <option value="" selected disabled>-- Select a reason --</option>
+                    <option value="Invalid / Mismatched School ID">Invalid / Mismatched School ID</option>
+                    <option value="Incomplete or Incorrect Profile Details">Incomplete or Incorrect Profile Details</option>
+                    <option value="Duplicate Account Request">Duplicate Account Request</option>
+                    <option value="Unrecognized Department / Role">Unrecognized Department / Role</option>
+                    <option value="Others">Others (Specify)</option>
+                </select>
+            </div>
+
+            <!-- Custom Textarea for "Others" -->
+            <div id="customReasonWrapper" class="width100 hidden">
+                <textarea id="customReasonInput" class="custom-reason-area" rows="3" placeholder="Enter custom reason here..."></textarea>
+            </div>
+
+            <section class="justifyBetween gap10 padding0 marginTop10">
+                <a class="nav width50 textCenter" id="rejCancelBtn" href="javascript:void(0)">Cancel</a>
+                <button type="submit" class="nav pnav width50">Confirm Decline</button>
+            </section>
+        </form>
+    </section>
 </div>
 
 <script>
@@ -162,33 +227,76 @@ appApproveBtn.addEventListener('click', async function () {
 });
 
 // =============================
-// REJECT MODAL
+// ENHANCED REJECT MODAL LOGIC
 // =============================
 const rejnotif = document.getElementById('rejnotif');
-const rejCancelBtn = rejnotif.querySelector('a.nav');
-const rejDeclineBtn = rejnotif.querySelector('button');
+const rejCancelBtn = document.getElementById('rejCancelBtn');
+const declineReasonForm = document.getElementById('declineReasonForm');
+const declineReasonSelect = document.getElementById('declineReasonSelect');
+const customReasonWrapper = document.getElementById('customReasonWrapper');
+const customReasonInput = document.getElementById('customReasonInput');
 
 let selectedRejectId = null;
 
+// Open modal
 document.querySelectorAll('.rejectBtn').forEach(btn => {
     btn.addEventListener('click', function () {
         selectedRejectId = this.dataset.id;
+        declineReasonForm.reset();
+        customReasonWrapper.classList.add('hidden');
+        customReasonInput.removeAttribute('required');
         rejnotif.classList.remove('hidden');
     });
 });
 
+// Toggle Custom Reason Textarea
+declineReasonSelect.addEventListener('change', function () {
+    if (this.value === 'Others') {
+        customReasonWrapper.classList.remove('hidden');
+        customReasonInput.setAttribute('required', 'true');
+        customReasonInput.focus();
+    } else {
+        customReasonWrapper.classList.add('hidden');
+        customReasonInput.removeAttribute('required');
+    }
+});
+
+// Close modal
 rejCancelBtn.addEventListener('click', function (e) {
     e.preventDefault();
     rejnotif.classList.add('hidden');
     selectedRejectId = null;
 });
 
-rejDeclineBtn.addEventListener('click', async function () {
+// Submit Decline Form with Reason
+declineReasonForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
     if (!selectedRejectId) return;
+
+    const selectedValue = declineReasonSelect.value;
+
+    if (!selectedValue) {
+        alert('Please select a reason.');
+        return;
+    }
+
+    let finalReason = selectedValue;
+    if (finalReason === 'Others') {
+        finalReason = customReasonInput.value.trim();
+        if (!finalReason) {
+            alert('Please specify a reason.');
+            customReasonInput.focus();
+            return;
+        }
+    }
 
     try {
         const response = await fetch(`/api/users/reject/${selectedRejectId}`, {
-            method: 'POST'
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ reason: finalReason })
         });
 
         const data = await response.json();

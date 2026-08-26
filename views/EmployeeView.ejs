@@ -324,15 +324,15 @@
             <input type="text" value="<%= employee.schoolId %>" disabled>
         </div>
 
-        <div class="field">
+            <div class="field">
                     <label>Date of Birth</label>
                     <div class="row gap5">
-                        <input type="text" value="<%= employee.bMonth %>" disabled>
+                        <input type="text" value="<%= ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][employee.bMonth] || employee.bMonth %>" disabled>
                         <input type="text" value="<%= employee.bDay %>" disabled>
                         <input type="text" value="<%= employee.bYear %>" disabled>
                     </div>
                     <p class="field-error" id="dobErrorView"></p>
-                </div>
+            </div>
         </section>
 
 
@@ -1053,5 +1053,19 @@
         });
     }
 
+</script>
+
+<script>
+  const bDayInput = document.getElementById('bDay');
+
+  bDayInput.addEventListener('input', function() {
+    // Alisin ang hindi numero
+    this.value = this.value.replace(/[^0-9]/g, '');
+
+    // I-cap sa 31 kapag sumobra
+    if (this.value.length > 0 && parseInt(this.value, 10) > 31) {
+      this.value = '31';
+    }
+  });
 </script>
 <% } %>

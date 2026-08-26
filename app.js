@@ -2173,7 +2173,11 @@ app.post('/new-employee', isLogin, async (req, res) => {
             address,
             eName,
             ePhone,
-            eAddress
+            eAddress,
+            campus,
+            bMonth,
+            bDay,
+            bYear
         } = req.body;
 
         // Required Fields
@@ -2185,7 +2189,11 @@ app.post('/new-employee', isLogin, async (req, res) => {
             !phone ||
             !gender ||
             !address ||
-            !schoolId
+            !schoolId ||
+            !campus ||
+            !bMonth ||
+            !bDay ||
+            !bYear
         ) {
             req.session.error = "Please fill in all required fields.";
             return req.session.save(() => res.redirect('/ne'));
@@ -2220,6 +2228,10 @@ app.post('/new-employee', isLogin, async (req, res) => {
             phone,
             gender,
             address,
+            campus,
+            bMonth,
+            bDay,
+            bYear,
             eName: eName || "none",
             ePhone: ePhone || "none",
             eAddress: eAddress || "none",

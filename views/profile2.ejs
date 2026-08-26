@@ -211,7 +211,7 @@
                     <p class="size20 str400">Personal Details</p>
                     <p class="size14 gray">Gender: <%= user.gender %></p>
                     <p class="size14 gray">Address: <%= user.address %></p>
-                    <p class="size14 gray">Date of Birth: <%= user.bMonth %> <%= user.bDay %> <%= user.bYear %> </p>
+                    <p class="size14 gray">Date of Birth: <%= ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][user.bMonth] || user.bMonth %> <%= user.bDay %>, <%= user.bYear %></p>
 
                 </section>
                 <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">

@@ -62,7 +62,7 @@
                 <p class="size20 str400">Personal Details</p>
                 <p class="size14 gray">Gender: <%= patient.gender || '—' %></p>
                 <p class="size14 gray">Address: <%= patient.address || '—' %></p>
-                <p class="size14 gray">Date of Birth: <%= dob %></p>
+                <p class="size14 gray">Date of Birth: <%= (patient.bMonth && patient.bDay && patient.bYear) ? new Date(patient.bYear, patient.bMonth - 1, patient.bDay).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : (dob || '—') %></p>
             </section>
         </div>
         
@@ -477,18 +477,17 @@
 
     <!-- SCHOOL ID -->
     <div class="field">
-
         <label>School ID</label>
-
         <input type="text"
-               name="schoolId"
-               id="editSchoolId"
-               value="<%= patient.schoolId || '' %>"
-               maxlength="20"
-               pattern="^[A-Za-z0-9\-]+$"
-               title="Letters, numbers and hyphens only"
-               required>
-
+            name="schoolId"
+            id="editSchoolId"
+            value="<%= patient.schoolId || '' %>"
+            maxlength="14"
+            inputmode="numeric"
+            pattern="^\d{2}-\d{4}-\d{6}$"
+            placeholder="01-2223-037426"
+            title="Format: 01-2223-037426"
+            required>
     </div>
 
 
@@ -908,15 +907,38 @@ modal.addEventListener("click",function(e){
 </script>
 
 <script>
-  const bDayInput = document.getElementById('bDay');
+    const bDayInput = document.getElementById('bDay');
 
-  bDayInput.addEventListener('input', function() {
+    bDayInput.addEventListener('input', function() {
     // 1. Burahin ang hindi numero
     this.value = this.value.replace(/[^0-9]/g, '');
 
     // 2. Gawing 31 kapag sumobra sa 31
     if (parseInt(this.value, 10) > 31) {
-      this.value = 31;
+        this.value = 31;
     }
+    });
+</script>
+
+<script>
+  const schoolIdInput = document.getElementById('editSchoolId');
+
+  schoolIdInput.addEventListener('input', function() {
+    // Alisin muna ang lahat ng hindi numero
+    let digits = this.value.replace(/[^0-9]/g, '');
+
+    // I-limit sa 12 digits (2 + 4 + 6)
+    digits = digits.substring(0, 12);
+
+    // I-format: XX-XXXX-XXXXXX
+    let formatted = digits;
+    if (digits.length > 2) {
+      formatted = digits.substring(0, 2) + '-' + digits.substring(2);
+    }
+    if (digits.length > 6) {
+      formatted = digits.substring(0, 2) + '-' + digits.substring(2, 6) + '-' + digits.substring(6);
+    }
+
+    this.value = formatted;
   });
 </script>

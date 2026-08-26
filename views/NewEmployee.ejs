@@ -12,31 +12,30 @@
 
             <p class="size30 str500">New Employee</p>
 
-            <section class="gap10 padding0" >
-        <div class="field ">
-                    <label>Campus</label>
-                    <div class="selectBar">
-                        <select name="Campus" required>
-                            <option value="" selected disabled>--Select--</option>
-                            <option value="Main">Main</option>
-                            <option value="Sanjose">San Jose</option>
-                            <option value="South">South</option>
+            <section class="gap10 padding0">
+              <div class="field ">
+                     <label>Campus</label>
+                     <div class="selectBar">
+                        <select name="campus" required>
+                             <option value="" selected disabled>--Select--</option>
+                             <option value="Main">Main</option>
+                             <option value="Sanjose">San Jose</option>
+                             <option value="South">South</option>
                         </select>
                     </div>
                 </div>
-        <div class="field">
-                <label>Role</label>
-                <div class="selectBar">
-                    <select name="role" required>
-                        <option value="" selected disabled>Select Role</option>
-                        <option value="Super Admin">Super Admin</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Sub Admin">Sub Admin</option>
-                    </select>
+                <div class="field">
+                    <label>Role</label>
+                    <div class="selectBar">
+                        <select name="role" required>
+                            <option value="" selected disabled>Select Role</option>
+                            <option value="Super Admin">Super Admin</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Sub Admin">Sub Admin</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
-    </section>
-            
+            </section>
 
             <section class="gap5 padding0">
                 <div class="field">
@@ -59,63 +58,66 @@
                     <input type="text" name="xName" id="xName" maxlength="10" pattern="^[A-Za-z.\s]*$" title="e.g. Jr., Sr., III" placeholder="e.g. Jr., III">
                 </div>
             </section>
+
             <div class="field">
                 <label>Email</label>
                 <input type="email" name="email" id="email" maxlength="100" required>
             </div>
-            
+
             <section class="gap5 padding0">
                 <div class="field">
                     <label>Employee ID</label>
-                    <input type="text" name="schoolId" id="schoolId" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
+                    <input type="text" name="schoolId" id="schoolId" maxlength="13" pattern="^AU\d{4}-\d{6}$" placeholder="AU2026-000000" title="Format: AU2026-000000" required>
                 </div>
                 <div class="field">
                     <label>Gender</label>
                     <div class="selectBar">
                         <select name="gender" required>
-                            <option value="" selected disabled>Select Gender</opt>
+                            <option value="" selected disabled>Select Gender</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                         </select>
                     </div>
                 </div>
             </section>
-            
 
             <div class="field">
-                    <label>Date of Birth</label>
-                    <div class="row gap5">
-                        <div class="selectBar">
-                            <select name="bMonth" id="bMonth" required>
-                                <option value="" selected disabled>--Month--</option>
-                                <option value="1">01</option>
-                                <option value="2">02</option>
-                                <option value="3">03</option>
-                                <option value="4">04</option>
-                                <option value="5">05</option>
-                                <option value="6">06</option>
-                                <option value="7">07</option>
-                                <option value="8">08</option>
-                                <option value="9">09</option>
-                                <option value="10">10</option>
-                                <option value="11">11</option>
-                                <option value="12">12</option>
-                            </select>
-                        </div>
-                        <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" pattern="^(0?[1-9]|[12][0-9]|3[01])$" title="Enter a valid day (1-31)" required>
-                        <div class="selectBar">
-                            <select name="bYear" id="bYear" required>
-                                <option value="" selected disabled>--Year--</option>
-                                <% const currentYear = new Date().getFullYear(); %>
-                                <% for (let y = currentYear - 10; y >= currentYear - 80; y--) { %>
-                                    <option value="<%= y %>"><%= y %></option>
-                                <% } %>
-                            </select>
-                        </div>
+                <label>Date of Birth</label>
+                <!-- Hidden Field para ma-pass ang kumpletong Date sa Server -->
+                <input type="hidden" name="birthday" id="birthdayInput">
+
+                <div class="row gap5">
+                    <div class="selectBar">
+                        <select name="bMonth" id="bMonth" required>
+                            <option value="" selected disabled>--Month--</option>
+                            <option value="1">01</option>
+                            <option value="2">02</option>
+                            <option value="3">03</option>
+                            <option value="4">04</option>
+                            <option value="5">05</option>
+                            <option value="6">06</option>
+                            <option value="7">07</option>
+                            <option value="8">08</option>
+                            <option value="9">09</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                        </select>
                     </div>
-                    <p class="field-error" id="dobError"></p>
+                    <input type="text" name="bDay" id="bDay" placeholder="Day" inputmode="numeric" maxlength="2" pattern="^(0?[1-9]|[12][0-9]|3[01])$" title="Enter a valid day (1-31)" required>
+                    <div class="selectBar">
+                        <select name="bYear" id="bYear" required>
+                            <option value="" selected disabled>--Year--</option>
+                            <% const currentYear = new Date().getFullYear(); %>
+                            <% for (let y = currentYear - 10; y >= currentYear - 80; y--) { %>
+                                <option value="<%= y %>"><%= y %></option>
+                            <% } %>
+                        </select>
+                    </div>
                 </div>
-                
+                <p class="field-error" id="dobError"></p>
+            </div>
+
             <div class="field">
                 <label>Contact Number</label>
                 <input type="tel" name="phone" id="phoneInput" placeholder="09XXXXXXXXX" inputmode="numeric" maxlength="11" pattern="^09[0-9]{9}$" title="Enter an 11-digit PH mobile number starting with 09" required>
@@ -148,15 +150,16 @@
     const form = document.getElementById('newEmployeeForm');
     const phoneInput = document.getElementById('phoneInput');
     const bDayInput = document.getElementById('bDay');
+    const schoolIdInput = document.getElementById('schoolId');
 
-    // ---- Live clamp: digits only, and cap length (para sa phone number / day) ----
+    // ---- Live clamp: digits only, and cap length ----
     function digitsOnlyLive(input, maxLen){
         input.addEventListener('input', () => {
             let raw = input.value.replace(/[^0-9]/g, '');
             if (raw.length > maxLen) raw = raw.slice(0, maxLen);
             input.value = raw;
         });
-        // hadlangan din ang paste ng letters/symbols
+        
         input.addEventListener('paste', (e) => {
             e.preventDefault();
             const text = (e.clipboardData || window.clipboardData).getData('text');
@@ -168,11 +171,8 @@
             input.value = newVal;
         });
     }
-    
 
-    // ---- Live clamp: letters, spaces, hyphens, apostrophes only (para sa pangalan) ----
-    // Hindi na kelangan mag-type ng number sa mga name fields, kaagad na tatanggalin
-    // ang number/symbol habang nagta-type ang user.
+    // ---- Live clamp: letters, spaces, hyphens, apostrophes only ----
     function lettersOnlyLive(input, extraAllowedChars){
         const allowed = new RegExp(`[^A-Za-z\\s${extraAllowedChars || ''}]`, 'g');
         input.addEventListener('input', () => {
@@ -186,7 +186,7 @@
                 input.setSelectionRange(pos, pos);
             }
         });
-        // hadlangan din ang paste ng number/invalid characters
+        
         input.addEventListener('paste', (e) => {
             e.preventDefault();
             const text = (e.clipboardData || window.clipboardData).getData('text');
@@ -198,18 +198,72 @@
         });
     }
 
-    digitsOnlyLive(phoneInput, 11);
-    digitsOnlyLive(bDayInput, 2);
+    // ---- Live format: AUXXXX-XXXXXX ----
+    function schoolIdFormatLive(input){
+        function formatValue(raw){
+            let digits = raw.replace(/^/i, 'AU').replace(/[^0-9]/g, '');
+            digits = digits.substring(0, 10);
 
-    // Name fields: letters, spaces, hyphens, apostrophes lang - walang number
+            let formatted = 'AU';
+            if (digits.length > 0) {
+                formatted += digits.substring(0, 4);
+            }
+            if (digits.length > 4) {
+                formatted += '-' + digits.substring(4, 10);
+            }
+            return formatted;
+        }
+
+        input.addEventListener('input', () => {
+            input.value = formatValue(input.value);
+        });
+
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            input.value = formatValue(text);
+        });
+    }
+
+    digitsOnlyLive(phoneInput, 11);
+
+    // Day field logic
+    bDayInput.addEventListener('input', () => {
+        let raw = bDayInput.value.replace(/[^0-9]/g, '');
+        if (raw.length > 2) raw = raw.slice(0, 2);
+        if (raw.length > 0 && parseInt(raw, 10) > 31) raw = '31';
+        bDayInput.value = raw;
+    });
+    bDayInput.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        let cleaned = text.replace(/[^0-9]/g, '').slice(0, 2);
+        if (cleaned.length > 0 && parseInt(cleaned, 10) > 31) cleaned = '31';
+        bDayInput.value = cleaned;
+    });
+
+    schoolIdFormatLive(schoolIdInput);
+
     lettersOnlyLive(document.getElementById('fName'), '\\-\'');
     lettersOnlyLive(document.getElementById('lName'), '\\-\'');
     lettersOnlyLive(document.getElementById('mName'), '\\-\'');
-    // Extension name: letters, dots, spaces lang (Jr., Sr., III)
     lettersOnlyLive(document.getElementById('xName'), '.');
 
-    // ---- Validate all required/patterned fields bago mag-submit ----
+    // ---- Validate & Format Date before Submit ----
     form.addEventListener('submit', function (e) {
+        // 1. Pagsamahin ang Date values para sa hidden input field
+        const monthVal = document.getElementById('bMonth').value;
+        const dayVal = document.getElementById('bDay').value;
+        const yearVal = document.getElementById('bYear').value;
+
+        if (monthVal && dayVal && yearVal) {
+            const formattedMonth = monthVal.padStart(2, '0');
+            const formattedDay = dayVal.padStart(2, '0');
+            // Isineset ang pinagsamang date (YYYY-MM-DD) sa hidden field
+            document.getElementById('birthdayInput').value = `${yearVal}-${formattedMonth}-${formattedDay}`;
+        }
+
+        // 2. Standard HTML validation check
         const inputs = form.querySelectorAll('input, select');
         for (const input of inputs) {
             if (!input.checkValidity()) {
