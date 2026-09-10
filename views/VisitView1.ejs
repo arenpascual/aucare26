@@ -1,14 +1,50 @@
 <% layout('template') %>
 <style>
     .headf { display: none; }
+
+
+    @media (max-width: 1024px){
+        #bdy{
+            flex-direction: column;
+        }
+        .b1{
+            width: 90%;
+            flex-direction: column;
+        }
+        .b2{
+            width: 100%;
+        }
+        .g2{
+            margin-top: 45px;
+        }
+        .j1{
+            width: 95%;
+        }
+        .k1{
+            width: 100%;
+            padding: 5;
+        }
+        .p1{
+            width:50px;
+            height:50px;
+        }
+        .n1{
+            font-size: 15px;
+        }
+        .m1{
+            font-size: 95%;
+        }
+    }
+
+
 </style>
 
 
-<div class="gap0 colorPrimary justifyEnd relative width80">
-    <div class="col justifyStart padding10 gap10 width45">
+<div class="gap0 colorPrimary justifyEnd relative width80 b1">
+    <div class="col justifyStart padding10 gap10 width45 b2">
         <a href="/h" class="nav absolute left20 top15 cnav"><i class="fas fa-chevron-left"></i></a>
 
-        <section class="justifyStart padding5 paddingBlock5">
+        <section class="justifyStart padding5 paddingBlock5 g2">
             <% if (visit.status === 'Attended') { %>
                 <div class="size12 porcelain textStone950 borderWhite col corner20 padding20">
                     <img src="/images/like.png" alt="" class="h100 w100 corner500">
@@ -36,14 +72,14 @@
             <% } %>
         </section>
 
-        <section class="justifyBetween gap10 bgWhite corner15 padding15">
+        <section class="justifyBetween gap10 bgWhite corner15 padding15 j1">
             <section class="col padding0 alignStart">
-                <p class="size14 str400">Reason</p>
-                <p class="size18 str500"><%= visit.concern %></p>
+                <p class="size14 str400 m1">Reason</p>
+                <p class="size18 str500 m1"><%= visit.concern %></p>
             </section>
             <section class="col padding0 alignEnd">
-                <p class="size14 str400">Date</p>
-                <p class="size18 str500">
+                <p class="size14 str400 m1">Date</p>
+                <p class="size18 str500 m1">
                     <%= new Date(visit.createdAt).toLocaleString('en-US', {
                         month: 'short', day: 'numeric', year: 'numeric',
                         hour: 'numeric', minute: '2-digit'
@@ -70,9 +106,9 @@
             %>
             
             <!-- Blood Pressure -->
-            <div class="col width0">
-                <img src="/images/<%= vitalMappings.bloodPressure %>.png" alt="Blood Pressure" class="corner500 bgWhite h60 w60">
-                <p class="size18 str500">
+            <div class="col width0 ">
+                <img src="/images/<%= vitalMappings.bloodPressure %>.png" alt="Blood Pressure" class="corner500 bgWhite h60 w60 p1">
+                <p class="size18 str500 n1">
                     <%= (visit.bloodPressure && visit.bloodPressure.systolic && visit.bloodPressure.diastolic) 
                         ? `${visit.bloodPressure.systolic} / ${visit.bloodPressure.diastolic}` 
                         : '-- / --' %>
@@ -81,18 +117,18 @@
             </div>
 
             <!-- Heart Rate -->
-            <div class="col width0">
-                <img src="/images/<%= vitalMappings.heartRate %>.png" alt="Heart Rate" class="corner500 bgWhite h60 w60">
-                <p class="size18 str500">
+            <div class="col width0 ">
+                <img src="/images/<%= vitalMappings.heartRate %>.png" alt="Heart Rate" class="corner500 bgWhite h60 w60 p1">
+                <p class="size18 str500 n1">
                     <%= visit.hBeat ? `${visit.hBeat} per min` : '-- per min' %>
                 </p>
                 <p class="size12">Heart Rate</p>
             </div>
 
             <!-- Temperature -->
-            <div class="col width0">
-                <img src="/images/<%= vitalMappings.temperature %>.png" alt="Temperature" class="corner500 bgWhite h60 w60">
-                <p class="size18 str500">
+            <div class="col width0 ">
+                <img src="/images/<%= vitalMappings.temperature %>.png" alt="Temperature" class="corner500 bgWhite h60 w60 p1">
+                <p class="size18 str500 n1">
                     <%= visit.temperature ? `${visit.temperature} °C` : '-- °C' %>
                 </p>
                 <p class="size12">Temperature</p>
@@ -174,7 +210,7 @@
 
     <!-- ⬇️ Treatment + Dispensed Medicine — Attended lang ang makakakita -->
     <% if (visit.status === 'Attended') { %>
-    <div class="col justifyStart padding10 paddingInline15 colorPrimary gap15 width50">
+    <div class="col justifyStart padding10 paddingInline15 colorPrimary gap15 width50 k1">
         <section class="glass borderWhite col gap5 alignStart colorPrimary">
             <section class="padding0 justifyBetween">
                 <p class="size22 str500">Treatment</p>
@@ -208,7 +244,7 @@
         </section>
     </div>
     <% } else { %>
-    <div class="col justifyStart padding10 paddingInline15 colorPrimary gap15 width50">
+    <div class="col justifyStart padding10 paddingInline15 colorPrimary gap15 width50 j1">
         <section class="glass borderWhite col gap10 alignCenter colorPrimary padding30">
             <p class="size20 str500">Details not yet available</p>
             <p class="size14 str400">

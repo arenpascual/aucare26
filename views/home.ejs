@@ -13,7 +13,15 @@
                 padding: 0;
             }
             #k8 {
-                width: 100%;
+                width: 90%;
+                padding: 0;
+                margin-top: 15px;
+            }
+            .gh {
+                font-size: 12px;
+            }
+            .hu{
+                width: 90%;
             }
          }
 
@@ -30,12 +38,12 @@
         
 
         <% if (!isClinicOpen) { %>
-            <p class="size18 str400 noteBlue"><i class="fas fa-exclamation-circle"></i> Clinic is closed. Open 7:30 AM - 5:30 PM</p>
+            <p class="size18 str400 noteBlue gh"><i class="fas fa-exclamation-circle"></i> Clinic is closed. Open 7:30 AM - 5:30 PM</p>
         <% } else if (hasActiveVisit) { %>
-            <p class="size18 str400 noteBlue"><i class="fas fa-exclamation-circle"></i> You already have a pending request. Please wait for it to be attended.</p>
+            <p class="size18 str400 noteBlue gh"><i class="fas fa-exclamation-circle"></i> You already have a pending request. Please wait for it to be attended.</p>
         <% } else { %>
             <br>
-            <p class="size20" style="margin-top: -15px !important;">Need Care?</p>
+            <p class="size20 gh" style="margin-top: -15px !important;">Need Care?</p>
             <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20 width25">Visit Now</a>
         <% } %>
     </div>
@@ -49,7 +57,7 @@
             <% } %>
         </p>
     <% } %>
-    <div class="height0 corner15 col alignStart bgWhite padding20">
+    <div class="height0 corner15 col alignStart bgWhite padding20 hu">
         <p class="size20">Services</p>
         <p class="size20"><i class="fas fa-check-circle"></i> Free Basic Medication</p>
         <p class="size20"><i class="fas fa-check-circle"></i> First Aid & Minor Injury</p>
@@ -114,7 +122,7 @@
         <p class="size40">About Us</p>
         <br>
         <p class="size20" style="margin-top: -5px !important;">AuCare | CSDL</p>
-        <p class="size20" style="margin-top: -5px !important;">Phinma Araullo University South Campus</p>
+        <p class="size20" style="margin-top: -5px !important;">Phinma Araullo University </p>
         <p class="size20" style="margin-top: -5px !important;">Need Help? <a href="" class="sizeInherit inline navy">Learn More</a></p>
     </div>
     

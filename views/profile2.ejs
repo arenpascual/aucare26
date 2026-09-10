@@ -173,12 +173,46 @@
         display:none;
         margin-top:-5px;
     }
+
+
+    @media (max-width: 1024px){
+        .ln1{
+            flex-direction: column;
+            width: 100% !important;
+            align-items: center;
+            padding: 0 !important;
+        }
+        .jr2{
+            width: 90%;
+            padding: 15px;
+        }
+        .j{
+            width: 100%;
+            margin-left: 40px;
+        }
+        .ml{
+            flex-direction: column;
+            width: 100% !important;
+            padding: 0;
+            margin-top: -15%;
+        }
+        .lk1{
+            width: 100% !important;
+        }
+        .kup1{
+            width: 90%;
+        }
+        .lp2{
+            width: 90%;
+        }
+    }
+
     </style>
 
-    <div class=" gap10 polaroid alignStart">
-        <div class="padding10 width25 height100 col alignStart gap15">
+    <div class=" gap10 polaroid alignStart ln1">
+        <div class="padding10 width25 height100 col alignStart gap15 j">
             <a href="/h" class="nav"><i class="fas fa-chevron-left"></i> Return</a> 
-            <div class="bgWhite corner15 justifyStart col padding20">
+            <div class="bgWhite corner15 justifyStart col padding20 jr2">
                 <section class="col ">
                     <img class="h100 w100 bura corner500" src="/images/profile.png" alt="">
                     <p class="size28 colorPrimary profile-name">
@@ -205,8 +239,8 @@
             </div>
         
                 
-            <div class="height0 gap10">
-                <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
+            <div class="height0 gap10 ml">
+                <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0 lk1">
                     <a href="javascript:void(0)" class="nav cnav absolute right16 top10 lgBtn" data-target="editForm"><i class="fas fa-pen"></i></a>
                     <p class="size20 str400">Personal Details</p>
                     <p class="size14 gray">Gender: <%= user.gender %></p>
@@ -214,7 +248,7 @@
                     <p class="size14 gray">Date of Birth: <%= ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][user.bMonth] || user.bMonth %> <%= user.bDay %>, <%= user.bYear %></p>
 
                 </section>
-                <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
+                <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0 lk1">
                     <a href="javascript:void(0)" class="nav cnav absolute right16 top10 lgBtn" data-target="eseditForm"><i class="fas fa-pen"></i></a>
                     <p class="size20 str400">School Information</p>
                     <p class="size14 gray">School ID: <%= user.schoolId %></p>
@@ -308,7 +342,7 @@
     </form>
 
     <!-- LOGOUT CARD -->
-    <section class="width25 bgWhite corner15 col padding20 shadow1 relative hidden" id="lgCard">
+    <section class="width25 bgWhite corner15 col padding20 shadow1 relative hidden kup1" id="lgCard">
         <div class="nav cnavLG">
             <i class="fas fa-sign-out-alt"></i>
         </div>
@@ -333,7 +367,7 @@
     </section>
 
         <!-- EDIT PERSONAL INFORMATION -->
-        <form id="editForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
+        <form id="editForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden lp2" style="z-index:700;" novalidate>
             <p class="size30 str500">Edit Personal Information</p>
             <div class="field">
                 <section class="gap10 justifyStart">
@@ -430,7 +464,7 @@
     </form>
 
     <!-- EDIT SCHOOL INFORMATION -->
-    <form id="eseditForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
+    <form id="eseditForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden lp2" style="z-index:700;" novalidate>
             <p class="size30 str500">Edit School Information</p>
                 <div class="field">
                     <label>School ID</label>
@@ -516,7 +550,7 @@
     </form>
 
     <!-- EDIT EMERGENCY CONTACT -->
-    <form id="eceditForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
+    <form id="eceditForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden lp2" style="z-index:700;" novalidate>
             <p class="size30 str500">Edit Emergency Contact</p>
                 <section class="gap10">
                     <div class="field">
@@ -542,7 +576,7 @@
     </form>
 
     <!-- EDIT ALLERGIES -->
-    <form id="eaeditForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
+    <form id="eaeditForm" action="/profile2/update" method="POST" class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden lp2" style="z-index:700;" novalidate>
             <p class="size30 str500">Edit Allergies</p>
                 <div class="field">
                     <label>Any Food Allergies?</label>

@@ -1,13 +1,25 @@
 <% layout('template') %>
 <style>
     #bdy{
-        align-items: start;
+        align-items: center;
+    }
+    
+    @media (max-width: 1024px){
+        .a1{
+            width: 95%;
+        }
+        .t1{
+            width: 80%;
+        }
+        .g4{
+            display: none;
+        }
     }
 </style>
 
 
 
-<div class="col padding10 width35 justifyStart relative">
+<div class="col padding10 width35 justifyStart relative a1">
     <div class="height0 corner15 col alignStart padding20 relative">
         <p class="size40">Welcome</p>
         <p class="size40" style="margin-top: -24px !important;"><%= user.fName.toUpperCase() %> <%= user.lName.toUpperCase() %>!</p>
@@ -15,7 +27,7 @@
         <p class="size20" style="margin-top: -15px !important;">Need Care?</p>
         <a href="javascript:void(0)" id="formBtn" class="nav pnav absolute bottom20 right20 width25 hidden">Visit Now</a>
     </div>
-    <div class="height0 corner15 col alignStart bgWhite padding20">
+    <div class="height0 corner15 col alignStart bgWhite padding20 g4">
         <p class="size20">Services</p>
         <p class="size20"><i class="fas fa-check-circle"></i> Free Basic Medication</p>
         <p class="size20"><i class="fas fa-check-circle"></i> First Aid & Minor Injury</p>
@@ -54,7 +66,7 @@
     </section>
 <% layout('template') %>
 
-<div class="width35 col padding10 gap10 justifyStart alignStart">
+<div class="width35 col padding10 gap10 justifyStart alignStart a1">
     <a href="/h" class="nav marginBottom5"><i class="fas fa-chevron-left"></i> Back</a>
 
     <div class="shadow1 col porcelain gap15 corner10 padding20 index100 alignStart bgSoft justifyStart height100 overflow-y1 block">
@@ -62,19 +74,19 @@
 
         <% if (notifications && notifications.length > 0) { %>
             <% notifications.forEach(n => { %>
-                <a class="notif-item <%= n.read ? 'bgSoft' : 'bgWhite' %> width100 padding10 corner10 justifyStart gap10 relative marginBottom10"
+                <a class="notif-item <%= n.read ? 'bgSoft' : 'bgWhite' %> width100 padding10 corner10 justifyStart gap10 relative marginBottom10 "
                     href="javascript:void(0)"
                     data-id="<%= n._id %>"
                     data-link="<%= n.link || '/h' %>"
                     style="cursor:pointer;">
                     <% if (!n.read) { %>
-                        <div class="bgBlue200 absolute top5 right5 height0 width0 corner10 padding5">New!</div>
+                        <div class="bgBlue200 absolute top5 right5 height0 width0 corner10 padding5 ">New!</div>
                     <% } %>
                     <div class="corner500 h40 w40 <%= n.read ? '' : 'porcelain' %> padding0">
                         <i class="fas fa-bell size14 <%= n.read ? '' : 'textBlue700' %>"></i>
                     </div>
                     <div class="col alignStart width0">
-                        <p class="size16"><%= n.message %></p>
+                        <p class="size16 t1"><%= n.message %></p>
                         <p class="">
                             <%= new Date(n.createdAt).toLocaleString('en-US', { 
                                 month: 'short', day: 'numeric', year: 'numeric', 
