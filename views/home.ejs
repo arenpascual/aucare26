@@ -23,6 +23,18 @@
             .hu{
                 width: 90%;
             }
+            .mdl2{
+                width: 95%;
+            }
+            .mo6{
+                font-size: 30px;
+            }
+            .mdl3{
+                width: 95%;
+            }
+            .mdl4{
+                width: 95%;
+            }
          }
 
 </style>
@@ -67,9 +79,9 @@
     </div>
 </div>
     <!-- TERMS AND CONDITIONS -->
-    <section class="shadow1 col absolute bgWhite gap15 corner20 padding30 index100 height0 width30 textCenter justifyCenter alignCenter hidden" id="tnc">
+    <section class="shadow1 col absolute bgWhite gap15 corner20 padding30 index100 height0 width30 textCenter justifyCenter alignCenter hidden mdl2" id="tnc">
         <a href="" id="lgBtn" class="nav cnav absolute right20 top20"><i class="fas fa-times"></i></a>
-        <p class="size24 colorPrimary str600">Magandang AraU <%= user.fName %></p>
+        <p class="size24 colorPrimary str600 mo6">Magandang AraU <%= user.fName %></p>
         <p class="size16 textBalance">In accordance with RA 10173 (Data Privacy Act of 2012), all information collected by AU Care will be used exclusively for PHINMA AU South Campus clinic records and inventory purposes. Your data is strictly confidential and protected.</p>
         
         <!-- ✅ CHECKBOX -->
@@ -129,7 +141,7 @@
 </div>
 
 
-<form action="/visitnow" method="POST" class="absolute translateCenter shadow3 width40 padding30 gap10 index500 height0 hidden" id="Consultationform">
+<form action="/visitnow" method="POST" class="absolute translateCenter shadow3 width40 padding30 gap10 index500 height0 hidden mdl3" id="Consultationform">
     <p class="size24">Consultation Request Form</p>
     <section class="col height0 borderPrimary corner15 alignStart">
         <p class="size14 str600 marginBottom10">REQUEST GUIDELINES</p>
@@ -226,7 +238,7 @@
 </section>
 </form>
 
-<section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="notificationBox">
+<section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden mdl4" id="notificationBox">
     <img class="h100 w100" src="/images/like.png" alt="">
     <section class="padding0 col alignCenter">
         <p class="size23 str500">Request Submitted</p>
@@ -353,3 +365,5 @@ gotItBtn.addEventListener("click", function(){
     notification.classList.add("hidden");
 });
 </script>
+
+
