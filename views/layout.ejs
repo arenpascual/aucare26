@@ -186,7 +186,11 @@
 
             <% if (user.role === 'Super Admin' || user.role === 'Admin' ) { %>
             <a href="/st" class="nav mnav <% if ( active === 'st' ) { %> active <% } %>"><i class="fa-solid fa-boxes-stacked"></i>Stocks</a>
+            <% } %>
+            <% if (user.role === 'Super Admin') { %>
             <a href="/e" class="nav mnav <% if ( active === 'e' ) { %> active <% } %>"><i class="fa-solid fa-user-tie"></i>Admin</a>
+            <% } %>
+            <% if (user.role === 'Super Admin' || user.role === 'Admin' ) { %>
             <a href="/um" class="nav mnav <% if ( active === 'um' ) { %> active <% } %>"><i class="fa-solid fa-user-friends"></i>Patients</a>
             <% } %>
 

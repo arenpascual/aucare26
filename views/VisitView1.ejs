@@ -29,10 +29,23 @@
             height:50px;
         }
         .n1{
-            font-size: 15px;
+            font-size: 10px;
         }
         .m1{
             font-size: 100%;
+        }
+        .pic4{
+            font-size: 12px;
+            text-align: center !important;
+            justify-content: start;
+        }
+        .arem {
+            align-items: start;
+            gap: 8px !important;
+            padding: 0;
+        }
+        .medI {
+            display: none;
         }
     }
 
@@ -94,7 +107,7 @@
     <section class="padding0 justifyBetween">
         <p class="size20 str500">Vital Sign</p>
     </section>
-    <section class="gap30 justifyStart">
+    <section class="gap30 justifyStart arem">
         <% if (typeof visit !== 'undefined' && visit) { %>
             <% 
                 // Mapping the vital signs to their correct image names
@@ -106,7 +119,7 @@
             %>
             
             <!-- Blood Pressure -->
-            <div class="col width0 ">
+            <div class="col width0 pic4">
                 <img src="/images/<%= vitalMappings.bloodPressure %>.png" alt="Blood Pressure" class="corner500 bgWhite h60 w60 p1">
                 <p class="size18 str500 n1">
                     <%= (visit.bloodPressure && visit.bloodPressure.systolic && visit.bloodPressure.diastolic) 
@@ -117,16 +130,16 @@
             </div>
 
             <!-- Heart Rate -->
-            <div class="col width0 ">
+            <div class="col width0 pic4">
                 <img src="/images/<%= vitalMappings.heartRate %>.png" alt="Heart Rate" class="corner500 bgWhite h60 w60 p1">
-                <p class="size18 str500 n1">
+                <p class="size18 str500 n1 vvx">
                     <%= visit.hBeat ? `${visit.hBeat} per min` : '-- per min' %>
                 </p>
                 <p class="size12">Heart Rate</p>
             </div>
 
             <!-- Temperature -->
-            <div class="col width0 ">
+            <div class="col width0 pic4">
                 <img src="/images/<%= vitalMappings.temperature %>.png" alt="Temperature" class="corner500 bgWhite h60 w60 p1">
                 <p class="size18 str500 n1">
                     <%= visit.temperature ? `${visit.temperature} °C` : '-- °C' %>
@@ -230,7 +243,7 @@
             <% if (medicines && medicines.length > 0) { %>
                 <% medicines.forEach(m => { %>
                     <section class="padding5 gap5 bgWhite justifyStart corner16 shadow1 relative">
-                        <img src="/images/item.png" alt="" class="h80 width0">
+                        <img src="/images/item.png" alt="" class="h80 width0 medI">
                         <section class="col padding0 alignStart">
                             <p class="size18 str500"><%= m.item %></p>
                             <p class="size14 str400"><%= m.remarks && m.remarks.trim() !== '' ? m.remarks : '1 tablet (500 mg) every 4-6 hours as needed' %></p>

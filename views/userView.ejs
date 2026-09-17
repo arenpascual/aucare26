@@ -45,6 +45,7 @@
             <section class="col gap5">
                 <a href="/cr/<%= patient._id %>" class="nav pnav width100">Consultation Record</a>
                 <a href="javascript:void(0)" id="exportCard" class="nav pnav width100">Export Health Card</a>
+                <a href="" id="" class="nav pnav width100">Archive</a>
             </section>
         </div>
     </div>
@@ -74,6 +75,7 @@
             <p class="size14 gray">School ID: <%= patient.schoolId || '—' %></p>
             <p class="size14 gray">Year Level: <%= patient.yearLevel || '—' %></p>
             <p class="size14 gray">Course: <%= patient.course || '—' %></p>
+            <p class="size14 gray">Campus: <%= patient.campus || '—' %></p>
         </section>
             
         <div class="height0 gap10">
@@ -534,6 +536,44 @@
     </div>
 
 
+       <div class="field">
+
+        <label>Campus</label>
+
+        <div class="selectBar">
+
+            <select name="campus"
+                    required>
+
+                <option value=""
+                        disabled
+                        <%= !patient.campus ? 'selected' : '' %>>
+                    --Select--
+                </option>
+
+                <option value="Main"
+                    <%= patient.campus === 'Main' ? 'selected' : '' %>>
+                    Main
+                </option>
+
+                <option value="South"
+                    <%= patient.campus === 'South' ? 'selected' : '' %>>
+                    South
+                </option>
+
+                <option value="San Jose"
+                    <%= patient.campus === 'San Jose' ? 'selected' : '' %>>
+                    San Jose
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+ 
     <!-- COURSE -->
     
                 <div class="field" id="courseField">

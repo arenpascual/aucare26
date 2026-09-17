@@ -312,6 +312,9 @@ const sgMail = require('@sendgrid/mail');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+const isCampus = require('./middleware/isCampus');
+app.use(isCampus);
+
 // routes
 
 app.get('/', async (req, res) => {
@@ -628,80 +631,101 @@ return match;
 
 
 app.get('/d', isLogin, async (req, res) => {
-try {
-const dateRange = getDashboardDateRange({
-period: 'this_month'
-});
-res.render('dashboard', {
+    try {
+        const dateRange = getDashboardDateRange({
+            period: 'this_month'
+        });
+        const PATIENT_ROLES = ['Student', 'Faculty', 'Staff'];
 
-title: 'Dashboard',
-active: 'd',
-dashboardConfig: {
-defaultPeriod: 'this_month',
-timezone: 'Asia/Manila',
-dateRange: {
-startDate: dateRange.startDate,
-endDate: dateRange.endDate
-},
-periods: [
-{
-value: 'today',
-label: 'Today'
-},
-{
-value: 'yesterday',
-label: 'Yesterday'
-},
-{
-value: 'this_week',
-label: 'This Week'
-},
-{
-value: 'last_week',
-label: 'Last Week'
-},
-{
-value: 'this_month',
-label: 'This Month'
-},
-{
-value: 'last_month',
-label: 'Last Month'
-},
-{
-value: 'this_year',
-label: 'This Year'
-},
-{
-value: 'last_year',
+        const [departments, campuses, genders, visitStatuses] = await Promise.all([
+            Users.distinct('department', { archive: false, department: { $nin: [null, ''] } }),
+            Users.distinct('campus', { archive: false, campus: { $nin: [null, ''] } }),
+            Users.distinct('gender', { archive: false, gender: { $nin: [null, ''] } }),
+            Visits.distinct('status')
+        ]);
 
-label: 'Last Year'
-},
-{
-value: 'overall',
-label: 'Overall'
-},
-{
-value: 'custom',
-label: 'Custom Range'
-}
-]
-}
-});
-} catch (error) {
-console.error(
-'Dashboard Render Error:',
-error
-);
-res.status(500).render('dashboard', {
-title: 'Dashboard',
-active: 'd',
-dashboardConfig: {
-defaultPeriod: 'this_month',
-timezone: 'Asia/Manila'
-}
-});
-}
+        res.render('dashboard', {
+            title: 'Dashboard',
+            active: 'd',
+            filterOptions: {
+                roles: PATIENT_ROLES,
+                departments: departments.sort(),
+                campuses: campuses.sort(),
+                genders: genders.sort(),
+                visitStatuses: visitStatuses.sort()
+            },
+            dashboardConfig: {
+                defaultPeriod: 'this_month',
+                timezone: 'Asia/Manila',
+                dateRange: {
+                    startDate: dateRange.startDate,
+                    endDate: dateRange.endDate
+                },
+                periods: [
+                    {
+                        value: 'today',
+                        label: 'Today'
+                    },
+                    {
+                        value: 'yesterday',
+                        label: 'Yesterday'
+                    },
+                    {
+                        value: 'this_week',
+                        label: 'This Week'
+                    },
+                    {
+                        value: 'last_week',
+                        label: 'Last Week'
+                    },
+                    {
+                        value: 'this_month',
+                        label: 'This Month'
+                    },
+                    {
+                        value: 'last_month',
+                        label: 'Last Month'
+                    },
+                    {
+                        value: 'this_year',
+                        label: 'This Year'
+                    },
+                    {
+                        value: 'last_year',
+                        label: 'Last Year'
+                    },
+                    {
+                        value: 'overall',
+                        label: 'Overall'
+                    },
+                    {
+                        value: 'custom',
+                        label: 'Custom Range'
+                    }
+                ]
+            }
+        });
+    } catch (error) {
+        console.error(
+            'Dashboard Render Error:',
+            error
+        );
+        res.status(500).render('dashboard', {
+            title: 'Dashboard',
+            active: 'd',
+            filterOptions: {
+                roles: [],
+                departments: [],
+                campuses: [],
+                genders: [],
+                visitStatuses: []
+            },
+            dashboardConfig: {
+                defaultPeriod: 'this_month',
+                timezone: 'Asia/Manila'
+            }
+        });
+    }
 });
 
 app.get(
@@ -1680,7 +1704,8 @@ app.post('/uv/update/:id', isLogin, async (req, res) => {
             ePhone,
             eAddress,
             fAllergy,
-            mAllergy
+            mAllergy,
+            campus
         } = req.body;
 
         // ====================================================
@@ -1706,6 +1731,7 @@ app.post('/uv/update/:id', isLogin, async (req, res) => {
         // School Information
         if (schoolId !== undefined) updateData.schoolId = schoolId.trim();
         if (yearLevel !== undefined) updateData.yearLevel = yearLevel;
+        if (campus !== undefined) updateData.campus = campus;
         if (course !== undefined) updateData.course = course;
 
         // Emergency Contact
@@ -2356,6 +2382,10 @@ app.get('/pdview/:id', isLogin, async (req, res) => {
         req.session.error = "Failed to load pending account details.";
         res.redirect('/pd');
     }
+});
+
+app.get('/ra', async (req, res) => {
+    res.render('RequestArchive', { title: 'RequestArchive', active: 'ra' });
 });
 
 

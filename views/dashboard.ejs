@@ -618,99 +618,49 @@ Custom Date Range
 </option>
 </select>
 </div>
-
 <div class="filter-group">
-<select id="role">
-<option value="all">
-All Roles
-</option>
-<option value="Student">
-Student
-</option>
-<option value="Faculty">
-Faculty
-</option>
-<option value="Staff">
-Staff
-</option>
-<option value="Security">
-Security
-</option>
-<option value="Maintenance">
-Maintenance
-</option>
-</select>
+    <select id="role">
+        <option value="all">All Roles</option>
+        <% (filterOptions.roles || []).forEach(role => { %>
+            <option value="<%= role %>"><%= role %></option>
+        <% }) %>
+    </select>
 </div>
 
 <div class="filter-group">
-<select id="department">
-
-<option value="all">
-All Departments
-</option>
-<option value="IT">
-IT
-</option>
-<option value="Education">
-Education
-</option>
-<option value="Engineering">
-Engineering
-</option>
-<option value="Administration">
-Administration
-</option>
-</select>
+    <select id="department">
+        <option value="all">All Departments</option>
+        <% (filterOptions.departments || []).forEach(dept => { %>
+            <option value="<%= dept %>"><%= dept %></option>
+        <% }) %>
+    </select>
 </div>
 
 <div class="filter-group">
-<select id="campus">
-<option value="all">
-All Campuses
-</option>
-<option value="Main">
-Main
-</option>
-<option value="Other">
-Other
-</option>
-
-</select>
+    <select id="campus">
+        <option value="all">All Campuses</option>
+        <% (filterOptions.campuses || []).forEach(campus => { %>
+            <option value="<%= campus %>"><%= campus %></option>
+        <% }) %>
+    </select>
 </div>
 
 <div class="filter-group">
-<select id="gender">
-<option value="all">
-All Gender
-</option>
-<option value="Male">
-Male
-</option>
-<option value="Female">
-Female
-</option>
-</select>
+    <select id="gender">
+        <option value="all">All Gender</option>
+        <% (filterOptions.genders || []).forEach(gender => { %>
+            <option value="<%= gender %>"><%= gender %></option>
+        <% }) %>
+    </select>
 </div>
 
 <div class="filter-group">
-<select id="visitStatus">
-<option value="all">
-All Statuses
-</option>
-<option value="Pending">
-
-Pending
-</option>
-<option value="Proceed">
-Proceed
-</option>
-<option value="Attended">
-Attended
-</option>
-<option value="Not Attended">
-Not Attended
-</option>
-</select>
+    <select id="visitStatus">
+        <option value="all">All Statuses</option>
+        <% (filterOptions.visitStatuses || []).forEach(status => { %>
+            <option value="<%= status %>"><%= status %></option>
+        <% }) %>
+    </select>
 </div>
 
 <!-- CUSTOM DATE -->
