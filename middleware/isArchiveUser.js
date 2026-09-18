@@ -10,9 +10,7 @@ const IsArchiveUser = async (req, res, next) => {
         const allowedRoles = [
             'Student', 
             'Faculty', 
-            'Staff', 
-            'Security', 
-            'Maintenance'
+            'Staff'
         ];
 
         // 1. Fetch filtered active users [cite: 46, 51, 53, 58]

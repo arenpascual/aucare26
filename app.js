@@ -15,6 +15,7 @@ const crypto = require('crypto');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
 const isoWeek = require('dayjs/plugin/isoWeek');
+const cron = require('node-cron');
 
 
 // Models
@@ -1606,7 +1607,11 @@ app.get('/nv', isLogin, async (req, res) => {
 });
 
 app.get('/va', isArchiveVisit, isLogin, async (req, res) => {
-    res.render('VisitArchive', { title: 'Visit Archive', active: 'v2' });
+    res.render('VisitArchive', {
+        title: 'Visit Archive',
+        active: 'v2',
+        allRequest: res.locals.allRequest
+    });
 });
 
 app.get('/e', isAdmin, isLogin, async (req, res) => {
@@ -1790,6 +1795,49 @@ app.post('/uv/update/:id', isLogin, async (req, res) => {
         return req.session.save(() => {
             res.redirect(`/uv/${req.params.id}`);
         });
+    }
+});
+
+// ============================================================
+// ARCHIVE PATIENT/STUDENT (Admin / Super Admin lang)
+// ============================================================
+app.post('/uv/archive/:id', isLogin, async (req, res) => {
+    try {
+        if (
+            req.session.user.role !== 'Admin' &&
+            req.session.user.role !== 'Super Admin'
+        ) {
+            req.session.error = 'You are not authorized to archive this account.';
+            return req.session.save(() => res.redirect(`/uv/${req.params.id}`));
+        }
+
+        const { id } = req.params;
+
+        const archivedPatient = await Users.findByIdAndUpdate(
+            id,
+            { archive: true },
+            { new: true }
+        );
+
+        if (!archivedPatient) {
+            req.session.error = 'User not found.';
+            return req.session.save(() => res.redirect('/um'));
+        }
+
+        await Logs.create({
+            who: req.session.user._id,
+            what: `Archived user account: ${archivedPatient.fName} ${archivedPatient.lName}`,
+            archive: false
+        });
+
+        req.session.success = `${archivedPatient.fName} ${archivedPatient.lName} has been archived.`;
+
+        return req.session.save(() => res.redirect('/ua'));
+
+    } catch (err) {
+        console.error('Archive Patient Error:', err.message);
+        req.session.error = 'Failed to archive user.';
+        return req.session.save(() => res.redirect(`/uv/${req.params.id}`));
     }
 });
 
@@ -4406,6 +4454,59 @@ app.use((err, req, res, next) => {
         error: `OH NO! File in Directory is missing!`
     });
 });
+
+// ============================================================
+// AUTO-ARCHIVE UNATTENDED VISITS/REQUESTS (past clinic hours)
+// Sakop nito ang parehong: (1) Pending requests na hindi
+// pinroceed ni Admin, at (2) Proceed na visits na hindi
+// umattend ang pasyente — pareho silang mapupunta sa /va
+// ============================================================
+async function archiveExpiredVisits() {
+    try {
+        const now = dayjs().tz(APP_TIMEZONE);
+        const todayStart = now.startOf('day').toDate();
+        const todayCloseTime = dayjs().tz(APP_TIMEZONE).hour(17).minute(30).second(0);
+
+        const query = {
+            archive: false,
+            status: { $ne: 'Attended' },
+            $or: [
+                { createdAt: { $lt: todayStart } }
+            ]
+        };
+
+        if (now.isAfter(todayCloseTime)) {
+            query.$or.push({ createdAt: { $gte: todayStart } });
+        }
+
+        const staleVisits = await Visits.find(query);
+
+        for (const visit of staleVisits) {
+            visit.status = 'Not Attended';
+            visit.archive = true;
+            await visit.save();
+
+            await Logs.create({
+                who: visit.patient,
+                what: `Visit auto-archived as Not Attended (clinic closed): visit ID ${visit._id}`,
+                archive: false
+            });
+        }
+
+        if (staleVisits.length > 0) {
+            console.log(`🗄️ Auto-archived ${staleVisits.length} unattended visit(s)/request(s) after clinic hours.`);
+        }
+
+    } catch (err) {
+        console.error('Auto-Archive Visits Error:', err.message);
+    }
+}
+
+// Tumatakbo every 10 minutes
+cron.schedule('*/10 * * * *', archiveExpiredVisits, { timezone: APP_TIMEZONE });
+
+// Tumakbo agad pag-start ng server
+archiveExpiredVisits();
 
 // Sumakses ka dyan boy!
 app.listen(PORT, () => {

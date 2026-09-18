@@ -30,23 +30,23 @@
                 <th class="width30">Course</th>
             </tr>
         </thead>
-        <tbody>
+      <tbody>
+    <% if (allUsers && allUsers.length > 0) { %>
+        <% allUsers.forEach((user, index) => { %>
             <tr>
-                <td>1</td>
-                <td><a href="" class="underline navy">Ryan Bunganga</a></td>
-                <td>01-2223-027426</td>
-                <td>ryan@gmail.com</td>
-                <td>Dean</td>
-                <td class="">Bachelor of Science in Information Technology</td>
+                <td><%= index + 1 %></td>
+                <td><a href="/uv/<%= user._id %>" class="underline navy"><%= user.fName %> <%= user.lName %></a></td>
+                <td><%= user.schoolId || '—' %></td>
+                <td><%= user.email || '—' %></td>
+                <td><%= user.role %></td>
+                <td><%= user.course || '—' %></td>
             </tr>
-            <tr>
-                <td>2</td>
-                <td><a href="" class="underline navy">Aren Pascual</a></td>
-                <td>01-2223-027426</td>
-                <td>aren@gmail.com</td>
-                <td>Dean</td>
-                <td class="">Bachelor of Science in Information Technology</td>
-            </tr>
-        </tbody>
+        <% }) %>
+    <% } else { %>
+        <tr>
+            <td colspan="6" class="center">No archived users found.</td>
+        </tr>
+    <% } %>
+</tbody>
     </table>
 </div>

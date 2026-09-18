@@ -1,31 +1,142 @@
 <% layout('layout') %>
 
-
 <div class="height10 justifyBetween">
-    <div class="width0 gap10">
-        <a href="/v2" class="nav"><i class="fas fa-chevron-left"></i> Return</a>
-        
+    <div class="width0">
+        <a href="/v2" class="nav w100"><i class="fas fa-chevron-left"></i> Return</a>
     </div>
-    <p class="size40 str400 ">Archive Visitation Record</p>
-        
+    <div class="width0">
+        <p class="size40 str400">Visit Archive</p>
+    </div>
 </div>
-<div class="height90 col justifyStart">
+
+<div class="col justifyStart height90">
     <div class="height10 justifyBetween">
         <div class="width0">
-            <div class="selectBar w190"><i class="fas fa-filter"></i><select name="" id="">
-                <option value=""></i> Filter By</option>
-            </select></div>
+            <div class="selectBar w190"><i class="fas fa-filter"></i>
+                <select name="" id="dateFilter">
+                    <option value="all">Filter By Date</option>
+                    <option value="today">Today</option>
+                    <option value="yesterday">Yesterday</option>
+                    <option value="thisWeek">This Week</option>
+                    <option value="lastWeek">Last Week</option>
+                    <option value="thisMonth">This Month</option>
+                    <option value="lastMonth">Last Month</option>
+                    <option value="thisYear">This Year</option>
+                    <option value="lastYear">Last Year</option>
+                </select>
+            </div>
         </div>
         <div class="width0 gap8 ">
-            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id=""></div>
+            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" id="requestSearch" placeholder="Search name, ID, complaint..."></div>
         </div>
     </div>
 
-    <section class="height90 bgGray200 corner12 col gap10 block overflow-y1">
-        <div class="height0 corner12 shadow1 padding20 bgWhite col alignStart relative colorPrimary">
-                <p class="size14 absolute right15 top15">August 20, 2025</p>
-                <p class="size18 str500">Arenvie Pascual<span class="size12 border0 bgGreen200 ">Pending</span></p>
-                <p class="size14">4th Year &bull; Bachelor of Science in Information Technology</p>
-                <p class="size14 str500">Complaint: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">Headache</span></p>
-            </div>
+    <section class="height90 bgGray200 corner12 col gap10 block overflow-y1" id="requestList">
+        <% if (allRequest && allRequest.length > 0) { %>
+            <% allRequest.forEach(request => { %>
+                <%
+                    const reqDateRaw = request.createdAt ? new Date(request.createdAt).toISOString() : '';
+                    const complaintText = request.complaints && request.complaints.length > 0
+                        ? request.complaints.map(c => c.type).join(', ')
+                        : (request.complaint || '');
+                    const medicineText = request.dispensed && request.dispensed.length > 0
+                        ? request.dispensed.map(d => `${d.item} (${d.qty} ${d.unit})`).join(', ')
+                        : '—';
+                    const patientName = request.patient ? `${request.patient.fName} ${request.patient.lName}` : 'Unknown Patient';
+                    const searchText = `${patientName} ${request.patient?.schoolId || ''} ${request.patient?.email || ''} ${complaintText} ${request.concern || ''}`.toLowerCase();
+                %>
+                <div class="height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10 requestCard" data-date="<%= reqDateRaw %>" data-search="<%= searchText %>">
+
+                    <p class="size14 absolute right15 top15">
+                        <%= request.createdAt ? new Date(request.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'No Date' %>
+                    </p>
+
+                    <p class="size18 str500">
+                        <%= patientName %>
+                        <span class="size12 border0 white" style="padding: 2px 8px; border-radius: 4px; margin-left: 10px; background-color: rgb(180, 40, 40);">
+                            <%= request.status %>
+                        </span>
+                    </p>
+
+                    <p class="size14"><%= request.patient?.email || '—' %></p>
+                    <p class="size14"><%= request.patient?.phone || '—' %></p>
+                    <p class="size14"><%= request.patient?.schoolId || '—' %></p>
+                    <p class="size14">
+                        <%= request.patient?.yearLevel || '—' %> &bull; <%= request.patient?.course || '—' %>
+                    </p>
+
+                    <p class="size14 str500" style="margin-top: 10px;">Complaint:
+                        <span class="sizeInherit str500" style="color: rgb(6, 74, 210);"><%= complaintText || '—' %></span>
+                    </p>
+
+                    <p class="size14 str500" style="margin-top: 10px;">Concern:
+                        <span class="sizeInherit str500" style="color: rgb(6, 74, 210);"><%= request.concern || '—' %></span>
+                    </p>
+
+                    <p class="size14 str500" style="margin-top: 10px;">Medicine:
+                        <span class="sizeInherit str500" style="color: rgb(6, 74, 210);"><%= medicineText %></span>
+                    </p>
+
+                </div>
+            <% }) %>
+        <% } else { %>
+            <div class="padding20 textCenter size16 colorPrimary">No archived visits found.</div>
+        <% } %>
+        <p id="noResultsMsg" class="padding20 textCenter size16 colorPrimary hidden">No matching records found.</p>
+    </section>
 </div>
+
+<script>
+    const requestSearchInput = document.getElementById('requestSearch');
+    const dateFilterSelect = document.getElementById('dateFilter');
+    const requestCards = document.querySelectorAll('.requestCard');
+    const noResultsMsg = document.getElementById('noResultsMsg');
+
+    function isWithinRange(dateStr, range) {
+        if (range === 'all') return true;
+        if (!dateStr) return false;
+
+        const cardDate = new Date(dateStr);
+        const now = new Date();
+
+        if (range === 'today') return cardDate.toDateString() === now.toDateString();
+        if (range === 'yesterday') {
+            const y = new Date(now);
+            y.setDate(now.getDate() - 1);
+            return cardDate.toDateString() === y.toDateString();
+        }
+        if (range === 'thisWeek') {
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay());
+            startOfWeek.setHours(0, 0, 0, 0);
+            return cardDate >= startOfWeek;
+        }
+        if (range === 'thisMonth') return cardDate.getFullYear() === now.getFullYear() && cardDate.getMonth() === now.getMonth();
+        if (range === 'thisYear') return cardDate.getFullYear() === now.getFullYear();
+
+        return true;
+    }
+
+    function applyFilters() {
+        const searchTerm = requestSearchInput.value.trim().toLowerCase();
+        const dateRange = dateFilterSelect.value;
+        let visibleCount = 0;
+
+        requestCards.forEach(card => {
+            const matchesSearch = !searchTerm || card.dataset.search.includes(searchTerm);
+            const matchesDate = isWithinRange(card.dataset.date, dateRange);
+
+            if (matchesSearch && matchesDate) {
+                card.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+
+        noResultsMsg.classList.toggle('hidden', visibleCount !== 0);
+    }
+
+    requestSearchInput.addEventListener('input', applyFilters);
+    dateFilterSelect.addEventListener('change', applyFilters);
+</script>

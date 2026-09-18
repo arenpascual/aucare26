@@ -45,7 +45,11 @@
             <section class="col gap5">
                 <a href="/cr/<%= patient._id %>" class="nav pnav width100">Consultation Record</a>
                 <a href="javascript:void(0)" id="exportCard" class="nav pnav width100">Export Health Card</a>
-                <a href="" id="" class="nav pnav width100">Archive</a>
+                <form action="/uv/archive/<%= patient._id %>" method="POST" onsubmit="return confirm('Archive this patient?');" style="width:100%;">
+                    <button type="submit" class="nav pnav width100" style="border:none; width:100%; cursor:pointer; font:inherit;">
+                        Archive
+                    </button>
+                </form>
             </section>
         </div>
     </div>
