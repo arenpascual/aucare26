@@ -45,11 +45,7 @@
             <section class="col gap5">
                 <a href="/cr/<%= patient._id %>" class="nav pnav width100">Consultation Record</a>
                 <a href="javascript:void(0)" id="exportCard" class="nav pnav width100">Export Health Card</a>
-                <form action="/uv/archive/<%= patient._id %>" method="POST" onsubmit="return confirm('Archive this patient?');" style="width:100%;">
-                    <button type="submit" class="nav pnav width100" style="border:none; width:100%; cursor:pointer; font:inherit;">
-                        Archive
-                    </button>
-                </form>
+                <a href="javascript:void(0)" id="archiveBtn" data-id="<%= patient._id %>" class="nav pnav width100"> Archive</a>
             </section>
         </div>
     </div>
@@ -947,7 +943,30 @@ modal.addEventListener("click",function(e){
 
 });
 
+// ============================================================
+// ARCHIVE PATIENT
+// ============================================================
+document.getElementById('archiveBtn').addEventListener('click', function () {
+    const patientId = this.dataset.id;
 
+    if (!confirm('Archive this patient?')) return;
+
+    fetch(`/uv/archive/${patientId}`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(async res => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.ok === false) {
+            throw new Error(data.message || 'Archive failed');
+        }
+        window.location.href = data.redirect || '/ua';
+    })
+    .catch(err => {
+        console.error('Archive error:', err);
+        alert('Failed to archive patient.');
+    });
+});
 </script>
 
 <script>

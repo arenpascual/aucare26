@@ -1807,8 +1807,10 @@ app.post('/uv/archive/:id', isLogin, async (req, res) => {
             req.session.user.role !== 'Admin' &&
             req.session.user.role !== 'Super Admin'
         ) {
-            req.session.error = 'You are not authorized to archive this account.';
-            return req.session.save(() => res.redirect(`/uv/${req.params.id}`));
+            return res.status(403).json({
+                ok: false,
+                message: 'You are not authorized to archive this account.'
+            });
         }
 
         const { id } = req.params;
@@ -1820,8 +1822,10 @@ app.post('/uv/archive/:id', isLogin, async (req, res) => {
         );
 
         if (!archivedPatient) {
-            req.session.error = 'User not found.';
-            return req.session.save(() => res.redirect('/um'));
+            return res.status(404).json({
+                ok: false,
+                message: 'User not found.'
+            });
         }
 
         await Logs.create({
@@ -1832,12 +1836,16 @@ app.post('/uv/archive/:id', isLogin, async (req, res) => {
 
         req.session.success = `${archivedPatient.fName} ${archivedPatient.lName} has been archived.`;
 
-        return req.session.save(() => res.redirect('/ua'));
+        return req.session.save(() => {
+            res.json({ ok: true, redirect: '/ua' });
+        });
 
     } catch (err) {
         console.error('Archive Patient Error:', err.message);
-        req.session.error = 'Failed to archive user.';
-        return req.session.save(() => res.redirect(`/uv/${req.params.id}`));
+        return res.status(500).json({
+            ok: false,
+            message: 'Failed to archive user.'
+        });
     }
 });
 
