@@ -714,6 +714,62 @@ CHARTS
 
 <section class="dashboard-grid padding0">
 
+<!-- DISPENSING -->
+<article class="dashboard-card">
+<h2>
+Medicine and Supply Consumption
+</h2>
+<p>
+Quantity dispensed by item type.
+</p>
+<div class="chart-container">
+<canvas id="dispensingChart"></canvas>
+</div>
+</article>
+
+<!-- INVENTORY -->
+
+<article class="dashboard-card">
+<h2>
+Inventory Status
+</h2>
+<p>
+Current inventory condition.
+</p>
+<div class="chart-container">
+<canvas id="inventoryChart"></canvas>
+</div>
+</article>
+
+
+<!-- TOP ITEMS -->
+<article class="dashboard-card ">
+<h2>
+Top Dispensed Items
+</h2>
+<p>
+Most frequently dispensed medicines and supplies.
+</p>
+<div class="chart-container">
+<canvas id="topDispensedItemsChart"></canvas>
+</div>
+</article>
+
+
+<!-- TOP COMPLAINTS -->
+<article class="dashboard-card">
+<h2>
+Top Complaints
+</h2>
+<p>
+Most frequently recorded health complaints.
+</p>
+<div class="chart-container">
+<canvas id="topComplaintsChart"></canvas>
+</div>
+</article>
+
+
 <!-- VISIT TREND -->
 <article class="dashboard-card full-width">
 <h2>
@@ -728,31 +784,6 @@ Number of visits recorded during the selected period.
 </article>
 
 
-<!-- INSIGHTS -->
-<article class="dashboard-card width100">
-
-<h2>
-Key Insights
-</h2>
-<p> Automatically generated observations based on current data.</p>
-<br>
-<div id="insightList" class="insight-list shadow1 padding10 corner10" ></div>
-</article>
-
-<!-- AI FEEDBACK & SUGGESTIONS -->
-<article class="dashboard-card width100 ">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2>AI Feedback &amp; Suggestions</h2>
-        <button class="nav pnav" type="button" id="refreshAiInsightsBtn">
-            Refresh
-        </button>
-    </div>
-    <p>AI-generated recommendations based on clinic trends, inventory, and demographics.</p>
-    <br>
-    <div id="aiInsightList" class="insight-list shadow1 padding10 corner10">
-        <div class="empty-state">Loading AI insights...</div>
-    </div>
-</article>
 
 <!-- VISITS BY ROLE -->
 <article class="dashboard-card">
@@ -780,61 +811,10 @@ Distribution of visit statuses.
 </div>
 </article>
 
-<!-- TOP COMPLAINTS -->
-<article class="dashboard-card">
-<h2>
-Top Complaints
-</h2>
-<p>
-Most frequently recorded health complaints.
-</p>
-<div class="chart-container">
-<canvas id="topComplaintsChart"></canvas>
-</div>
-</article>
 
-<!-- DISPENSING -->
-<article class="dashboard-card">
-<h2>
-Medicine and Supply Consumption
-</h2>
-<p>
-Quantity dispensed by item type.
-</p>
-<div class="chart-container">
-<canvas id="dispensingChart"></canvas>
-</div>
-</article>
-
-<!-- TOP ITEMS -->
-<article class="dashboard-card full-width">
-<h2>
-Top Dispensed Items
-</h2>
-<p>
-Most frequently dispensed medicines and supplies.
-</p>
-<div class="chart-container">
-<canvas id="topDispensedItemsChart"></canvas>
-</div>
-</article>
-
-<!-- INVENTORY -->
-
-<article class="dashboard-card">
-<h2>
-Inventory Status
-</h2>
-<p>
-Current inventory condition.
-</p>
-<div class="chart-container">
-<canvas id="inventoryChart"></canvas>
-</div>
-</article>
 
 <!-- ALERTS -->
-<article class="dashboard-card">
+<article class="dashboard-card hidden">
 <h2>
 System Alerts
 </h2>
@@ -861,6 +841,32 @@ id="activityList"
 class="activity-list"
 >
 </div>
+</article>
+
+<!-- INSIGHTS -->
+<article class="dashboard-card width100">
+
+<h2>
+Key Insights
+</h2>
+<p> Automatically generated observations based on current data.</p>
+<br>
+<div id="insightList" class="insight-list shadow1 padding10 corner10" ></div>
+</article>
+
+<!-- AI FEEDBACK & SUGGESTIONS -->
+<article class="dashboard-card width100 ">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>AI Feedback &amp; Suggestions</h2>
+        <button class="nav pnav" type="button" id="refreshAiInsightsBtn">
+            Refresh
+        </button>
+    </div>
+    <p>AI-generated recommendations based on clinic trends, inventory, and demographics.</p>
+    <br>
+    <div id="aiInsightList" class="insight-list shadow1 padding10 corner10">
+        <div class="empty-state">Loading AI insights...</div>
+    </div>
 </article>
 </section>
 </main>

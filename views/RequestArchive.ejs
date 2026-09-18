@@ -1,1 +1,47 @@
 <% layout('layout') %>
+
+<div class="height10 justifyBetween">
+    <div class="width0">
+        <a href="/r" class="nav w100"><i class="fas fa-chevron-left"></i> Return</a>
+    </div>
+    <div class="width0">
+        <p class="size40 str400">Archive Visit Request</p>
+    </div>
+</div>
+
+<div class="col justifyStart height90">
+    <div class="height10 justifyBetween">
+        <div class="width0">
+            <div class="selectBar w190"><i class="fas fa-filter"></i>
+                <select name="" id="dateFilter">
+                    <option value="all">Filter By Date</option>
+                    <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="thisWeek">This Week</option>
+                <option value="lastWeek">Last Week</option>
+                <option value="thisMonth">This Month</option>
+                <option value="lastMonth">Last Month</option>
+                <option value="thisYear">This Year</option>
+                <option value="lastYear">Last Year</option>
+                </select>
+            </div>
+        </div>
+        <div class="width0 gap8 ">
+            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" id="requestSearch" placeholder="Search name, ID, compla..."></div>
+        </div>
+    </div>
+
+    <section class="height90 bgGray200 corner12 col gap10 block overflow-y1">
+        <div class="height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10 requestCard">
+            <p class="size14 absolute right15 top15">Jan 12 2026</p>
+            <p class="size18 str500 ">Jess Pagaling <span class="size12 border0 white" style="padding: 2px 8px; border-radius: 4px; margin-left: 10px; background-color: rgb(14, 14, 111);"> Archive</span></p>
+            <p class="size14">manu.pagaling.au@phinmaed.com</p>
+            <p class="size14">09910386745</p>
+            <p class="size14">01-2223-037426</p>
+            <p class="size14">Bachelor of Science in Information Technology</p>
+            <p class="size14 str500">Complaint: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">Fever</span></p>
+            <p class="size14 str500">Concern: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">Rest/Observation</span></p>
+            <p class="size14 str500">Medicine: <span class="sizeInherit str500" style="color: rgb(6, 74, 210);"></span>Paracetamol</p>
+        </div>
+    </section>
+</div>
