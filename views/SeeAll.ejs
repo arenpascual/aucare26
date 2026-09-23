@@ -8,10 +8,12 @@
         .d2{
             height: 400px;
             padding: 15px;
+            width: 95%;
         }
         .nu2{
             font-size: 30px;
-            margin-top: 10px;
+            padding: 7px;
+            justify-content: start !important;
         }
     }
 </style>
@@ -21,7 +23,8 @@
 <div class="col padding10 width35 justifyStart relative d1">
     <div class="height0 corner15 col alignStart padding20 relative">
         <p class="size40">Welcome</p>
-        <p class="size40 nu2" style="margin-top: -24px !important;"><%= user.fName.toUpperCase() %> <%= user.lName.toUpperCase() %>!</p>
+        <p class="size40 nu2" style="margin-top: -24px !important;"><%= user.fName.toUpperCase() %> </p>
+        <p class="size40 nu2" style="margin-top: -24px !important;"><%= user.lName.toUpperCase() %>!</p>
     </div>
     <div class="height0 corner15 col alignStart bgWhite padding20">
         <p class="size20">Services</p>
@@ -33,7 +36,7 @@
     </div>
 </div>
 
-<div class="col width35 justifyStart padding40 d1 d2">
+<div class="col width35 justifyStart padding40 d2">
     <div class="height100 corner15 col alignStart porcelain padding20 gap10 overflow-y1 block">
         <section class="padding0 justifyStart marginBottom10">
             <a href="/h" class="nav"><i class="fas fa-chevron-left"></i> Back to Home</a>

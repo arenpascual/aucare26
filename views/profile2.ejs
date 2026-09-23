@@ -244,7 +244,7 @@
                     <a href="javascript:void(0)" class="nav cnav absolute right16 top10 lgBtn" data-target="editForm"><i class="fas fa-pen"></i></a>
                     <p class="size20 str400">Personal Details</p>
                     <p class="size14 gray">Gender: <%= user.gender %></p>
-                    <p class="size14 gray">Contact:</p>
+                    <p class="size14 gray">Contact: <%= user.phone %></p>
                     <p class="size14 gray">Address: <%= user.address %></p>
                     <p class="size14 gray">Date of Birth: <%= ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][user.bMonth] || user.bMonth %> <%= user.bDay %>, <%= user.bYear %></p>
 
@@ -252,7 +252,7 @@
                 <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0 lk1">
                     <a href="javascript:void(0)" class="nav cnav absolute right16 top10 lgBtn" data-target="eseditForm"><i class="fas fa-pen"></i></a>
                     <p class="size20 str400">School Information</p>
-                    <p class="size14 gray">Campus:</p>
+                    <p class="size14 gray">Campus: <%= user.campus %></p>
                     <p class="size14 gray">School ID: <%= user.schoolId %></p>
                     <p class="size14 gray">Year Level: <%= user.yearLevel %></p>
                     <p class="size14 gray">Course: <%= user.course %></p>

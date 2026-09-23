@@ -13,8 +13,8 @@ const stockSchema = new mongoose.Schema({
   },
   unit: {
     type: String,
-    required: true,
-    trim: true
+    trim: true,
+    default: 'pcs'
   },
   remaining: {
     type: Number,
@@ -30,6 +30,11 @@ const stockSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  campus: {
+    type: String,
+    enum: ['South', 'San Jose', 'Main'],
+    required: true
+},
   // --- MEDICINE ATTRIBUTES ---
   genericName: {
     type: String,

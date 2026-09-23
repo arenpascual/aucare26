@@ -1474,7 +1474,9 @@ app.get('/st', isLogin, isStocks, async (req, res) => {
         lowStocks: res.locals.lowStocks || [],
         outOfStocks: res.locals.outOfStocks || [],
         medicines: res.locals.medicines || [],
-        supplies: res.locals.supplies || []
+        supplies: res.locals.supplies || [],
+        sessionCampus: req.session.user.campus || '',
+        isSuperAdmin: req.session.user.role === 'Super Admin'
     });
 });
 
@@ -2510,6 +2512,9 @@ app.get('/seed-admins', async (req, res) => {
     }
 });
 
+
+
+
 //const nodemailer = require('nodemailer');
 
 // Configure the transporter using your .env credentials
@@ -2520,8 +2525,6 @@ app.get('/seed-admins', async (req, res) => {
       //  pass: process.env.EMAIL_PASS
    // }
 //});
-
-
 // ============================================================
 // SEND TEMPORARY PASSWORD SA IBANG EMPLOYEE (Super Admin lang)
 // ============================================================
@@ -3134,17 +3137,32 @@ app.get('/sta', isArchiveStock, isLogin, async (req, res) => {
     res.render('stocksArchive', { title: 'Archive Stocks', active: 'st' });
 });
 
-// POST: Add New Stock
 app.post('/api/stocks/add', isLogin, async (req, res) => {
   try {
     const {
       name, type, remaining, description,
       brandName, isLocal, medicineForm, dosageStrength,
-      category, sizeSpecification, expirationDate
+      category, sizeSpecification, expirationDate, campus
     } = req.body;
 
     if (!name || !type || remaining === undefined) {
       req.session.error = 'Please fill in all required fields.';
+      return req.session.save(() => res.redirect('/st'));
+    }
+
+    const VALID_CAMPUS = ['South', 'San Jose', 'Main'];
+    let resolvedCampus;
+
+    if (req.session.user.role === 'Super Admin') {
+      resolvedCampus = VALID_CAMPUS.includes(campus) ? campus : null;
+    } else {
+      resolvedCampus = VALID_CAMPUS.includes(req.session.user.campus)
+        ? req.session.user.campus
+        : null;
+    }
+
+    if (!resolvedCampus) {
+      req.session.error = 'Your account has no valid campus assigned. Please contact the Super Admin.';
       return req.session.save(() => res.redirect('/st'));
     }
 
@@ -3161,12 +3179,13 @@ app.post('/api/stocks/add', isLogin, async (req, res) => {
       category: category || '',
       sizeSpecification: sizeSpecification ? sizeSpecification.trim() : '',
       expirationDate: expirationDate ? new Date(expirationDate) : null,
+      campus: resolvedCampus,
       archive: false
     });
 
     await Logs.create({
       who: req.session.user._id,
-      what: `Added new stock item: ${newStock.name} (${newStock.type}) ${newStock.remaining} }`,
+      what: `Added new stock item: ${newStock.name} (${newStock.type}, ${resolvedCampus}) ${newStock.remaining}`,
       archive: false
     });
 
