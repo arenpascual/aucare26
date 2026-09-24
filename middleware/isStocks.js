@@ -1,42 +1,142 @@
+// middleware/isStocks.js
 const Stocks = require('../model/stocks');
+
+const VALID_CAMPUS = ['Main', 'South', 'San Jose'];
 
 const isStocks = async (req, res, next) => {
     try {
-        // 1. Fetch all stock items that are not archived
-        const allStocks = await Stocks.find({ archive: false }).lean();
+        const user = req.session.user;
 
-        console.log('isStocks found:', allStocks.length); // ← ADD THIS
+        if (!user) {
+            res.locals.stocks = [];
+            res.locals.lowStocks = [];
+            res.locals.inStocks = [];
+            res.locals.outOfStocks = [];
+            res.locals.medicines = [];
+            res.locals.supplies = [];
+            res.locals.selectedCampus = null;
+            res.locals.isSuperAdmin = false;
 
-        const inStocks = allStocks.filter(item => item.remaining > 0);
+            return next();
+        }
 
-        // 2. Filter based on your specific flow thresholds
-        // Low Stock: exactly 10 or fewer (but more than 0)
-        const lowStocks = allStocks.filter(item => item.remaining <= 10 && item.remaining > 0);
-        
-        // Out of Stock: exactly 0
-        const outOfStocks = allStocks.filter(item => item.remaining === 0);
+        const isSuperAdmin = user.role === 'Super Admin';
 
-        // 3. Separate by type for EJS dropdowns
-        const medicines = allStocks.filter(item => item.type === 'medicine');
-        const supplies = allStocks.filter(item => item.type === 'supply');
+        let selectedCampus;
 
-        // 4. Attach to res.locals
+        // ============================================================
+        // SUPER ADMIN
+        // Can switch between Main, South, and San Jose
+        // ============================================================
+        if (isSuperAdmin) {
+
+            const requestedCampus = req.query.campus;
+
+            if (VALID_CAMPUS.includes(requestedCampus)) {
+                selectedCampus = requestedCampus;
+            } else {
+                selectedCampus = 'Main';
+            }
+
+        // ============================================================
+        // OTHER USERS
+        // Locked to their own campus
+        // ============================================================
+        } else {
+
+            if (VALID_CAMPUS.includes(user.campus)) {
+                selectedCampus = user.campus;
+            } else {
+                selectedCampus = null;
+            }
+        }
+
+        res.locals.isSuperAdmin = isSuperAdmin;
+        res.locals.selectedCampus = selectedCampus;
+
+        // ============================================================
+        // STOCK FILTER
+        // Always exclude archived stocks
+        // Then filter by selected campus
+        // ============================================================
+        const filter = {
+            archive: false
+        };
+
+        if (selectedCampus) {
+            filter.campus = selectedCampus;
+        }
+
+        console.log('======================================');
+        console.log('STOCK CAMPUS FILTER');
+        console.log('User:', user.username);
+        console.log('Role:', user.role);
+        console.log('User Campus:', user.campus);
+        console.log('Query Campus:', req.query.campus);
+        console.log('Selected Campus:', selectedCampus);
+        console.log('Mongo Filter:', filter);
+        console.log('======================================');
+
+        const allStocks = await Stocks.find(filter)
+            .sort({ name: 1 })
+            .lean();
+
+        console.log(
+            `isStocks found ${allStocks.length} stock(s) for campus: ${selectedCampus}`
+        );
+
+        // ============================================================
+        // STOCK CATEGORIES
+        // ============================================================
+
+        const inStocks = allStocks.filter(
+            item => Number(item.remaining) > 10
+        );
+
+        const lowStocks = allStocks.filter(
+            item =>
+                Number(item.remaining) > 0 &&
+                Number(item.remaining) <= 10
+        );
+
+        const outOfStocks = allStocks.filter(
+            item => Number(item.remaining) === 0
+        );
+
+        const medicines = allStocks.filter(
+            item => item.type === 'medicine'
+        );
+
+        const supplies = allStocks.filter(
+            item => item.type === 'supply'
+        );
+
+        // ============================================================
+        // SEND TO EJS
+        // ============================================================
+
         res.locals.stocks = allStocks;
+        res.locals.inStocks = inStocks;
         res.locals.lowStocks = lowStocks;
-        res.locals.inStocks = inStocks; // ← NEW
         res.locals.outOfStocks = outOfStocks;
         res.locals.medicines = medicines;
         res.locals.supplies = supplies;
 
         next();
+
     } catch (err) {
-        console.error('Error in isStocks middleware:', err.message);
+
+        console.error('Error in isStocks middleware:', err);
+
         res.locals.stocks = [];
         res.locals.inStocks = [];
         res.locals.lowStocks = [];
         res.locals.outOfStocks = [];
         res.locals.medicines = [];
         res.locals.supplies = [];
+        res.locals.selectedCampus = null;
+        res.locals.isSuperAdmin = false;
+
         next();
     }
 };

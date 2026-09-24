@@ -421,7 +421,7 @@ HEADER
         </span>
     </section>
     <div class="dashboard-status col alignEnd colorPrimary corner10 padding10 height100 width25 bgSky50" style="height: 100% !important; gap: 0 !important;">
-        <p class="size16">TODAY IS</p>
+        <p class="size16" >Today is</p>
         <p class="size26 str500" id="todayDay"></p>
     </div>
     <script>
@@ -844,14 +844,14 @@ class="activity-list"
 </article>
 
 <!-- INSIGHTS -->
-<article class="dashboard-card width100">
+<article class="dashboard-card width100 height100 ">
 
 <h2>
 Key Insights
 </h2>
 <p> Automatically generated observations based on current data.</p>
 <br>
-<div id="insightList" class="insight-list shadow1 padding10 corner10" ></div>
+<div id="insightList" class="insight-list shadow1 padding10 corner10 height80" ></div>
 </article>
 
 <!-- AI FEEDBACK & SUGGESTIONS -->
@@ -1199,47 +1199,82 @@ null;
 
 /* =========================================================
 CREATE VISIT TREND CHART
+JANUARY - DECEMBER
 ========================================================= */
 function createVisitTrendChart(data) {
     destroyChart('visitTrend');
 
-    const labels = data.map(item => {
-        const id = item._id;
-        return `${id.year}-${String(id.month).padStart(2, '0')}-${String(id.day).padStart(2, '0')}`;
-    });
+    // January to December
+    const monthLabels = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+    ];
 
-    const values = data.map(item => item.visits);
+    // Initialize all months with 0 visits
+    const monthlyVisits = Array(12).fill(0);
+
+    // Group daily visit data by month
+    data.forEach(item => {
+        if (!item._id || !item._id.month) return;
+
+        const monthIndex = Number(item._id.month) - 1;
+
+        if (monthIndex >= 0 && monthIndex < 12) {
+            monthlyVisits[monthIndex] += Number(item.visits) || 0;
+        }
+    });
 
     charts.visitTrend = new Chart(
         document.getElementById('visitTrendChart'),
         {
             type: 'line',
+
             data: {
-                labels,
+                labels: monthLabels,
+
                 datasets: [{
                     label: 'Visits',
-                    data: values,
+                    data: monthlyVisits,
                     borderWidth: 2,
                     tension: 0.3,
                     fill: false
                 }]
             },
+
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+
                 scales: {
                     x: {
                         grid: {
                             display: true,
                             drawBorder: true,
                             color: "#e5e7eb"
+                        },
+
+                        ticks: {
+                            autoSkip: false
                         }
                     },
+
                     y: {
                         beginAtZero: true,
+
                         ticks: {
                             precision: 0
                         },
+
                         grid: {
                             display: false
                         }

@@ -1476,7 +1476,8 @@ app.get('/st', isLogin, isStocks, async (req, res) => {
         medicines: res.locals.medicines || [],
         supplies: res.locals.supplies || [],
         sessionCampus: req.session.user.campus || '',
-        isSuperAdmin: req.session.user.role === 'Super Admin'
+        isSuperAdmin: req.session.user.role === 'Super Admin',
+        selectedCampus: res.locals.selectedCampus || ''
     });
 });
 
@@ -1595,8 +1596,7 @@ app.post('/profile/update', isLogin, async (req, res) => {
 });
 
 
-
-app.get('/v2', isVisit, isLogin, isUsers, async (req, res) => {
+app.get('/v2', isVisit, isLogin, isStocks, isUsers, async (req, res) => {
     res.render('visit2', { title: 'Visit2', active: 'v2' });
 });
 
@@ -2513,8 +2513,6 @@ app.get('/seed-admins', async (req, res) => {
 });
 
 
-
-
 //const nodemailer = require('nodemailer');
 
 // Configure the transporter using your .env credentials
@@ -3138,63 +3136,65 @@ app.get('/sta', isArchiveStock, isLogin, async (req, res) => {
 });
 
 app.post('/api/stocks/add', isLogin, async (req, res) => {
-  try {
-    const {
-      name, type, remaining, description,
-      brandName, isLocal, medicineForm, dosageStrength,
-      category, sizeSpecification, expirationDate, campus
-    } = req.body;
+ try {
+   const {
+     name, type, remaining, description,
+     brandName, isLocal, medicineForm, dosageStrength,
+     category, sizeSpecification, expirationDate, campus
+   } = req.body;
 
-    if (!name || !type || remaining === undefined) {
-      req.session.error = 'Please fill in all required fields.';
-      return req.session.save(() => res.redirect('/st'));
-    }
+      // dito babalik after add — same campus tab na ginagamit niya
+      const redirectUrl = '/st' + (req.query.campus ? `?campus=${encodeURIComponent(req.query.campus)}` : '');
 
-    const VALID_CAMPUS = ['South', 'San Jose', 'Main'];
-    let resolvedCampus;
+      if (!name || !type || remaining === undefined) {
+        req.session.error = 'Please fill in all required fields.';
+        return req.session.save(() => res.redirect(redirectUrl));
+      }
 
-    if (req.session.user.role === 'Super Admin') {
-      resolvedCampus = VALID_CAMPUS.includes(campus) ? campus : null;
-    } else {
-      resolvedCampus = VALID_CAMPUS.includes(req.session.user.campus)
-        ? req.session.user.campus
-        : null;
-    }
+      const VALID_CAMPUS = ['South', 'San Jose', 'Main'];
+      let resolvedCampus;
+  if (req.session.user.role === 'Super Admin') {
+    resolvedCampus = VALID_CAMPUS.includes(campus) ? campus : null;
+  } else {
+    resolvedCampus = VALID_CAMPUS.includes(req.session.user.campus)
+      ? req.session.user.campus
+      : null;
+  }
 
-    if (!resolvedCampus) {
-      req.session.error = 'Your account has no valid campus assigned. Please contact the Super Admin.';
-      return req.session.save(() => res.redirect('/st'));
-    }
+  if (!resolvedCampus) {
+    req.session.error = 'Your account has no valid campus assigned. Please contact the Super Admin.';
+    return req.session.save(() => res.redirect(redirectUrl));
+  }
 
-    const newStock = await Stocks.create({
-      name: name.trim(),
-      type: type,
-      remaining: Number(remaining),
-      description: description ? description.trim() : '',
-      genericName: name.trim(),
-      brandName: brandName ? brandName.trim() : '',
-      isLocal: isLocal === 'true' || isLocal === true,
-      medicineForm: medicineForm || '',
-      dosageStrength: dosageStrength ? dosageStrength.trim() : '',
-      category: category || '',
-      sizeSpecification: sizeSpecification ? sizeSpecification.trim() : '',
-      expirationDate: expirationDate ? new Date(expirationDate) : null,
-      campus: resolvedCampus,
-      archive: false
-    });
+  const newStock = await Stocks.create({
+    name: name.trim(),
+    type: type,
+    remaining: Number(remaining),
+    description: description ? description.trim() : '',
+    genericName: name.trim(),
+    brandName: brandName ? brandName.trim() : '',
+    isLocal: isLocal === 'true' || isLocal === true,
+    medicineForm: medicineForm || '',
+    dosageStrength: dosageStrength ? dosageStrength.trim() : '',
+    category: category || '',
+    sizeSpecification: sizeSpecification ? sizeSpecification.trim() : '',
+    expirationDate: expirationDate ? new Date(expirationDate) : null,
+    campus: resolvedCampus,
+    archive: false
+  });
 
-    await Logs.create({
-      who: req.session.user._id,
-      what: `Added new stock item: ${newStock.name} (${newStock.type}, ${resolvedCampus}) ${newStock.remaining}`,
-      archive: false
-    });
+  await Logs.create({
+    who: req.session.user._id,
+    what: `Added new stock item: ${newStock.name} (${newStock.type}, ${resolvedCampus}) ${newStock.remaining}`,
+    archive: false
+  });
 
-    req.session.success = `"${newStock.name}" has been added to stocks.`;
-    req.session.save(() => res.redirect('/st'));
-  } catch (err) {
-    console.error('Add Stock Error:', err.message);
-    req.session.error = 'Failed to add item. Please try again.';
-    req.session.save(() => res.redirect('/st'));
+   req.session.success = `"${newStock.name}" has been added to stocks.`;
+   req.session.save(() => res.redirect(redirectUrl));
+ } catch (err) {
+   console.error('Add Stock Error:', err.message);
+   req.session.error = 'Failed to add item. Please try again.';
+      req.session.save(() => res.redirect('/st'));
   }
 });
 
@@ -3208,38 +3208,40 @@ app.post('/api/stocks/edit/:id', isLogin, async (req, res) => {
       category, sizeSpecification, expirationDate
     } = req.body;
 
-    const updated = await Stocks.findByIdAndUpdate(id, {
-      name: name.trim(),
-      type: type,
-      remaining: Number(remaining),
-      description: description ? description.trim() : '',
-      genericName: name.trim(),
-      brandName: brandName ? brandName.trim() : '',
-      isLocal: isLocal === 'true' || isLocal === true,
-      medicineForm: medicineForm || '',
-      dosageStrength: dosageStrength ? dosageStrength.trim() : '',
-      category: category || '',
-      sizeSpecification: sizeSpecification ? sizeSpecification.trim() : '',
-      expirationDate: expirationDate ? new Date(expirationDate) : null
-    }, { new: true });
+      const redirectUrl = '/st' + (req.query.campus ? `?campus=${encodeURIComponent(req.query.campus)}` : '');
 
-    if (!updated) {
-      req.session.error = 'Item not found.';
-      return req.session.save(() => res.redirect('/st'));
-    }
+      const updated = await Stocks.findByIdAndUpdate(id, {
+        name: name.trim(),
+        type: type,
+        remaining: Number(remaining),
+        description: description ? description.trim() : '',
+        genericName: name.trim(),
+        brandName: brandName ? brandName.trim() : '',
+        isLocal: isLocal === 'true' || isLocal === true,
+        medicineForm: medicineForm || '',
+        dosageStrength: dosageStrength ? dosageStrength.trim() : '',
+        category: category || '',
+        sizeSpecification: sizeSpecification ? sizeSpecification.trim() : '',
+        expirationDate: expirationDate ? new Date(expirationDate) : null
+      }, { new: true });
 
-    await Logs.create({
-      who: req.session.user._id,
-      what: `Updated stock item: ${updated.name} now ${updated.remaining} `,
-      archive: false
-    });
+      if (!updated) {
+        req.session.error = 'Item not found.';
+        return req.session.save(() => res.redirect(redirectUrl));
+      }
 
-    req.session.success = `"${updated.name}" has been updated.`;
-    req.session.save(() => res.redirect('/st'));
-  } catch (err) {
-    console.error('Edit Stock Error:', err.message);
-    req.session.error = 'Failed to update item.';
-    req.session.save(() => res.redirect('/st'));
+      await Logs.create({
+        who: req.session.user._id,
+        what: `Updated stock item: ${updated.name} now ${updated.remaining} `,
+        archive: false
+      });
+
+   req.session.success = `"${updated.name}" has been updated.`;
+   req.session.save(() => res.redirect(redirectUrl));
+ } catch (err) {
+   console.error('Edit Stock Error:', err.message);
+      req.session.error = 'Failed to update item.';
+      req.session.save(() => res.redirect('/st'));
   }
 });
 
@@ -3348,41 +3350,26 @@ app.post('/visitnow', async (req, res) => {
             item.trim() !== "" &&
             Number(qty) > 0;
 
-        if (hasMedicineRequest) {
+                if (hasMedicineRequest) {
             const quantity = Number(qty);
 
-            updatedStock = await Stocks.findOneAndUpdate(
-                {
-                    name: item,
-                    type: 'medicine',
-                    archive: false,
-                    remaining: { $gte: quantity }
-                },
-                {
-                    $inc: {
-                        remaining: -quantity
-                    }
-                },
-                {
-                    new: true
-                }
-            );
+            const stockCheck = await Stocks.findOne({
+                name: item,
+                type: 'medicine',
+                archive: false
+            });
 
-            if (!updatedStock) {
-                const stockCheck = await Stocks.findOne({
-                    name: item,
-                    type: 'medicine',
-                    archive: false
-                });
-
-                if (!stockCheck) {
-                    req.session.error = `Medicine "${item}" is no longer available.`;
-                } else {
-                    req.session.error = `Not enough stock for "${item}". Only ${stockCheck.remaining} ${stockCheck.unit} left.`;
-                }
-
+            if (!stockCheck) {
+                req.session.error = `Medicine "${item}" is no longer available.`;
                 return req.session.save(() => res.redirect('/h'));
             }
+
+            if (stockCheck.remaining < quantity) {
+                req.session.error = `Not enough stock for "${item}". Only ${stockCheck.remaining} ${stockCheck.unit} left.`;
+                return req.session.save(() => res.redirect('/h'));
+            }
+
+            updatedStock = stockCheck;
         }
 
         try {
@@ -3428,20 +3415,7 @@ app.post('/visitnow', async (req, res) => {
             req.session.success = "Request Submitted Successfully!";
             return res.redirect("/h");
 
-        } catch (innerErr) {
-
-            // Restore deducted stock if something failed
-            if (hasMedicineRequest && updatedStock) {
-                await Stocks.findByIdAndUpdate(
-                    updatedStock._id,
-                    {
-                        $inc: {
-                            remaining: Number(qty)
-                        }
-                    }
-                );
-            }
-
+                } catch (innerErr) {
             throw innerErr;
         }
 
@@ -3474,33 +3448,22 @@ app.post('/visitnow2', async (req, res) => {
         let updatedStock = null;
         const hasMedicineRequest = item && item.trim() !== "" && qty && Number(qty) > 0;
 
-        if (hasMedicineRequest) {
+                if (hasMedicineRequest) {
             const quantity = Number(qty);
 
-            updatedStock = await Stocks.findOneAndUpdate(
-                {
-                    name: item,
-                    type: 'medicine',
-                    archive: false,
-                    remaining: { $gte: quantity } // dapat sapat ang stock
-                },
-                {
-                    $inc: { remaining: -quantity }
-                },
-                { new: true }
-            );
+            const stockCheck = await Stocks.findOne({ name: item, type: 'medicine', archive: false });
 
-            if (!updatedStock) {
-                const stockCheck = await Stocks.findOne({ name: item, type: 'medicine', archive: false });
-
-                if (!stockCheck) {
-                    req.session.error = `Medicine "${item}" is no longer available.`;
-                } else {
-                    req.session.error = `Not enough stock for "${item}". Only ${stockCheck.remaining} ${stockCheck.unit} left.`;
-                }
-
+            if (!stockCheck) {
+                req.session.error = `Medicine "${item}" is no longer available.`;
                 return res.redirect("/v2");
             }
+
+            if (stockCheck.remaining < quantity) {
+                req.session.error = `Not enough stock for "${item}". Only ${stockCheck.remaining} ${stockCheck.unit} left.`;
+                return res.redirect("/v2");
+            }
+
+            updatedStock = stockCheck;
         }
 
         try {
@@ -3561,12 +3524,7 @@ app.post('/visitnow2', async (req, res) => {
             req.session.success = "Request Submitted Successfully!";
             res.redirect("/v2");
 
-        } catch (innerErr) {
-            // Kung nabigo ang pag-save PAGKATAPOS na-deduct na ang stock,
-            // ibalik ang stock para hindi mapunta sa limbo ang bawas
-            if (hasMedicineRequest && updatedStock) {
-                await Stocks.findByIdAndUpdate(updatedStock._id, { $inc: { remaining: Number(qty) } });
-            }
+                } catch (innerErr) {
             throw innerErr;
         }
 
@@ -3799,16 +3757,21 @@ app.post('/successVisit/:id', async (req, res) => {
             return res.redirect('/v2');
         }
 
+        // Kunin ang campus ng patient — para dito tayo babawas ng stock
+        const visitPatient = await Users.findById(visit.patient);
+        const patientCampus = visitPatient ? visitPatient.campus : null;
+
         // Kunin lahat ng na-dispense sa visit
         const dispensedItems = await Dispense.find({ visitId });
 
-        // Bawasan ang stocks
+        // Bawasan ang stocks — dapat tugma ang campus
         for (const item of dispensedItems) {
 
             const stock = await Stocks.findOne({
                 name: item.item,
                 type: item.type,
-                archive: false
+                archive: false,
+                ...(patientCampus ? { campus: patientCampus } : {})
             });
 
             if (stock) {
@@ -3819,6 +3782,8 @@ app.post('/successVisit/:id', async (req, res) => {
                 );
 
                 await stock.save();
+            } else {
+                console.warn(`⚠️ No matching stock found for "${item.item}" (${item.type}) in campus "${patientCampus}"`);
             }
         }
 
@@ -4013,46 +3978,32 @@ app.post('/visit/add-medicine/:id', async (req, res) => {
 
         // Atomically deduct stock ONLY if enough remaining exists
         // Prevents race conditions (two people dispensing at the same time)
-        const updatedStock = await Stocks.findOneAndUpdate(
-            {
-                name: item,
-                type: 'medicine',
-                archive: false,
-                remaining: { $gte: quantity } // must have enough stock
-            },
-            {
-                $inc: { remaining: -quantity }
-            },
-            { new: true }
-        );
+                // Check lang natin ang stock — hindi pa babawasan dito
+        const stockCheck = await Stocks.findOne({ name: item, type: 'medicine', archive: false });
 
-        // If null, either the medicine doesn't exist, or not enough stock remaining
-        if (!updatedStock) {
-            const stockCheck = await Stocks.findOne({ name: item, type: 'medicine', archive: false });
-
-            if (!stockCheck) {
-                req.session.errorMsg = `Medicine "${item}" not found in stocks.`;
-            } else {
-                req.session.errorMsg = `Not enough stock for "${item}". Only ${stockCheck.remaining} ${stockCheck.unit} left.`;
-            }
-
+        if (!stockCheck) {
+            req.session.errorMsg = `Medicine "${item}" not found in stocks.`;
             return res.redirect('back');
         }
 
-        // Record the dispense using the actual unit from stocks (not user input)
+        if (stockCheck.remaining < quantity) {
+            req.session.errorMsg = `Not enough stock for "${item}". Only ${stockCheck.remaining} ${stockCheck.unit} left.`;
+            return res.redirect('back');
+        }
+
         await Dispense.create({
             visitId: req.params.id,
             who: visit.patient,
             type: 'medicine',
             item,
             qty: quantity,
-            unit: updatedStock.unit,
+            unit: stockCheck.unit,
             remarks
         });
 
         await Logs.create({
             who: req.session.user._id,
-            what: `Added medicine "${item}" (${quantity} ${updatedStock.unit}) to visit ID: ${req.params.id}`,
+            what: `Added medicine "${item}" (${quantity} ${stockCheck.unit}) to visit ID: ${req.params.id}`,
             archive: false
         });
 
@@ -4065,31 +4016,34 @@ app.post('/visit/add-medicine/:id', async (req, res) => {
 
 app.post('/visit/medicine/delete/:id', async (req, res) => {
     try {
-        const dispensedItem = await Dispense.findByIdAndDelete(req.params.id);
+        const dispensedItem = await Dispense.findById(req.params.id);
 
         if (!dispensedItem) {
             return res.redirect('back');
         }
 
-        // Ibalik ang stock na nabawas noong na-dispense ito
-        const restoredStock = await Stocks.findOneAndUpdate(
-            {
-                name: dispensedItem.item,
-                type: 'medicine'
-                // hindi natin nilagyan ng archive:false dito, para kahit na-archive na yung
-                // stock item pagkatapos i-dispense, mababawi pa rin ang tamang quantity
-            },
-            {
-                $inc: { remaining: dispensedItem.qty }
-            },
-            { new: true }
-        );
+        const visit = await Visits.findById(dispensedItem.visitId);
+        const wasDeducted = visit && visit.status === 'Attended';
+
+        await Dispense.findByIdAndDelete(req.params.id);
+
+        let restoredStock = null;
+
+        if (wasDeducted) {
+            restoredStock = await Stocks.findOneAndUpdate(
+                { name: dispensedItem.item, type: 'medicine' },
+                { $inc: { remaining: dispensedItem.qty } },
+                { new: true }
+            );
+        }
 
         await Logs.create({
             who: req.session.user._id,
-            what: restoredStock
-                ? `Removed medicine "${dispensedItem.item}" (${dispensedItem.qty} ${dispensedItem.unit}) from visit ID: ${dispensedItem.visitId} — stock restored (now ${restoredStock.remaining} ${restoredStock.unit})`
-                : `Removed medicine "${dispensedItem.item}" from visit ID: ${dispensedItem.visitId} — WARNING: matching stock item not found, stock not restored`,
+            what: !wasDeducted
+                ? `Removed medicine "${dispensedItem.item}" (${dispensedItem.qty} ${dispensedItem.unit}) from visit ID: ${dispensedItem.visitId} (not yet deducted, no stock restore needed)`
+                : restoredStock
+                    ? `Removed medicine "${dispensedItem.item}" (${dispensedItem.qty} ${dispensedItem.unit}) from visit ID: ${dispensedItem.visitId} — stock restored (now ${restoredStock.remaining} ${restoredStock.unit})`
+                    : `Removed medicine "${dispensedItem.item}" from visit ID: ${dispensedItem.visitId} — WARNING: matching stock item not found, stock not restored`,
             archive: false
         });
 
@@ -4100,102 +4054,36 @@ app.post('/visit/medicine/delete/:id', async (req, res) => {
     }
 });
 
-app.post('/visit/add-medicine2/:id', async (req, res) => {
-    try {
-        const { item, qty, unit, remarks } = req.body;
-        const quantity = parseInt(qty, 10);
-
-        // Basic validation
-        if (!item || !quantity || quantity <= 0) {
-            req.session.errorMsg = "Please select a valid medicine and quantity.";
-            return res.redirect('back');
-        }
-
-        const visit = await Visits.findById(req.params.id);
-        if (!visit) {
-            req.session.errorMsg = "Visit not found.";
-            return res.redirect('back');
-        }
-
-        // Atomically deduct stock ONLY if enough remaining exists
-        // Prevents race conditions (two people dispensing at the same time)
-        const updatedStock = await Stocks.findOneAndUpdate(
-            {
-                name: item,
-                type: 'medicine',
-                archive: false,
-                remaining: { $gte: quantity } // must have enough stock
-            },
-            {
-                $inc: { remaining: -quantity }
-            },
-            { new: true }
-        );
-
-        // If null, either the medicine doesn't exist, or not enough stock remaining
-        if (!updatedStock) {
-            const stockCheck = await Stocks.findOne({ name: item, type: 'medicine', archive: false });
-
-            if (!stockCheck) {
-                req.session.errorMsg = `Medicine "${item}" not found in stocks.`;
-            } else {
-                req.session.errorMsg = `Not enough stock for "${item}". Only ${stockCheck.remaining} ${stockCheck.unit} left.`;
-            }
-
-            return res.redirect('back');
-        }
-
-        // Record the dispense using the actual unit from stocks (not user input)
-        await Dispense.create({
-            visitId: req.params.id,
-            who: visit.patient,
-            type: 'medicine',
-            item,
-            qty: quantity,
-            unit: updatedStock.unit,
-            remarks
-        });
-
-        await Logs.create({
-            who: req.session.user._id,
-            what: `Added medicine "${item}" (${quantity} ${updatedStock.unit}) to visit ID: ${req.params.id}`,
-            archive: false
-        });
-
-        res.redirect(`/crv/${req.params.id}`);
-    } catch (err) {
-        console.error('Error in add-medicine route:', err.message);
-        res.redirect('back');
-    }
-});
-
 app.post('/visit/medicine2/delete/:id', async (req, res) => {
     try {
-        const dispensedItem = await Dispense.findByIdAndDelete(req.params.id);
+        const dispensedItem = await Dispense.findById(req.params.id);
 
         if (!dispensedItem) {
             return res.redirect('back');
         }
 
-        // Ibalik ang stock na nabawas noong na-dispense ito
-        const restoredStock = await Stocks.findOneAndUpdate(
-            {
-                name: dispensedItem.item,
-                type: 'medicine'
-                // hindi natin nilagyan ng archive:false dito, para kahit na-archive na yung
-                // stock item pagkatapos i-dispense, mababawi pa rin ang tamang quantity
-            },
-            {
-                $inc: { remaining: dispensedItem.qty }
-            },
-            { new: true }
-        );
+        const visit = await Visits.findById(dispensedItem.visitId);
+        const wasDeducted = visit && visit.status === 'Attended';
+
+        await Dispense.findByIdAndDelete(req.params.id);
+
+        let restoredStock = null;
+
+        if (wasDeducted) {
+            restoredStock = await Stocks.findOneAndUpdate(
+                { name: dispensedItem.item, type: 'medicine' },
+                { $inc: { remaining: dispensedItem.qty } },
+                { new: true }
+            );
+        }
 
         await Logs.create({
             who: req.session.user._id,
-            what: restoredStock
-                ? `Removed medicine "${dispensedItem.item}" (${dispensedItem.qty} ${dispensedItem.unit}) from visit ID: ${dispensedItem.visitId} — stock restored (now ${restoredStock.remaining} ${restoredStock.unit})`
-                : `Removed medicine "${dispensedItem.item}" from visit ID: ${dispensedItem.visitId} — WARNING: matching stock item not found, stock not restored`,
+            what: !wasDeducted
+                ? `Removed medicine "${dispensedItem.item}" (${dispensedItem.qty} ${dispensedItem.unit}) from visit ID: ${dispensedItem.visitId} (not yet deducted, no stock restore needed)`
+                : restoredStock
+                    ? `Removed medicine "${dispensedItem.item}" (${dispensedItem.qty} ${dispensedItem.unit}) from visit ID: ${dispensedItem.visitId} — stock restored (now ${restoredStock.remaining} ${restoredStock.unit})`
+                    : `Removed medicine "${dispensedItem.item}" from visit ID: ${dispensedItem.visitId} — WARNING: matching stock item not found, stock not restored`,
             archive: false
         });
 

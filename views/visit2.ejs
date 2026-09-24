@@ -1,4 +1,5 @@
 <% layout('layout') %>
+
 <style>
 .ts-wrapper{
     width:100%;
@@ -37,500 +38,2105 @@
     display: inline-block;
     transition: all 0.15s ease;
 }
+
 .tabN {
     border-bottom: none !important;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
+
+/* ============================================================
+   CUSTOM DATE RANGE
+   ============================================================ */
+
+.customDateRange{
+    align-items:center;
+}
+
+.customDateRange .field{
+    margin:0;
+}
+
+.customDateRange input[type="date"]{
+    height:45px;
+    padding:0 10px;
+    border:1px solid #d0d0d0;
+    border-radius:8px;
+    background:#ffffff;
+    font-family:inherit;
+    font-size:14px;
+    outline:none;
+}
+
+.customDateRange input[type="date"]:focus{
+    border-color:#1b5f99;
+}
 </style>
 
+
 <div class="height10 justifyBetween">
+
     <div class="width0">
         <p class="size40 str400">Visitation Record</p>
     </div>
-        <div class="width0 gap8 ">
-            <a href="javascript:void(0)" class="nav pnav w108" id="openConsultForm"> <i class="fas fa-plus"></i>New Visit</a>
-        <div class="width0 gap8 ">
-            <a href="/va" class="nav w100"> Archive</a>
+
+    <div class="width0 gap8">
+
+        <a href="javascript:void(0)"
+           class="nav pnav w108"
+           id="openConsultForm">
+            <i class="fas fa-plus"></i>New Visit
+        </a>
+
+        <div class="width0 gap8">
+            <a href="/va" class="nav w100">
+                Archive
+            </a>
         </div>
+
     </div>
+
 </div>
+
+
 <div class="height90 col justifyStart">
-    <div class="height10 justifyBetween ">
+
+    <div class="height10 justifyBetween">
+
         <div class="width0 gap5">
-        <a href="javascript:void(0)" class="nav tabN" id="tabAll">All Records</a>
-        <a href="javascript:void(0)" class="nav tabN" id="tabProceed">Proceed</a>
-        <a href="javascript:void(0)" class="nav tabN" id="tabAttended">Attended</a>
-            <div class="selectBar w190"><i class="fas fa-filter"></i><select name="" id="dateFilterSelect">
-                <option value="">Filter By Date</option>
-                <option value="today">Today</option>
-                <option value="yesterday">Yesterday</option>
-                <option value="thisWeek">This Week</option>
-                <option value="lastWeek">Last Week</option>
-                <option value="thisMonth">This Month</option>
-                <option value="lastMonth">Last Month</option>
-                <option value="thisYear">This Year</option>
-                <option value="lastYear">Last Year</option>
-            </select>
+
+            <a href="javascript:void(0)"
+               class="nav tabN"
+               id="tabAll">
+                All Records
+            </a>
+
+            <a href="javascript:void(0)"
+               class="nav tabN"
+               id="tabProceed">
+                Proceed
+            </a>
+
+            <a href="javascript:void(0)"
+               class="nav tabN"
+               id="tabAttended">
+                Attended
+            </a>
+
+
+            <!-- =================================================
+                 DATE FILTER
+            ================================================== -->
+
+            <div class="selectBar w190">
+                <i class="fas fa-filter"></i>
+
+                <select name="" id="dateFilterSelect">
+
+                    <option value="">
+                        Filter By Date
+                    </option>
+
+                    <option value="today">
+                        Today
+                    </option>
+
+                    <option value="yesterday">
+                        Yesterday
+                    </option>
+
+                    <option value="thisWeek">
+                        This Week
+                    </option>
+
+                    <option value="lastWeek">
+                        Last Week
+                    </option>
+
+                    <option value="thisMonth">
+                        This Month
+                    </option>
+
+                    <option value="lastMonth">
+                        Last Month
+                    </option>
+
+                    <option value="thisYear">
+                        This Year
+                    </option>
+
+                    <option value="lastYear">
+                        Last Year
+                    </option>
+
+                    <option value="custom">
+                        Custom Range
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- =================================================
+                 CUSTOM DATE RANGE
+            ================================================== -->
+
+            <div
+                id="customDateRange"
+                class="width0 gap5 customDateRange hidden"
+            >
+
+                <div class="field">
+
+                    <input
+                        type="date"
+                        id="customDateFrom"
+                        title="From Date"
+                    >
+
+                </div>
+
+                <span class="size14 w40 textCenter">
+                    to
+                </span>
+
+                <div class="field " style="padding-left: 10px;">
+
+                    <input
+                        type="date"
+                        id="customDateTo"
+                        title="To Date"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 STATUS FILTER
+                 EXISTING / HIDDEN
+            ================================================== -->
+
+            <div class="selectBar w190 hidden">
+
+                <i class="fas fa-filter"></i>
+
+                <select name="" id="">
+
+                    <option value="">
+                        Filter By Status
+                    </option>
+
+                    <option value="">
+                        Proceed
+                    </option>
+
+                    <option value="">
+                        Attended
+                    </option>
+
+                </select>
+
+            </div>
+
         </div>
-        <div class="selectBar w190 hidden" ><i class="fas fa-filter"></i><select name="" id="">
-                <option value=""></i> Filter By Status</option>
-                <option value=""></i> Proceed</option>
-                <option value=""></i> Attended</option>
-            </select>
+
+
+        <!-- =====================================================
+             SEARCH
+        ====================================================== -->
+
+        <div class="width0 gap8">
+
+            <div class="searchBar w220">
+
+                <i class="fas fa-search"></i>
+
+                <input
+                    type="search"
+                    name=""
+                    id="visitSearchInput"
+                    placeholder="Search patient..."
+                >
+
+            </div>
+
         </div>
-        </div>
-        <div class="width0 gap8 ">
-            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id="visitSearchInput" placeholder="Search patient..."></div>
-        </div>
+
     </div>
-    <section class="height90 bgGray200 corner12 col gap10 block overflow-y1" id="visitsContainer">
+
+
+    <!-- =========================================================
+         VISIT CONTAINER
+    ========================================================== -->
+
+    <section
+        class="height90 bgGray200 corner12 col gap10 block overflow-y1"
+        id="visitsContainer"
+    >
+
         <% if (allVisits && allVisits.length > 0) { %>
 
             <% if (allVisits.length > 0) { %>
+
                 <% allVisits.forEach(request => { %>
-                    <a href="/vv2/<%= request._id %>"
+
+                    <a
+                        href="/vv2/<%= request._id %>"
                         class="visitCard height0 corner12 padding20 bgWhite col alignStart relative colorPrimary width100 hoverShadow1 marginBottom10"
+
                         data-status="<%= request.status %>"
+
                         data-date="<%= request.createdAt ? new Date(request.createdAt).getTime() : 0 %>"
+
                         data-search="<%= (
                             (request.patient.fName || '') + ' ' +
                             (request.patient.lName || '') + ' ' +
                             (request.patient.email || '') + ' ' +
                             (request.patient.schoolId || '')
-                        ).toLowerCase() %>">
-                        
+                        ).toLowerCase() %>"
+                    >
+
                         <p class="size14 absolute right15 top15">
-                            <%= request.createdAt ? new Date(request.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'No Date' %>
+
+                            <%= request.createdAt
+                                ? new Date(request.createdAt).toLocaleDateString(
+                                    'en-US',
+                                    {
+                                        month: 'long',
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                    }
+                                )
+                                : 'No Date'
+                            %>
+
                         </p>
+
 
                         <p class="size18 str500">
-                            <%= request.patient.fName %> <%= request.patient.lName %> 
-                            <span class="size12 border0 
-                            <% if (request.status === 'Attended') { %>
-                            bgBlue100
-                            <% } else { %>
-                            bgGreen100
-                            <% } %>
-                            " style="padding: 2px 8px; border-radius: 4px; margin-left: 10px;">
+
+                            <%= request.patient.fName %>
+                            <%= request.patient.lName %>
+
+                            <span
+                                class="size12 border0
+                                <% if (request.status === 'Attended') { %>
+                                    bgBlue100
+                                <% } else { %>
+                                    bgGreen100
+                                <% } %>
+                                "
+                                style="
+                                    padding: 2px 8px;
+                                    border-radius: 4px;
+                                    margin-left: 10px;
+                                "
+                            >
+
                                 <%= request.status %>
+
                             </span>
-                        </p>
-                        
-                          <p class="size14">
-                        <%= request.patient.email %> 
-                    </p>
 
-                        <p class="size14"><%= request.patient.schoolId %></p>
+                        </p>
+
+
                         <p class="size14">
-                            <%= request.patient.yearLevel %> &bull; <%= request.patient.course %>
+
+                            <%= request.patient.email %>
+
                         </p>
 
-                        <p class="size14 str500" style="margin-top: 10px;">Complaint: 
-                            <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">
-                                <%= request.complaints && request.complaints.length > 0 
-                                    ? request.complaints.map(c => c.type).join(', ') 
-                                    : request.complaint %> </span>
+
+                        <p class="size14">
+
+                            <%= request.patient.schoolId %>
+
                         </p>
 
-                        <p class="size14 str500" style="margin-top: 10px;">Concern: 
-                            <span class="sizeInherit str500" style="color: rgb(6, 74, 210);"><%= request.concern %></span>
+
+                        <p class="size14">
+
+                            <%= request.patient.yearLevel %>
+                            &bull;
+                            <%= request.patient.course %>
+
                         </p>
-                        <% if (request.dispensed && request.dispensed.length > 0) { %>
-                            <p class="size14 str500">Medicines: 
-                                <span class="sizeInherit str500" style="color: rgb(6, 74, 210);">
-                                    <%= request.dispensed.map(d => `${d.item} (${d.qty} ${d.unit})`).join(', ') %>
+
+
+                        <p
+                            class="size14 str500"
+                            style="margin-top: 10px;"
+                        >
+
+                            Complaint:
+
+                            <span
+                                class="sizeInherit str500"
+                                style="color: rgb(6, 74, 210);"
+                            >
+
+                                <%= request.complaints &&
+                                    request.complaints.length > 0
+
+                                    ? request.complaints
+                                        .map(c => c.type)
+                                        .join(', ')
+
+                                    : request.complaint
+                                %>
+
+                            </span>
+
+                        </p>
+
+
+                        <p
+                            class="size14 str500"
+                            style="margin-top: 10px;"
+                        >
+
+                            Concern:
+
+                            <span
+                                class="sizeInherit str500"
+                                style="color: rgb(6, 74, 210);"
+                            >
+
+                                <%= request.concern %>
+
+                            </span>
+
+                        </p>
+
+
+                        <% if (
+                            request.dispensed &&
+                            request.dispensed.length > 0
+                        ) { %>
+
+                            <p class="size14 str500">
+
+                                Medicines:
+
+                                <span
+                                    class="sizeInherit str500"
+                                    style="color: rgb(6, 74, 210);"
+                                >
+
+                                    <%= request.dispensed
+                                        .map(d =>
+                                            `${d.item} (${d.qty} ${d.unit})`
+                                        )
+                                        .join(', ')
+                                    %>
+
                                 </span>
+
                             </p>
+
                         <% } %>
-                        </a>
+
+
+                    </a>
+
                 <% }) %>
+
             <% } else { %>
-                <div class="padding20 textCenter size16 colorPrimary">No Pending requests at the moment.</div>
+
+                <div
+                    class="padding20 textCenter size16 colorPrimary"
+                >
+                    No Pending requests at the moment.
+                </div>
+
             <% } %>
 
         <% } else { %>
-            <div class="padding20 textCenter size16 colorPrimary">No requests found.</div>
+
+            <div
+                class="padding20 textCenter size16 colorPrimary"
+            >
+                No requests found.
+            </div>
+
         <% } %>
 
-        <div class="padding20 textCenter size16 colorPrimary hidden" id="noResultsMsg">No matching visits found.</div>
-    </section>
-</div>
 
-<form action="/visitnow2" method="POST" class="absolute translateCenter shadow3 width36 padding30 gap10 index500 height0 hidden" id="Consultationform">
-    <p class="size24"> New Visit Form:</p>
+        <!-- =====================================================
+             NO RESULTS
+        ====================================================== -->
 
-    
-  <div class="field">
-    <label>Patient</label>
-
-    <input
-        type="text"
-        id="patientSearch"
-        placeholder="Search patient..."
-        autocomplete="off">
-
-    <select
-        id="patientList"
-        name="patient"
-        size="10"
-        style="display:none; margin-top:5px; overflow-y: auto !important;"
-        class="">
-
-        <% allUsers.forEach(user => { %>
-            <option
-                value="<%= user._id %>"
-                data-name="<%= (user.fName + ' ' + user.mName + ' ' + user.lName + ' ' + user.xName).toLowerCase() %>">
-
-                <%= user.fName %> <%= user.mName %> <%= user.lName %> <%= user.xName %>
-
-            </option>
-        <% }) %>
-
-    </select>
-</div>
-
-    <div class="field">
-        <label for="">Concern</label>
-        <div class="selectBar">
-            <select name="concern" id="concernSelect" required>
-                <option value="" title="" disabled selected >Select Concern</option>
-                <option value="Rest/Observation" title="if you need to use a clinic bed or require a quiet space to rest.">Rest/Observation</option>
-                <option value="Health Concern / Request Medicines" title="if you are seeking specific medication or basic first aid.">Health Concern / Request Medicines</option>
-                <option value="Health Consultation" title="if you need to speak directly with a health professional for advice.">Health Consultation</option>
-            </select>
+        <div
+            class="padding20 textCenter size16 colorPrimary hidden"
+            id="noResultsMsg"
+        >
+            No matching visits found.
         </div>
-    </div>
-    <section class="gap10 hidden" id="medicineField">
+
+    </section>
+
+</div>
+
+
+<!-- =============================================================
+     NEW VISIT FORM
+============================================================== -->
+
+<form
+    action="/visitnow2"
+    method="POST"
+    class="absolute translateCenter shadow3 width36 padding30 gap10 index500 height0 hidden"
+    id="Consultationform"
+>
+
+    <p class="size24">
+        New Visit Form:
+    </p>
+
+
+    <!-- =========================================================
+         PATIENT
+    ========================================================== -->
+
     <div class="field">
-        <label for="itemSelect">Type of Medicines <span class="gray inherit">( Optional )</span></label>
+
+        <label>
+            Patient
+        </label>
+
+        <input
+            type="text"
+            id="patientSearch"
+            placeholder="Search patient..."
+            autocomplete="off"
+        >
+
+
+        <select
+            id="patientList"
+            name="patient"
+            size="10"
+            style="
+                display:none;
+                margin-top:5px;
+                overflow-y:auto !important;
+            "
+        >
+
+            <% allUsers.forEach(user => { %>
+
+                <option
+                    value="<%= user._id %>"
+                    data-name="<%= (
+                        user.fName +
+                        ' ' +
+                        user.mName +
+                        ' ' +
+                        user.lName +
+                        ' ' +
+                        user.xName
+                    ).toLowerCase() %>"
+                >
+
+                    <%= user.fName %>
+                    <%= user.mName %>
+                    <%= user.lName %>
+                    <%= user.xName %>
+
+                </option>
+
+            <% }) %>
+
+        </select>
+
+    </div>
+
+
+    <!-- =========================================================
+         CONCERN
+    ========================================================== -->
+
+    <div class="field">
+
+        <label for="">
+            Concern
+        </label>
+
         <div class="selectBar">
-            <select name="item" id="itemSelect">
-                <option value="" selected>--Select--</option>
-                <% const availableMedicines = (typeof medicines !== 'undefined' ? medicines : []).filter(m => m.remaining > 0); %>
-                <% if (availableMedicines.length === 0) { %>
-                    <option value="" disabled>No medicines currently in stock</option>
-                <% } else { %>
-                    <% availableMedicines.forEach(m => { %>
+
+            <select
+                name="concern"
+                id="concernSelect"
+                required
+            >
+
+                <option
+                    value=""
+                    title=""
+                    disabled
+                    selected
+                >
+                    Select Concern
+                </option>
+
+                <option
+                    value="Rest/Observation"
+                    title="if you need to use a clinic bed or require a quiet space to rest."
+                >
+                    Rest/Observation
+                </option>
+
+                <option
+                    value="Health Concern / Request Medicines"
+                    title="if you are seeking specific medication or basic first aid."
+                >
+                    Health Concern / Request Medicines
+                </option>
+
+                <option
+                    value="Health Consultation"
+                    title="if you need to speak directly with a health professional for advice."
+                >
+                    Health Consultation
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         MEDICINE
+    ========================================================== -->
+
+    <section
+        class="gap10 hidden"
+        id="medicineField"
+    >
+
+        <div class="field">
+
+            <label for="itemSelect">
+
+                Type of Medicines
+
+                <span class="gray inherit">
+                    ( Optional )
+                </span>
+
+            </label>
+
+
+            <div class="selectBar">
+
+                <select
+                    name="item"
+                    id="itemSelect"
+                >
+
+                    <option
+                        value=""
+                        selected
+                    >
+                        --Select--
+                    </option>
+
+
+                    <%
+                        const availableMedicines =
+                            (
+                                typeof medicines !== 'undefined'
+                                ? medicines
+                                : []
+                            )
+                            .filter(m => m.remaining > 0);
+                    %>
+
+
+                    <% if (availableMedicines.length === 0) { %>
+
                         <option
-                            value="<%= m.name %>"
-                            data-remaining="<%= m.remaining %>"
-                            title="<%= m.remaining %> <%= m.unit %> available">
-                            <%= m.name %><% if (m.brandName) { %> (<%= m.brandName %>)<% } %>
+                            value=""
+                            disabled
+                        >
+                            No medicines currently in stock
                         </option>
-                    <% }) %>
-                <% } %>
-            </select>
+
+                    <% } else { %>
+
+                        <% availableMedicines.forEach(m => { %>
+
+                            <option
+                                value="<%= m.name %>"
+                                data-remaining="<%= m.remaining %>"
+                                title="<%= m.remaining %> <%= m.unit %> available"
+                            >
+
+                                <%= m.name %>
+
+                                <% if (m.brandName) { %>
+                                    (<%= m.brandName %>)
+                                <% } %>
+
+                            </option>
+
+                        <% }) %>
+
+                    <% } %>
+
+                </select>
+
+            </div>
+
+
+            <% if (availableMedicines.length === 0) { %>
+
+                <p
+                    class="size12"
+                    style="color:red;"
+                >
+                    No medicines currently in stock.
+                </p>
+
+            <% } %>
+
         </div>
-        <% if (availableMedicines.length === 0) { %>
-            <p class="size12" style="color:red;">No medicines currently in stock.</p>
-        <% } %>
-    </div>
-    <div class="field">
-        <label for="qtySelect">Quantity</label>
-        <div class="selectBar">
-            <select name="qty" id="qtySelect">
-                <option value="" selected>--Select--</option>
-            </select>
+
+
+        <div class="field">
+
+            <label for="qtySelect">
+                Quantity
+            </label>
+
+            <div class="selectBar">
+
+                <select
+                    name="qty"
+                    id="qtySelect"
+                >
+
+                    <option
+                        value=""
+                        selected
+                    >
+                        --Select--
+                    </option>
+
+                </select>
+
+            </div>
+
+            <p
+                id="qtyStockHint"
+                class="size12 gray"
+            ></p>
+
         </div>
-        <p id="qtyStockHint" class="size12 gray"></p>
-    </div>
 
     </section>
-    
+
+
+    <!-- =========================================================
+         COMPLAINT
+    ========================================================== -->
+
     <div class="field">
-        <label for="">Complaint <span class="gray inherit">( Optional )</span></label>
+
+        <label for="">
+
+            Complaint
+
+            <span class="gray inherit">
+                ( Optional )
+            </span>
+
+        </label>
+
+
         <div class="selectBar">
-            <select name="complaint" id="">
-                <option value="" disabled selected >Select Complaint</option>
-                <option value="Allergy">Allergy</option>
-                <option value="Body Muscle Pain">Body/Muscle pain</option>
-                <option value="Colds">Colds</option>
-                <option value="Cough">Cough</option>
-                <option value="Difficulty of Breathing">Difficulty of Breathing</option>
-                <option value="Dizziness">Dizziness</option>
-                <option value="Dysmenorrhea Menstrual Cramps">Dysmenorrhea/Menstrual cramps</option>
-                <option value="Fever">Fever</option>
-                <option value="Headache">Headache</option>
-                <option value="Hyperacidity">Hyperacidity</option>
-                <option value="Lbm">LBM</option>
-                <option value="Toothache">Toothache</option>
-                <option value="Abdominal Pain Cramps">Abdominal pain/cramps</option>
+
+            <select
+                name="complaint"
+                id=""
+            >
+
+                <option
+                    value=""
+                    disabled
+                    selected
+                >
+                    Select Complaint
+                </option>
+
+                <option value="Allergy">
+                    Allergy
+                </option>
+
+                <option value="Body Muscle Pain">
+                    Body/Muscle pain
+                </option>
+
+                <option value="Colds">
+                    Colds
+                </option>
+
+                <option value="Cough">
+                    Cough
+                </option>
+
+                <option value="Difficulty of Breathing">
+                    Difficulty of Breathing
+                </option>
+
+                <option value="Dizziness">
+                    Dizziness
+                </option>
+
+                <option value="Menstrual Cramps">
+                    Menstrual cramps
+                </option>
+
+                <option value="Fever">
+                    Fever
+                </option>
+
+                <option value="Headache">
+                    Headache
+                </option>
+
+                <option value="Hyperacidity">
+                    Hyperacidity
+                </option>
+
+                <option value="Lbm">
+                    LBM
+                </option>
+
+                <option value="Toothache">
+                    Toothache
+                </option>
+
+                <option value="Abdominal Pain Cramps">
+                    Abdominal pain/cramps
+                </option>
+
             </select>
+
         </div>
+
     </div>
-<section class="justifyBetween gap70 padding0">
-    <div class="nav width100" id="closeForm">Cancel</div>
-    <button type="submit" class="nav pnav width100">Submit</button>
-</section>
+
+
+    <!-- =========================================================
+         BUTTONS
+    ========================================================== -->
+
+    <section class="justifyBetween gap70 padding0">
+
+        <div
+            class="nav width100"
+            id="closeForm"
+        >
+            Cancel
+        </div>
+
+        <button
+            type="submit"
+            class="nav pnav width100"
+        >
+            Submit
+        </button>
+
+    </section>
+
 </form>
 
+
+<!-- =============================================================
+     NEW VISIT FORM SCRIPT
+============================================================== -->
+
 <script>
+
 document.addEventListener('DOMContentLoaded', () => {
-    const openBtn = document.getElementById('openConsultForm');
-    const closeBtn = document.getElementById('closeForm');
-    const form = document.getElementById('Consultationform');
+
+    const openBtn =
+        document.getElementById('openConsultForm');
+
+    const closeBtn =
+        document.getElementById('closeForm');
+
+    const form =
+        document.getElementById('Consultationform');
+
 
     openBtn.addEventListener('click', () => {
+
         form.classList.remove('hidden');
+
     });
+
 
     closeBtn.addEventListener('click', () => {
+
         form.classList.add('hidden');
+
     });
+
 
     document.addEventListener('click', (e) => {
-        if (!form.classList.contains('hidden') &&
+
+        if (
+            !form.classList.contains('hidden') &&
             !form.contains(e.target) &&
-            !openBtn.contains(e.target)) {
+            !openBtn.contains(e.target)
+        ) {
+
             form.classList.add('hidden');
+
         }
+
     });
 
-    form.addEventListener('click', (e) => e.stopPropagation());
+
+    form.addEventListener('click', (e) => {
+
+        e.stopPropagation();
+
+    });
+
 });
 
-const concern = document.getElementById("concernSelect");
-const medicineField = document.getElementById("medicineField");
+
+// ============================================================
+// CONCERN -> MEDICINE FIELD
+// ============================================================
+
+const concern =
+    document.getElementById("concernSelect");
+
+const medicineField =
+    document.getElementById("medicineField");
+
 
 concern.addEventListener("change", function() {
-    if (this.value === "Health Concern / Request Medicines") {
+
+    if (
+        this.value ===
+        "Health Concern / Request Medicines"
+    ) {
+
         medicineField.classList.remove("hidden");
+
     } else {
+
         medicineField.classList.add("hidden");
+
     }
+
 });
 
-// =============================
-// MEDICINE ITEM -> DYNAMIC QTY OPTIONS BASED ON STOCK
-// =============================
-const itemSelect = document.getElementById("itemSelect");
-const qtySelect = document.getElementById("qtySelect");
-const qtyStockHint = document.getElementById("qtyStockHint");
+
+// ============================================================
+// MEDICINE ITEM -> DYNAMIC QTY
+// ============================================================
+
+const itemSelect =
+    document.getElementById("itemSelect");
+
+const qtySelect =
+    document.getElementById("qtySelect");
+
+const qtyStockHint =
+    document.getElementById("qtyStockHint");
+
 
 if (itemSelect && qtySelect) {
-    itemSelect.addEventListener("change", function() {
-        const opt = itemSelect.options[itemSelect.selectedIndex];
-        const remaining = parseInt(opt.getAttribute("data-remaining") || "0", 10);
 
-        // Reset ang quantity dropdown
-        qtySelect.innerHTML = '<option value="" selected>--Select--</option>';
+    itemSelect.addEventListener(
+        "change",
+        function() {
 
-        if (!opt.value || remaining <= 0) {
-            qtyStockHint.textContent = "";
-            return;
+            const opt =
+                itemSelect.options[
+                    itemSelect.selectedIndex
+                ];
+
+
+            const remaining =
+                parseInt(
+                    opt.getAttribute(
+                        "data-remaining"
+                    ) || "0",
+                    10
+                );
+
+
+            qtySelect.innerHTML =
+                '<option value="" selected>--Select--</option>';
+
+
+            if (
+                !opt.value ||
+                remaining <= 0
+            ) {
+
+                qtyStockHint.textContent = "";
+
+                return;
+
+            }
+
+
+            // Maximum 2 per request
+            const maxOption =
+                Math.min(
+                    remaining,
+                    2
+                );
+
+
+            for (
+                let i = 1;
+                i <= maxOption;
+                i++
+            ) {
+
+                const o =
+                    document.createElement("option");
+
+
+                o.value = i;
+
+                o.textContent = i;
+
+
+                if (i === 1) {
+                    o.title = "Minimum";
+                }
+
+
+                if (i === maxOption) {
+                    o.title = "Maximum";
+                }
+
+
+                qtySelect.appendChild(o);
+
+            }
+
+
+            qtyStockHint.textContent =
+                `${remaining} in stock`;
+
         }
+    );
 
-        // Max 2 per request, pero hindi lalampas sa available stock
-        const maxOption = Math.min(remaining, 2);
-
-        for (let i = 1; i <= maxOption; i++) {
-            const o = document.createElement("option");
-            o.value = i;
-            o.textContent = i;
-            if (i === 1) o.title = "Minimum";
-            if (i === maxOption) o.title = "Maximum";
-            qtySelect.appendChild(o);
-        }
-
-        qtyStockHint.textContent = `${remaining} in stock`;
-    });
 }
+
 </script>
 
+
+<!-- =============================================================
+     PATIENT SEARCH SCRIPT
+============================================================== -->
+
 <script>
-    const search = document.getElementById("patientSearch");
-const list = document.getElementById("patientList");
 
-search.addEventListener("input", function () {
+const search =
+    document.getElementById("patientSearch");
 
-    const keyword = this.value.toLowerCase();
+const list =
+    document.getElementById("patientList");
 
-    list.style.display = "flex";
 
-    let visible = 0;
+search.addEventListener(
+    "input",
+    function () {
 
-    [...list.options].forEach(option => {
+        const keyword =
+            this.value.toLowerCase();
 
-        if(option.dataset.name.includes(keyword)){
-            option.hidden = false;
-            visible++;
-        }else{
-            option.hidden = true;
+
+        list.style.display =
+            "flex";
+
+
+        let visible = 0;
+
+
+        [
+            ...list.options
+        ].forEach(option => {
+
+            if (
+                option.dataset.name
+                    .includes(keyword)
+            ) {
+
+                option.hidden = false;
+
+                visible++;
+
+            } else {
+
+                option.hidden = true;
+
+            }
+
+        });
+
+
+        if (visible === 0) {
+
+            list.style.display =
+                "none";
+
         }
 
-    });
-
-    if(visible === 0){
-        list.style.display = "none";
     }
+);
 
-});
 
-list.addEventListener("change", function(){
+list.addEventListener(
+    "change",
+    function () {
 
-    search.value = list.options[list.selectedIndex].text;
+        search.value =
+            list.options[
+                list.selectedIndex
+            ].text;
 
-    list.style.display = "none";
 
-});
+        list.style.display =
+            "none";
+
+    }
+);
+
 </script>
 
+
+<!-- =============================================================
+     VISIT LIST:
+     TABS + DATE FILTER + CUSTOM RANGE + SEARCH
+============================================================== -->
+
 <script>
-/* ============================================================
-   VISIT LIST: TABS (Proceed/Attended) + DATE FILTER + SEARCH
-   ============================================================ */
+
 (function () {
-    const container = document.getElementById('visitsContainer');
-    const cards = Array.from(container.querySelectorAll('.visitCard'));
-    const noResultsMsg = document.getElementById('noResultsMsg');
 
-    const tabAll = document.getElementById('tabAll');
-    const tabProceed = document.getElementById('tabProceed');
-    const tabAttended = document.getElementById('tabAttended');
-    const dateFilterSelect = document.getElementById('dateFilterSelect');
-    const searchInput = document.getElementById('visitSearchInput');
+    const container =
+        document.getElementById(
+            'visitsContainer'
+        );
 
-    // Backend na (isVisit middleware, .sort({ _id: -1 })) ang naghahandle
-    // ng newest-first order, so wala na kailangan i-resort dito sa client.
 
-    // statusFilter: 'all' | 'proceed' | 'attended'
+    const cards =
+        Array.from(
+            container.querySelectorAll(
+                '.visitCard'
+            )
+        );
+
+
+    const noResultsMsg =
+        document.getElementById(
+            'noResultsMsg'
+        );
+
+
+    const tabAll =
+        document.getElementById(
+            'tabAll'
+        );
+
+
+    const tabProceed =
+        document.getElementById(
+            'tabProceed'
+        );
+
+
+    const tabAttended =
+        document.getElementById(
+            'tabAttended'
+        );
+
+
+    const dateFilterSelect =
+        document.getElementById(
+            'dateFilterSelect'
+        );
+
+
+    const customDateRange =
+        document.getElementById(
+            'customDateRange'
+        );
+
+
+    const customDateFrom =
+        document.getElementById(
+            'customDateFrom'
+        );
+
+
+    const customDateTo =
+        document.getElementById(
+            'customDateTo'
+        );
+
+
+    const searchInput =
+        document.getElementById(
+            'visitSearchInput'
+        );
+
+
+    // =========================================================
+    // STATUS FILTER
+    // =========================================================
+
     let statusFilter = 'all';
+
+
+    // =========================================================
+    // ACTIVE TAB
+    // =========================================================
 
     function setActiveTab(tab) {
 
-    tabAll.classList.remove('navTabActive');
-    tabProceed.classList.remove('navTabActive');
-    tabAttended.classList.remove('navTabActive');
+        tabAll.classList.remove(
+            'navTabActive'
+        );
 
-    if (tab === 'all') tabAll.classList.add('navTabActive');
-    if (tab === 'proceed') tabProceed.classList.add('navTabActive');
-    if (tab === 'attended') tabAttended.classList.add('navTabActive');
+        tabProceed.classList.remove(
+            'navTabActive'
+        );
+
+        tabAttended.classList.remove(
+            'navTabActive'
+        );
+
+
+        if (tab === 'all') {
+
+            tabAll.classList.add(
+                'navTabActive'
+            );
+
+        }
+
+
+        if (tab === 'proceed') {
+
+            tabProceed.classList.add(
+                'navTabActive'
+            );
+
+        }
+
+
+        if (tab === 'attended') {
+
+            tabAttended.classList.add(
+                'navTabActive'
+            );
+
+        }
+
     }
 
+
+    // Default
     setActiveTab('all');
 
-    tabProceed.addEventListener('click', () => {
-        statusFilter = (statusFilter === 'proceed') ? 'all' : 'proceed';
-        setActiveTab(statusFilter === 'proceed' ? 'proceed' : null);
-        applyFilters();
-    });
 
-    tabAttended.addEventListener('click', () => {
-        statusFilter = (statusFilter === 'attended') ? 'all' : 'attended';
-        setActiveTab(statusFilter === 'attended' ? 'attended' : null);
-        applyFilters();
-    });
+    // =========================================================
+    // PROCEED TAB
+    // =========================================================
 
-    tabAll.addEventListener('click', () => {
+    tabProceed.addEventListener(
+        'click',
+        () => {
 
-    statusFilter = 'all';
-    setActiveTab('all');
-    applyFilters();
-    });
+            statusFilter =
+                (
+                    statusFilter ===
+                    'proceed'
+                )
+                    ? 'all'
+                    : 'proceed';
+
+
+            setActiveTab(
+                statusFilter === 'proceed'
+                    ? 'proceed'
+                    : 'all'
+            );
+
+
+            applyFilters();
+
+        }
+    );
+
+
+    // =========================================================
+    // ATTENDED TAB
+    // =========================================================
+
+    tabAttended.addEventListener(
+        'click',
+        () => {
+
+            statusFilter =
+                (
+                    statusFilter ===
+                    'attended'
+                )
+                    ? 'all'
+                    : 'attended';
+
+
+            setActiveTab(
+                statusFilter === 'attended'
+                    ? 'attended'
+                    : 'all'
+            );
+
+
+            applyFilters();
+
+        }
+    );
+
+
+    // =========================================================
+    // ALL TAB
+    // =========================================================
+
+    tabAll.addEventListener(
+        'click',
+        () => {
+
+            statusFilter = 'all';
+
+            setActiveTab('all');
+
+            applyFilters();
+
+        }
+    );
+
+
+    // =========================================================
+    // DATE FUNCTIONS
+    // =========================================================
 
     function startOfDay(d) {
-        const nd = new Date(d);
-        nd.setHours(0, 0, 0, 0);
+
+        const nd =
+            new Date(d);
+
+        nd.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+
         return nd;
     }
+
+
     function endOfDay(d) {
-        const nd = new Date(d);
-        nd.setHours(23, 59, 59, 999);
+
+        const nd =
+            new Date(d);
+
+        nd.setHours(
+            23,
+            59,
+            59,
+            999
+        );
+
         return nd;
     }
+
+
     function startOfWeek(d) {
-        const nd = startOfDay(d);
-        const day = nd.getDay(); // 0 = Sunday
-        nd.setDate(nd.getDate() - day);
+
+        const nd =
+            startOfDay(d);
+
+
+        const day =
+            nd.getDay();
+
+
+        // Sunday = 0
+        nd.setDate(
+            nd.getDate() - day
+        );
+
+
         return nd;
+
     }
+
+
     function endOfWeek(d) {
-        const nd = startOfWeek(d);
-        nd.setDate(nd.getDate() + 6);
+
+        const nd =
+            startOfWeek(d);
+
+
+        nd.setDate(
+            nd.getDate() + 6
+        );
+
+
         return endOfDay(nd);
+
     }
+
+
+    // =========================================================
+    // GET PRESET DATE RANGE
+    // =========================================================
 
     function getDateRange(filterValue) {
-        const now = new Date();
+
+        const now =
+            new Date();
+
 
         switch (filterValue) {
+
+            // -------------------------------------------------
+            // TODAY
+            // -------------------------------------------------
+
             case 'today':
-                return [startOfDay(now).getTime(), endOfDay(now).getTime()];
+
+                return [
+
+                    startOfDay(now)
+                        .getTime(),
+
+                    endOfDay(now)
+                        .getTime()
+
+                ];
+
+
+            // -------------------------------------------------
+            // YESTERDAY
+            // -------------------------------------------------
+
             case 'yesterday': {
-                const y = new Date(now);
-                y.setDate(y.getDate() - 1);
-                return [startOfDay(y).getTime(), endOfDay(y).getTime()];
+
+                const y =
+                    new Date(now);
+
+
+                y.setDate(
+                    y.getDate() - 1
+                );
+
+
+                return [
+
+                    startOfDay(y)
+                        .getTime(),
+
+                    endOfDay(y)
+                        .getTime()
+
+                ];
+
             }
+
+
+            // -------------------------------------------------
+            // THIS WEEK
+            // -------------------------------------------------
+
             case 'thisWeek':
-                return [startOfWeek(now).getTime(), endOfWeek(now).getTime()];
+
+                return [
+
+                    startOfWeek(now)
+                        .getTime(),
+
+                    endOfWeek(now)
+                        .getTime()
+
+                ];
+
+
+            // -------------------------------------------------
+            // LAST WEEK
+            // -------------------------------------------------
+
             case 'lastWeek': {
-                const lw = new Date(now);
-                lw.setDate(lw.getDate() - 7);
-                return [startOfWeek(lw).getTime(), endOfWeek(lw).getTime()];
+
+                const lw =
+                    new Date(now);
+
+
+                lw.setDate(
+                    lw.getDate() - 7
+                );
+
+
+                return [
+
+                    startOfWeek(lw)
+                        .getTime(),
+
+                    endOfWeek(lw)
+                        .getTime()
+
+                ];
+
             }
+
+
+            // -------------------------------------------------
+            // THIS MONTH
+            // -------------------------------------------------
+
             case 'thisMonth': {
-                const start = new Date(now.getFullYear(), now.getMonth(), 1);
-                const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-                return [startOfDay(start).getTime(), endOfDay(end).getTime()];
+
+                const start =
+                    new Date(
+                        now.getFullYear(),
+                        now.getMonth(),
+                        1
+                    );
+
+
+                const end =
+                    new Date(
+                        now.getFullYear(),
+                        now.getMonth() + 1,
+                        0
+                    );
+
+
+                return [
+
+                    startOfDay(start)
+                        .getTime(),
+
+                    endOfDay(end)
+                        .getTime()
+
+                ];
+
             }
+
+
+            // -------------------------------------------------
+            // LAST MONTH
+            // -------------------------------------------------
+
             case 'lastMonth': {
-                const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                const end = new Date(now.getFullYear(), now.getMonth(), 0);
-                return [startOfDay(start).getTime(), endOfDay(end).getTime()];
+
+                const start =
+                    new Date(
+                        now.getFullYear(),
+                        now.getMonth() - 1,
+                        1
+                    );
+
+
+                const end =
+                    new Date(
+                        now.getFullYear(),
+                        now.getMonth(),
+                        0
+                    );
+
+
+                return [
+
+                    startOfDay(start)
+                        .getTime(),
+
+                    endOfDay(end)
+                        .getTime()
+
+                ];
+
             }
+
+
+            // -------------------------------------------------
+            // THIS YEAR
+            // -------------------------------------------------
+
             case 'thisYear': {
-                const start = new Date(now.getFullYear(), 0, 1);
-                const end = new Date(now.getFullYear(), 11, 31);
-                return [startOfDay(start).getTime(), endOfDay(end).getTime()];
+
+                const start =
+                    new Date(
+                        now.getFullYear(),
+                        0,
+                        1
+                    );
+
+
+                const end =
+                    new Date(
+                        now.getFullYear(),
+                        11,
+                        31
+                    );
+
+
+                return [
+
+                    startOfDay(start)
+                        .getTime(),
+
+                    endOfDay(end)
+                        .getTime()
+
+                ];
+
             }
+
+
+            // -------------------------------------------------
+            // LAST YEAR
+            // -------------------------------------------------
+
             case 'lastYear': {
-                const start = new Date(now.getFullYear() - 1, 0, 1);
-                const end = new Date(now.getFullYear() - 1, 11, 31);
-                return [startOfDay(start).getTime(), endOfDay(end).getTime()];
+
+                const start =
+                    new Date(
+                        now.getFullYear() - 1,
+                        0,
+                        1
+                    );
+
+
+                const end =
+                    new Date(
+                        now.getFullYear() - 1,
+                        11,
+                        31
+                    );
+
+
+                return [
+
+                    startOfDay(start)
+                        .getTime(),
+
+                    endOfDay(end)
+                        .getTime()
+
+                ];
+
             }
+
+
+            // -------------------------------------------------
+            // CUSTOM RANGE
+            // -------------------------------------------------
+
+            case 'custom':
+
+                return getCustomDateRange();
+
+
+            // -------------------------------------------------
+            // NO FILTER
+            // -------------------------------------------------
+
             default:
-                return null; // walang filter
+
+                return null;
+
         }
+
     }
 
-    dateFilterSelect.addEventListener('change', applyFilters);
-    searchInput.addEventListener('input', applyFilters);
+
+    // =========================================================
+    // CUSTOM DATE RANGE
+    // =========================================================
+
+    function getCustomDateRange() {
+
+        const fromValue =
+            customDateFrom.value;
+
+
+        const toValue =
+            customDateTo.value;
+
+
+        // Both dates required
+        if (
+            !fromValue ||
+            !toValue
+        ) {
+
+            return null;
+
+        }
+
+
+        // =====================================================
+        // Convert YYYY-MM-DD to LOCAL DATE
+        // =====================================================
+
+        const fromParts =
+            fromValue.split('-');
+
+
+        const toParts =
+            toValue.split('-');
+
+
+        const fromDate =
+            new Date(
+                Number(fromParts[0]),
+                Number(fromParts[1]) - 1,
+                Number(fromParts[2])
+            );
+
+
+        const toDate =
+            new Date(
+                Number(toParts[0]),
+                Number(toParts[1]) - 1,
+                Number(toParts[2])
+            );
+
+
+        // Start of From Date
+        fromDate.setHours(
+            0,
+            0,
+            0,
+            0
+        );
+
+
+        // End of To Date
+        toDate.setHours(
+            23,
+            59,
+            59,
+            999
+        );
+
+
+        // Invalid range
+        if (
+            fromDate.getTime() >
+            toDate.getTime()
+        ) {
+
+            return 'invalid';
+
+        }
+
+
+        return [
+
+            fromDate.getTime(),
+
+            toDate.getTime()
+
+        ];
+
+    }
+
+
+    // =========================================================
+    // DATE FILTER CHANGE
+    // =========================================================
+
+    dateFilterSelect.addEventListener(
+        'change',
+        function () {
+
+            if (
+                this.value === 'custom'
+            ) {
+
+                customDateRange
+                    .classList
+                    .remove('hidden');
+
+            } else {
+
+                customDateRange
+                    .classList
+                    .add('hidden');
+
+
+                // Clear custom dates
+                customDateFrom.value = '';
+
+                customDateTo.value = '';
+
+                customDateFrom
+                    .removeAttribute('max');
+
+                customDateTo
+                    .removeAttribute('min');
+
+            }
+
+
+            applyFilters();
+
+        }
+    );
+
+
+    // =========================================================
+    // FROM DATE CHANGE
+    // =========================================================
+
+    customDateFrom.addEventListener(
+        'change',
+        function () {
+
+            if (this.value) {
+
+                customDateTo.min =
+                    this.value;
+
+            } else {
+
+                customDateTo
+                    .removeAttribute('min');
+
+            }
+
+
+            applyFilters();
+
+        }
+    );
+
+
+    // =========================================================
+    // TO DATE CHANGE
+    // =========================================================
+
+    customDateTo.addEventListener(
+        'change',
+        function () {
+
+            if (this.value) {
+
+                customDateFrom.max =
+                    this.value;
+
+            } else {
+
+                customDateFrom
+                    .removeAttribute('max');
+
+            }
+
+
+            applyFilters();
+
+        }
+    );
+
+
+    // =========================================================
+    // SEARCH
+    // =========================================================
+
+    searchInput.addEventListener(
+        'input',
+        applyFilters
+    );
+
+
+    // =========================================================
+    // APPLY ALL FILTERS
+    // =========================================================
 
     function applyFilters() {
-        const dateRange = getDateRange(dateFilterSelect.value);
-        const searchTerm = searchInput.value.trim().toLowerCase();
+
+        const dateRange =
+            getDateRange(
+                dateFilterSelect.value
+            );
+
+
+        const searchTerm =
+            searchInput.value
+                .trim()
+                .toLowerCase();
+
+
+        // =====================================================
+        // INVALID CUSTOM DATE RANGE
+        // =====================================================
+
+        if (
+            dateRange === 'invalid'
+        ) {
+
+            cards.forEach(card => {
+
+                card.classList.add(
+                    'hidden'
+                );
+
+            });
+
+
+            noResultsMsg.textContent =
+                'Invalid date range. Please check the selected dates.';
+
+
+            noResultsMsg.classList.remove(
+                'hidden'
+            );
+
+
+            return;
+
+        }
+
+
+        // =====================================================
+        // CUSTOM RANGE NOT COMPLETE
+        // =====================================================
+
+        if (
+            dateFilterSelect.value === 'custom' &&
+            (
+                !customDateFrom.value ||
+                !customDateTo.value
+            )
+        ) {
+
+            cards.forEach(card => {
+
+                card.classList.add(
+                    'hidden'
+                );
+
+            });
+
+
+            noResultsMsg.textContent =
+                'Please select both From Date and To Date.';
+
+
+            noResultsMsg.classList.remove(
+                'hidden'
+            );
+
+
+            return;
+
+        }
+
+
+        // =====================================================
+        // FILTER CARDS
+        // =====================================================
 
         let visibleCount = 0;
 
+
         cards.forEach(card => {
-            const cardStatus = (card.dataset.status || '').toLowerCase();
-            const cardDate = parseInt(card.dataset.date, 10) || 0;
-            const cardSearchText = card.dataset.search || '';
+
+            // =================================================
+            // STATUS
+            // =================================================
+
+            const cardStatus =
+                (
+                    card.dataset.status ||
+                    ''
+                ).toLowerCase();
+
+
+            // =================================================
+            // DATE
+            // =================================================
+
+            const cardDate =
+                parseInt(
+                    card.dataset.date,
+                    10
+                ) || 0;
+
+
+            // =================================================
+            // SEARCH TEXT
+            // =================================================
+
+            const cardSearchText =
+                card.dataset.search ||
+                '';
+
+
+            // =================================================
+            // STATUS MATCH
+            // =================================================
 
             let matchesStatus = true;
-            if (statusFilter === 'proceed') {
-                matchesStatus = cardStatus === 'proceed';
-            } else if (statusFilter === 'attended') {
-                matchesStatus = cardStatus === 'attended';
+
+
+            if (
+                statusFilter === 'proceed'
+            ) {
+
+                matchesStatus =
+                    cardStatus ===
+                    'proceed';
+
             }
+
+
+            else if (
+                statusFilter === 'attended'
+            ) {
+
+                matchesStatus =
+                    cardStatus ===
+                    'attended';
+
+            }
+
+
+            // =================================================
+            // DATE MATCH
+            // =================================================
 
             let matchesDate = true;
+
+
             if (dateRange) {
-                matchesDate = cardDate >= dateRange[0] && cardDate <= dateRange[1];
+
+                matchesDate =
+                    cardDate >=
+                        dateRange[0] &&
+
+                    cardDate <=
+                        dateRange[1];
+
             }
+
+
+            // =================================================
+            // SEARCH MATCH
+            // =================================================
 
             let matchesSearch = true;
-            if (searchTerm.length > 0) {
-                matchesSearch = cardSearchText.includes(searchTerm);
+
+
+            if (
+                searchTerm.length > 0
+            ) {
+
+                matchesSearch =
+                    cardSearchText
+                        .includes(
+                            searchTerm
+                        );
+
             }
 
-            const isVisible = matchesStatus && matchesDate && matchesSearch;
-            card.classList.toggle('hidden', !isVisible);
-            if (isVisible) visibleCount++;
+
+            // =================================================
+            // FINAL MATCH
+            // =================================================
+
+            const isVisible =
+                matchesStatus &&
+                matchesDate &&
+                matchesSearch;
+
+
+            card.classList.toggle(
+                'hidden',
+                !isVisible
+            );
+
+
+            if (isVisible) {
+
+                visibleCount++;
+
+            }
+
         });
 
-        noResultsMsg.classList.toggle('hidden', visibleCount !== 0);
+
+        // =====================================================
+        // NO RESULTS
+        // =====================================================
+
+        if (
+            visibleCount === 0
+        ) {
+
+            if (
+                dateFilterSelect.value ===
+                'custom'
+            ) {
+
+                noResultsMsg.textContent =
+                    'No visits found within the selected date range.';
+
+            } else {
+
+                noResultsMsg.textContent =
+                    'No matching visits found.';
+
+            }
+
+
+            noResultsMsg.classList.remove(
+                'hidden'
+            );
+
+        } else {
+
+            noResultsMsg.classList.add(
+                'hidden'
+            );
+
+        }
+
     }
+
+
+    // =========================================================
+    // INITIAL FILTER
+    // =========================================================
+
+    applyFilters();
+
 })();
+
 </script>
+```

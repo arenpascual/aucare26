@@ -35,7 +35,7 @@
 <div class="modalBackdrop hidden" id="modalBackdrop"></div>
 
 <!-- ADD ITEM MODAL -->
-<form class="width40 absolute shadow2 corner10 translateCenter col index100 bgWhite alignStart gap10 hidden" id="addCard" method="POST" action="/api/stocks/add">
+<form class="width40 absolute shadow2 corner10 translateCenter col index100 bgWhite alignStart gap10 hidden" id="addCard" method="POST" action="/api/stocks/add<%= selectedCampus ? '?campus=' + selectedCampus : '' %>">
   <p class="size24 str5">Add New Item</p>
 
   <div class="field">
@@ -57,10 +57,6 @@
 <!-- Medicine Fields -->
 <div id="addMedicineFields" class="col gap10 width100 hidden">
     <div class="gap10">
-        <div class="checkbox-field" style="border: 1px solid rgb(0, 0, 0) !important;">
-          <input type="checkbox" id="addIsLocal" name="isLocal" value="true">
-          <label for="addIsLocal" style="margin:0;">Local Brand?</label>
-        </div>
         <div class="field">
         <label for="addBrandName">Brand Name</label>
         <input type="text" id="addBrandName" name="brandName" placeholder="e.g. Biogesic">
@@ -93,13 +89,15 @@
   <div id="addSupplyFields" class="gap10 wwidth100 hidden">
     <div class="field">
       <label for="addCategory">Supply Category</label>
-      <select id="addCategory" name="category" class="w100">
-        <option value="">Select Category</option>
-        <option value="Disinfectant">Disinfectant</option>
-        <option value="Bandaging">Bandaging</option>
-        <option value="Personal Protective Equipment (PPE)">Personal Protective Equipment (PPE)</option>
-        <option value="Diagnostic Tool">Diagnostic Tool</option>
-      </select>
+      <div class="selectBar">
+        <select id="addCategory" name="category" class="w100">
+          <option value="">Select Category</option>
+          <option value="Disinfectant">Disinfectant</option>
+          <option value="Bandaging">Bandaging</option>
+          <option value="Personal Protective Equipment (PPE)">Personal Protective Equipment (PPE)</option>
+          <option value="Diagnostic Tool">Diagnostic Tool</option>
+        </select>
+      </div>
     </div>
     <div class="field">
       <label for="addSizeSpecification">Size / Specification</label>
@@ -156,10 +154,6 @@
   <!-- Medicine Fields -->
   <div id="editMedicineFields" class="col gap10 width100 hidden">
     <div class="gap20">
-        <div class="checkbox-field row">
-          <input type="checkbox" id="editIsLocal" name="isLocal" value="true" class="width0 bgRed">
-          <label for="editIsLocal" style="margin:0;">Local Brand?</label>
-        </div>
         <div class="field">
           <label for="editBrandName">Brand Name</label>
           <input type="text" id="editBrandName" name="brandName">
@@ -303,7 +297,7 @@
     <div class="cursor pointer selectBar w90 filterTab" data-filter="low">Low Stock</div>
     <div class="cursor pointer selectBar w100 filterTab" data-filter="out">Out of Stock</div>
   </div>
-  <div class="width0 gap8">
+ <div class="width0 gap8">
     <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" id="searchInput" placeholder="Search..."></div>
     <div class="selectBar w190">
       <i class="fas fa-filter"></i>
@@ -313,8 +307,19 @@
         <option value="supply">Supplies</option>
       </select>
     </div>
+    <% if (isSuperAdmin) { %>
+    <div class="selectBar w190">
+      <i class="fas fa-building"></i>
+      <select id="campusFilter"  onchange="changeCampus(this.value)">
+    <option value="Main" <%= selectedCampus === 'Main' ? 'selected' : '' %>> Main </option>
+    <option value="South" <%= selectedCampus === 'South' ? 'selected' : '' %>> South </option>
+    <option value="San Jose" <%= selectedCampus === 'San Jose' ? 'selected' : '' %>> San Jose
+    </option>
+</select>
+    </div>
+    <% } %>
   </div>
-</div>
+  </div>
 
 <!-- MAIN CONTENT -->
 <div class="height65 block overflow-y1 col justifyStart">
@@ -352,8 +357,8 @@
           
           <p class="size20 str500"><%= item.name %></p>
           
-          <% if (item.type === 'medicine') { %>
-            <% if (item.brandName) { %><p class="size12" style="color:var(--black10);">Brand: <%= item.brandName %> (<%= item.isLocal ? 'Local' : 'Generic' %>)</p><% } %>
+           <% if (item.type === 'medicine') { %>
+            <% if (item.brandName) { %><p class="size12" style="color:var(--black10);">Brand: <%= item.brandName %></p><% } %>
             <% if (item.dosageStrength || item.medicineForm) { %><p class="size12" style="color:var(--black10);"><%= item.dosageStrength %> - <%= item.medicineForm %></p><% } %>
           <% } else { %>
             <% if (item.category) { %><p class="size12" style="color:var(--black10);">Cat: <%= item.category %></p><% } %>
@@ -361,7 +366,7 @@
           <% } %>
 
           <p class="size14" style="color: <%= statusColor %>; font-weight:600;">
-            <%= item.remaining %> 
+            <%= item.remaining %>
             <span class="size11" style="color: <%= statusColor %>; font-weight:400; margin-left: 4px;">(<%= statusLabel %>)</span>
           </p>
 
@@ -384,7 +389,6 @@
               data-description="<%= item.description || '' %>"
               data-genericname="<%= item.genericName || '' %>"
               data-brandname="<%= item.brandName || '' %>"
-              data-islocal="<%= item.isLocal %>"
               data-medicineform="<%= item.medicineForm || '' %>"
               data-dosagestrength="<%= item.dosageStrength || '' %>"
               data-category="<%= item.category || '' %>"
@@ -413,6 +417,14 @@
 </div>
 
 <script>
+
+function changeCampus(campus) {
+    if (!campus) return;
+
+    window.location.href =
+        '/st?campus=' + encodeURIComponent(campus);
+}
+
 const backdrop = document.getElementById('modalBackdrop');
 const addCard = document.getElementById('addCard');
 const editCard = document.getElementById('editCard');
@@ -487,7 +499,6 @@ editBtns.forEach(btn => {
 
     if (btn.dataset.type === 'medicine') {
       document.getElementById('editBrandName').value = btn.dataset.brandname;
-      document.getElementById('editIsLocal').checked = btn.dataset.islocal === 'true';
       document.getElementById('editMedicineForm').value = btn.dataset.medicineform;
       document.getElementById('editDosageStrength').value = btn.dataset.dosagestrength;
     } else if (btn.dataset.type === 'supply') {

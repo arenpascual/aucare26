@@ -30,29 +30,36 @@
 
         <div class="width0 gap8">
 
-    <div class="selectBar w170">
-        <i class="fas fa-user-tag"></i>
-        <select id="roleFilter">
-            <option value="">All Roles</option>
+<div class="selectBar w170">
+    <i class="fas fa-user-tag"></i>
+    <select id="roleFilter">
+        <option value="">All Roles</option>
+        <% [...new Set(allUsers.map(u => u.role).filter(Boolean))].sort().forEach(role => { %>
+            <option value="<%= role %>"><%= role %></option>
+        <% }) %>
+    </select>
+</div>
 
-            <% [...new Set(allUsers.map(u => u.role).filter(Boolean))].sort().forEach(role => { %>
-                <option value="<%= role %>"><%= role %></option>
-            <% }) %>
+<div class="selectBar w200"><i class="fas fa-building"></i>
+    <select id="departmentFilter">
+        <option value="">All Departments</option>
+        <% [...new Set(allUsers.map(u => (u.course || u.department)).filter(Boolean))].sort().forEach(dept => { %>
+            <option value="<%= dept %>"><%= dept %></option>
+        <% }) %>
+    </select>
+</div>
 
-        </select>
-    </div>
+<% if (user && user.role === 'Super Admin') { %>
+<div class="selectBar w200"><i class="fas fa-building"></i>
+    <select id="Campus">
+        <option value="">All Campus</option>
+        <option value="Main">Main</option>
+        <option value="South">South</option>
+        <option value="San Jose">San Jose</option>
+    </select>
+</div>
+<% } %>
 
-    <div class="selectBar w200">
-        <i class="fas fa-building"></i>
-        <select id="departmentFilter">
-            <option value="">All Departments</option>
-
-            <% [...new Set(allUsers.map(u => (u.course || u.department)).filter(Boolean))].sort().forEach(dept => { %>
-                <option value="<%= dept %>"><%= dept %></option>
-            <% }) %>
-
-        </select>
-    </div>
 
 </div>
 
@@ -96,22 +103,22 @@
 
                 <% allUsers.forEach((user,index)=>{ %>
 
-                    <tr>
+                    <tr data-campus="<%= user.campus || '' %>">
                         <td><%= index + 1 %></td>
-
+                    
                         <td>
                             <a href="/uv/<%= user._id %>" class="underline navy">
                                 <%= user.fName %> <%= user.lName %>
                             </a>
                         </td>
-
+                    
                         <td><%= user.schoolId || '—' %></td>
-
+                    
                         <td><%= user.role %></td>
-
+                    
                         <td><%= user.course || user.department || '—' %></td>
                     </tr>
-
+                
                 <% }) %>
 
             <% } else { %>
@@ -141,6 +148,7 @@
 const searchInput = document.getElementById("userSearchInput");
 const roleFilter = document.getElementById("roleFilter");
 const departmentFilter = document.getElementById("departmentFilter");
+const campusFilter = document.getElementById("Campus"); // null kung hindi Super Admin
 const tableBody = document.getElementById("userTableBody");
 const noResults = document.getElementById("noResultsMsg");
 
@@ -151,17 +159,20 @@ function filterUsers() {
     const keyword = searchInput.value.toLowerCase().trim();
     const role = roleFilter.value;
     const department = departmentFilter.value;
+    const campus = campusFilter ? campusFilter.value : "";
 
     let visible = 0;
 
     rows.forEach(row => {
 
         const cells = row.querySelectorAll("td");
+        if (cells.length < 5) return; // skip "No users found" row
 
         const name = cells[1].innerText.toLowerCase();
         const schoolId = cells[2].innerText.toLowerCase();
         const userRole = cells[3].innerText;
         const userDepartment = cells[4].innerText;
+        const userCampus = row.dataset.campus || "";
 
         const matchesSearch =
             name.includes(keyword) ||
@@ -175,14 +186,15 @@ function filterUsers() {
         const matchesDepartment =
             department === "" || userDepartment === department;
 
-        row.style.display =
-            matchesSearch && matchesRole && matchesDepartment
-                ? ""
-                : "none";
+        const matchesCampus =
+            campus === "" || userCampus === campus;
 
-        if (matchesSearch && matchesRole && matchesDepartment) {
-            visible++;
-        }
+        const isVisible =
+            matchesSearch && matchesRole && matchesDepartment && matchesCampus;
+
+        row.style.display = isVisible ? "" : "none";
+
+        if (isVisible) visible++;
 
     });
 
@@ -193,5 +205,8 @@ function filterUsers() {
 searchInput.addEventListener("input", filterUsers);
 roleFilter.addEventListener("change", filterUsers);
 departmentFilter.addEventListener("change", filterUsers);
+if (campusFilter) {
+    campusFilter.addEventListener("change", filterUsers);
+}
 
 </script>
