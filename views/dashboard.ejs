@@ -636,12 +636,25 @@ Custom Date Range
     </select>
 </div>
 
-<div class="filter-group">
+<div class="filter-group"> 
     <select id="campus">
-        <option value="all">All Campuses</option>
-        <% (filterOptions.campuses || []).forEach(campus => { %>
-            <option value="<%= campus %>"><%= campus %></option>
-        <% }) %>
+        <% if (user && (user.role === 'Admin' || user.role === 'Sub Admin')) { %>
+
+            <option value="<%= user.campus %>" selected>
+                <%= user.campus %>
+            </option>
+
+        <% } else { %>
+
+            <option value="all">All Campuses</option>
+
+            <% (filterOptions.campuses || []).forEach(campus => { %>
+                <option value="<%= campus %>">
+                    <%= campus %>
+                </option>
+            <% }) %>
+
+        <% } %>
     </select>
 </div>
 
