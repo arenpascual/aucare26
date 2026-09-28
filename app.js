@@ -41,6 +41,7 @@ const isLogs = require('./middleware/isLogs');
 const isVisit = require('./middleware/isVisit');
 const isRequest = require('./middleware/isRequest');
 const itsVisit = require('./middleware/itsVisit');
+const isDashboardCampus = require('./middleware/isDashboardCampus');
 
 // Archive Middlewares (For your archive/history pages)
 const isArchiveAdmin = require('./middleware/isArchiveAdmin');
@@ -315,6 +316,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const isCampus = require('./middleware/isCampus');
 app.use(isCampus);
+app.use(isDashboardCampus);
 
 // routes
 
@@ -1095,6 +1097,14 @@ count: -1
 }
 }
 ]);
+
+const totalStatusCount = visitsByStatus.reduce((sum, s) => sum + s.count, 0);
+const visitsByStatusPercent = visitsByStatus.map(s => ({
+    ...s,
+    percentage: totalStatusCount > 0
+        ? Number(((s.count / totalStatusCount) * 100).toFixed(2))
+        : 0
+}));
 
 /*
 =====================================================
@@ -3154,7 +3164,8 @@ app.post('/api/stocks/add', isLogin, async (req, res) => {
       const VALID_CAMPUS = ['South', 'San Jose', 'Main'];
       let resolvedCampus;
   if (req.session.user.role === 'Super Admin') {
-    resolvedCampus = VALID_CAMPUS.includes(campus) ? campus : null;
+    const chosenCampus = campus || req.query.campus;
+    resolvedCampus = VALID_CAMPUS.includes(chosenCampus) ? chosenCampus : null;
   } else {
     resolvedCampus = VALID_CAMPUS.includes(req.session.user.campus)
       ? req.session.user.campus

@@ -530,16 +530,16 @@ Current day
 
 <article class="kpi-card">
 <div class="kpi-label">
-Success Rate
+Expired Medicines
 </div>
 <div
 class="kpi-value"
-id="attendanceRate"
+id="expiredMedicines"
 >
-0%
+0
 </div>
 <div class="kpi-description">
-Attended / Total Visits
+Past expiry
 </div>
 </article>
 
@@ -938,6 +938,13 @@ function formatPercent(value) {
 return `${Number(value || 0).toFixed(2)}%`;
 }
 
+function toPercentList(values) {
+    const total = values.reduce((sum, v) => sum + Number(v || 0), 0);
+    return values.map(v =>
+        total > 0 ? Number(((Number(v || 0) / total) * 100).toFixed(2)) : 0
+    );
+}
+
 /* =========================================================
 DATE FORMATTER
 ========================================================= */
@@ -1156,10 +1163,10 @@ formatNumber(
 kpis.todayVisits
 );
 document.getElementById(
-'attendanceRate'
+'expiredMedicines'
 ).textContent =
-formatPercent(
-kpis.attendanceRate
+formatNumber(
+kpis.expiredMedicines
 );
 document.getElementById(
 'pendingVisits'
@@ -1288,67 +1295,38 @@ function createVisitTrendChart(data) {
 /* =========================================================
 VISITS BY ROLE CHART
 ========================================================= */
-function createVisitsByRoleChart(
-data
-) {
-destroyChart(
-'visitsByRole'
-);
-const labels =
-data.map(
-item =>
-item._id ||
-'Unknown'
-);
-const values =
-data.map(
-item =>
-item.count
-);
+function createVisitsByRoleChart(data) {
+    destroyChart('visitsByRole');
 
-charts.visitsByRole =
-new Chart(
+    const labels = data.map(item => item._id || 'Unknown');
+    const values = toPercentList(data.map(item => item.count));
 
-document
-.getElementById(
-'visitsByRoleChart'
-),
-{
-type: 'bar',
-data: {
-labels,
-datasets: [
-{
-label:
-'Visits',
-data:
-values,
-borderWidth:
-1
+    charts.visitsByRole = new Chart(
+        document.getElementById('visitsByRoleChart'),
+        {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{ label: 'Visits (%)', data: values, borderWidth: 1 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: value => value + '%' }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: { label: ctx => `${ctx.parsed.y}%` }
+                    }
+                }
+            }
+        }
+    );
 }
-]
-},
-options: {
-responsive:
-true,
-maintainAspectRatio:
-false,
-scales: {
-y: {
-
-beginAtZero:
-true,
-ticks: {
-precision:
-0
-}
-}
-}
-}
-}
-);
-}
-
 /* =========================================================
 VISIT STATUS CHART
 ========================================================= */
@@ -1361,19 +1339,17 @@ destroyChart(
 const labels =
 data.map(
 item =>
-item._id ||
-'Unknown'
+`${item._id || 'Unknown'} (${Number(item.percentage || 0).toFixed(2)}%)`
 );
 const values =
 data.map(
-
 item =>
-item.count
+item.percentage
 );
 
 charts.visitStatus =
 new Chart(
-document
+document    
 .getElementById(
 'visitStatusChart'
 ),
@@ -1470,53 +1446,29 @@ precision:
 /* =========================================================
 DISPENSING CHART
 ========================================================= */
-function createDispensingChart(
-data
-) {
-destroyChart(
-'dispensing'
-);
-const labels =
-data.map(
-item =>
-item._id ||
-'Unknown'
-);
-const values =
-data.map(
-item =>
-item.quantity
+function createDispensingChart(data) {
+    destroyChart('dispensing');
 
-);
+    const values = toPercentList(data.map(item => item.quantity));
+    const labels = data.map((item, i) => `${item._id || 'Unknown'} (${values[i]}%)`);
 
-charts.dispensing =
-new Chart(
-document
-.getElementById(
-'dispensingChart'
-),
-{
-type: 'doughnut',
-data: {
-labels,
-datasets: [
-{
-data:
-values,
-borderWidth:
-1
-}
-]
-},
-options: {
-responsive:
-true,
-maintainAspectRatio:
-false
-}
-
-}
-);
+    charts.dispensing = new Chart(
+        document.getElementById('dispensingChart'),
+        {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{ data: values, borderWidth: 1 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: { callbacks: { label: ctx => ctx.label } }
+                }
+            }
+        }
+    );
 }
 
 /* =========================================================
@@ -1588,76 +1540,43 @@ precision:
 /* =========================================================
 INVENTORY CHART
 ========================================================= */
-function createInventoryChart(
-kpis
-) {
-destroyChart(
-'inventory'
-);
-const healthy =
-Math.max(
-Number(
-kpis.totalInventory ||
-0
-)
--
-Number(
-kpis.lowStockCount ||
-0
+function createInventoryChart(kpis) {
+    destroyChart('inventory');
 
-)
--
-Number(
-kpis.outOfStockCount ||
-0
-)
--
-Number(
-kpis.expiredCount ||
-0
-),
-0
-);
+    const healthy = Math.max(
+        Number(kpis.totalInventory || 0)
+        - Number(kpis.lowStockCount || 0)
+        - Number(kpis.outOfStockCount || 0)
+        - Number(kpis.expiredCount || 0),
+        0
+    );
 
-charts.inventory =
-new Chart(
-document
-.getElementById(
-'inventoryChart'
-),
-{
-type: 'doughnut',
-data: {
-labels: [
-'Healthy',
-'Low Stock',
-'Out of Stock',
-'Expired'
+    const names = ['In Stock', 'Low Stock', 'Out of Stock', 'Expired'];
+    const values = toPercentList([
+        healthy,
+        kpis.lowStockCount,
+        kpis.outOfStockCount,
+        kpis.expiredCount
+    ]);
 
-],
-datasets: [
-{
-data: [
-healthy,
-kpis.lowStockCount,
-kpis.outOfStockCount,
-kpis.expiredCount
-],
-borderWidth:
-1
+    charts.inventory = new Chart(
+        document.getElementById('inventoryChart'),
+        {
+            type: 'doughnut',
+            data: {
+                labels: names.map((name, i) => `${name} (${values[i]}%)`),
+                datasets: [{ data: values, borderWidth: 1 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: { callbacks: { label: ctx => ctx.label } }
+                }
+            }
+        }
+    );
 }
-]
-},
-options: {
-responsive:
-true,
-maintainAspectRatio:
-false
-}
-}
-);
-}
-
 /* =========================================================
 UPDATE ALERTS
 ========================================================= */

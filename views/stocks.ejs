@@ -310,11 +310,10 @@
     <% if (isSuperAdmin) { %>
     <div class="selectBar w190">
       <i class="fas fa-building"></i>
-      <select id="campusFilter"  onchange="changeCampus(this.value)">
+<select id="campusFilter">
     <option value="Main" <%= selectedCampus === 'Main' ? 'selected' : '' %>> Main </option>
     <option value="South" <%= selectedCampus === 'South' ? 'selected' : '' %>> South </option>
-    <option value="San Jose" <%= selectedCampus === 'San Jose' ? 'selected' : '' %>> San Jose
-    </option>
+    <option value="San Jose" <%= selectedCampus === 'San Jose' ? 'selected' : '' %>> San Jose </option>
 </select>
     </div>
     <% } %>
@@ -423,6 +422,11 @@ function changeCampus(campus) {
 
     window.location.href =
         '/st?campus=' + encodeURIComponent(campus);
+}
+
+const campusFilter = document.getElementById('campusFilter');
+if (campusFilter) {
+  campusFilter.addEventListener('change', (e) => changeCampus(e.target.value));
 }
 
 const backdrop = document.getElementById('modalBackdrop');
