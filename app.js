@@ -610,9 +610,20 @@ suspend: false
 if (query.role && query.role !== 'all') {
 match.role = query.role;
 }
-if (query.department && query.department !== 'all') {
-match.department = query.department;
+
+if (
+    query.department &&
+    query.department !== 'all'
+) {
+    const courses = DEPARTMENT_COURSES[query.department];
+
+    if (courses && courses.length > 0) {
+        match.course = {
+            $in: courses
+        };
+    }
 }
+
 if (query.campus && query.campus !== 'all') {
 match.campus = query.campus;
 }
@@ -729,10 +740,64 @@ app.get('/d', isLogin, async (req, res) => {
         });
     }
 });
+const DEPARTMENT_COURSES = {
+    "CMA": [
+        "Bachelor of Science in Business Administration - Marketing Management",
+        "Bachelor of Science in Business Administration - Banking and Microfinance",
+        "Bachelor of Science in Business Administration - Financial Management",
+        "Bachelor of Science in Business Administration - Human Resource Management",
+        "Bachelor of Science in Accountancy",
+        "Bachelor of Science in Management Accounting",
+        "Bachelor of Science in Accounting Information System",
+        "Bachelor of Science in Hospitality Management",
+        "Bachelor of Science in Entrepreneurship"
+    ],
+
+    "COE": [
+        "Bachelor of Science in Electrical Engineering",
+        "Bachelor of Science in Civil Engineering"
+    ],
+
+    "College for Information Technology": [
+        "Bachelor of Science in Information Technology"
+    ],
+
+    "CAHS": [
+        "Bachelor of Science in Pharmacy",
+        "Bachelor of Science in Psychology",
+        "Bachelor of Science in Nursing",
+        "Bachelor of Science in Medical Laboratory Science"
+    ],
+
+    "CELA": [
+        "Bachelor of Elementary Education",
+        "Bachelor of Arts in Political Science",
+        "Bachelor of Early Childhood Education",
+        "Bachelor of Secondary Education - Science",
+        "Bachelor of Secondary Education - Mathematics",
+        "Bachelor of Secondary Education - English",
+        "Bachelor of Secondary Education - Filipino"
+    ],
+
+    "CCJE": [
+        "Bachelor of Science in Criminology"
+    ]
+};
 
 app.get('/api/dashboard/analytics', isLogin, isDashboardCampus, async (req, res) => { try {
 
-const dateRange = getDashboardDateRange(req.query); const userMatch = buildDashboardUserMatch(req.query); const { start, end } = dateRange; const hasDateFilter = start !== null && end !== null; const visitMatch = { archive: false
+const dateRange = getDashboardDateRange(req.query);
+const userMatch = buildDashboardUserMatch(req.query);
+
+const selectedDepartment = req.query.department;
+
+const departmentCourses =
+    selectedDepartment &&
+    selectedDepartment !== 'all'
+        ? DEPARTMENT_COURSES[selectedDepartment] || []
+        : [];
+
+const { start, end } = dateRange; const hasDateFilter = start !== null && end !== null; const visitMatch = { archive: false
 };
 
 if (hasDateFilter) {
@@ -819,13 +884,20 @@ req.query.role !== 'all'
 req.query.role
 }
 : {}),
-...(req.query.department &&
-req.query.department !== 'all'
-? {
-'patientData.department':
-req.query.department
-}
-: {}),
+// ...(req.query.department &&
+// req.query.department !== 'all'
+// ? {
+// 'patientData.department':
+// req.query.department
+// }
+// : {}),
+...(departmentCourses.length > 0
+    ? {
+        'patientData.course': {
+            $in: departmentCourses
+        }
+    }
+    : {}),
 ...(req.query.campus &&
 req.query.campus !== 'all'
 ? {
@@ -984,37 +1056,88 @@ $lte: todayEnd
 =====================================================
 */
 const visitTrend = await Visits.aggregate([
-{
-$match: visitMatch
+    {
+        $match: visitMatch
+    },
+    {
+        $lookup: {
+            from: 'users',
+            localField: 'patient',
+            foreignField: '_id',
+            as: 'patientData'
+        }
+    },
+    {
+        $unwind: {
+            path: '$patientData',
+            preserveNullAndEmptyArrays: false
+        }
+    },
+    {
+        $match: {
+            'patientData.archive': false,
+            'patientData.verify': false,
+            'patientData.suspend': false,
 
-},
-{
-$group: {
-_id: {
-year: {
-$year: '$createdAt'
-},
-month: {
-$month: '$createdAt'
-},
-day: {
-$dayOfMonth: '$createdAt'
-}
-},
-visits: {
-$sum: 1
-}
-}
-},
-{
-$sort: {
-'_id.year': 1,
-'_id.month': 1,
-'_id.day': 1
-}
-}
+            ...(departmentCourses.length > 0
+                ? {
+                    'patientData.course': {
+                        $in: departmentCourses
+                    }
+                }
+                : {}),
+
+            ...(req.query.role &&
+            req.query.role !== 'all'
+                ? {
+                    'patientData.role':
+                        req.query.role
+                }
+                : {}),
+
+            ...(req.query.campus &&
+            req.query.campus !== 'all'
+                ? {
+                    'patientData.campus':
+                        req.query.campus
+                }
+                : {}),
+
+            ...(req.query.gender &&
+            req.query.gender !== 'all'
+                ? {
+                    'patientData.gender':
+                        req.query.gender
+                }
+                : {})
+        }
+    },
+    {
+        $group: {
+            _id: {
+                year: {
+                    $year: '$createdAt'
+                },
+                month: {
+                    $month: '$createdAt'
+                },
+                day: {
+                    $dayOfMonth: '$createdAt'
+                }
+            },
+            visits: {
+                $sum: 1
+            }
+        }
+    },
+    {
+        $sort: {
+            '_id.year': 1,
+            '_id.month': 1,
+            '_id.day': 1
+        }
+    }
 ]);
-
 /*
 =====================================================
 5. VISITS BY ROLE
@@ -1038,9 +1161,41 @@ as: 'patient'
 $unwind: '$patient'
 },
 {
-$match: {
-'patient.archive': false
-}
+    $match: {
+        'patient.archive': false,
+
+        ...(departmentCourses.length > 0
+            ? {
+                'patient.course': {
+                    $in: departmentCourses
+                }
+            }
+            : {}),
+
+        ...(req.query.role &&
+        req.query.role !== 'all'
+            ? {
+                'patient.role':
+                    req.query.role
+            }
+            : {}),
+
+        ...(req.query.campus &&
+        req.query.campus !== 'all'
+            ? {
+                'patient.campus':
+                    req.query.campus
+            }
+            : {}),
+
+        ...(req.query.gender &&
+        req.query.gender !== 'all'
+            ? {
+                'patient.gender':
+                    req.query.gender
+            }
+            : {})
+    }
 },
 {
 $group: {
