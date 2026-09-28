@@ -316,7 +316,6 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const isCampus = require('./middleware/isCampus');
 app.use(isCampus);
-app.use(isDashboardCampus);
 
 // routes
 
@@ -731,25 +730,11 @@ app.get('/d', isLogin, async (req, res) => {
     }
 });
 
-app.get(
-'/api/dashboard/analytics',
-isLogin,
-async (req, res) => {
-try {
+app.get('/api/dashboard/analytics', isLogin, isDashboardCampus, async (req, res) => { try {
 
-const dateRange =
-getDashboardDateRange(req.query);
-const userMatch =
-buildDashboardUserMatch(req.query);
-const {
-start,
-end
-} = dateRange;
-const hasDateFilter =
-start !== null && end !== null;
-const visitMatch = {
-archive: false
+const dateRange = getDashboardDateRange(req.query); const userMatch = buildDashboardUserMatch(req.query); const { start, end } = dateRange; const hasDateFilter = start !== null && end !== null; const visitMatch = { archive: false
 };
+
 if (hasDateFilter) {
 visitMatch.createdAt = {
 $gte: start,
