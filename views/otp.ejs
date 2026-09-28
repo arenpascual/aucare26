@@ -6,25 +6,140 @@
     <title>Index</title>
     <link rel="stylesheet" href="/style.css">
     <style>
+         @media (max-width: 1024px) {
+            body {
+                flex-direction: column;
+                justify-content: start;
+                overflow-y: auto;
+                display: block;
+                position: relative;
+            }
+            .left {
+                width: 100%;
+            
+            }
+            .right {
+                width: 100%;
+                height: auto;
+            }
+            #bdy {
+                height: auto;
+                flex-direction: column;
+            }
+            #tnc {
+                width: 100%;
+                border-radius: 0;
+                height: 100%;
+                position: absolute;
+                top: 0;
+                align-items: center;
+                p {
+                text-align: center;
+                }
+            }
+                #agreeBtn {
+                    width: 100% !important;
+                    margin-left: 0 !important;
+                }
+                .kiy {
+                    font-size: 16px;
+                    text-align: center !important;
+                }
+                .kix {
+                    font-size: 12px;
+                    text-align: center;
+                }
+                .kiz {
+                    height: auto !important;
+                    padding: 0;
+                    text-align: center;
+                    label {
+                        margin-right: 0 !important;
+                    }
+                    input {
+                        width: auto;
+                    }
+                }
+            #lC, #rC {
+                height: auto;
+                width: 100%;
+                padding: 5px;
+            }
+            #h1 {
+                height: auto;
+                gap: 0;
+                padding: 5px;
+                flex-direction: column;
+            }
+            #h2 {
+                display: none;
+            }
+            #h3, #h5 {
+                display: none;
+            }
+            #h4, #h6 {
+                display: flex;
+            }
+            #h6 {
+                margin-top: 10px;
+            }
+            .down, .up {
+                width: 100% !important;
+            }
+            .g {
+                width: 100%;
+                p {
+                    text-align: center;
+                }
+            }
+            #stet {
+                display: none;
+            }
+            .ht {
+                font-size: 14px;
+            }
+            #h8 {
+                display: flex;
+                height: auto;
+                p {
+                    font-size: 12px;
+                }
+            }
+            #dg {
+                display: flex;
+            }
+            .kentoy {
+                width: 100%;
+            }
+         }
+        
         
     </style>
 </head>
 <body class="polaroid">
     <a href="/h" class="hidden">home</a>
 
-    <div class="left width60 col">
-        <div class="top relative">
-            <i class="fas fa-stethoscope absolute opacity1  top38 size90 h160 w160 padding20 corner500 porcelain" style="left: 120px;"></i>
-            <div class="height0 width0 index50">
+
+    <div class="left width60 col" id="lC">
+        <div class="top relative justifyStart padding30" id="h1">
+            <i class="fas fa-stethoscope absolute opacity1 top38 size90 h160 w160 padding20 corner500 porcelain" id="stet" style="left: 150px;"></i>
+            <div class="height0 width0 index50 " style="margin-left: 80px;" id="h5">
                 <img src="/images/logo.png" alt="" class="corner500 h140">
             </div>
-            <div class="col width0 alignStart colorPrimary index50">
+            <div class="height0 width0 index50 hidden" id="h6">
+                <img src="/images/logo.png" alt="" class="corner500 h60">
+            </div>
+            <div class="col width0 alignStart colorPrimary index50" id="h3">
                 <p class="size90 str500">AuCare</p>
-                <p class="size30 textWrap" style="margin-top:-25px !important;">PHINMA Araullo University South Campus</p>
+                <p class="size30 textWrap" style="margin-top:-25px !important;">PHINMA Araullo University </p>
+            </div>
+            <div class="col width0 colorPrimary index50 hidden" id="h4">
+                <p class="size20 str500">AuCare</p>
+                <p class="size14 textWrap" style="margin-top:-5px !important;">PHINMA Araullo University </p>
             </div>
         </div>
-        <div class="bottom justifyStart paddingInline75 paddingBottom70 paddingTop20">
-            <section class=" h300 corner15 padding20 glass col alignStart gap15">
+        <div class="bottom justifyStart paddingInline75 paddingBottom70 paddingTop20" id="h2">
+            <section class="h300 corner15 padding20 glass col alignStart gap15">
                 <p class="size18 str500 marginLeft10 colorPrimary">Need Help? <a href="" class="inline sizeInherit underline">Learn More </a></p>
                 <video class="abstractBG2 width100 height100 corner15" src="/image/video.mp4"></video>
             </section>
@@ -33,7 +148,7 @@
     <div class="right width40 col">
         <div class="up col gap10 alignStart height0 padding20">
             <a href="/" class="nav"><i class="fas fa-chevron-left"></i> Return</a>
-            <form id="otpForm" class="bgWhite shadow1 height0 gap10 padding30 width80" action="">
+            <form id="otpForm" class="bgWhite shadow1 height0 gap10 padding30 width80 kentoy" action="">
     <div class="nav cnavLG"><i class="fas fa-key"></i></div>
     <p class="size20 str500"> Confirm Code</p>
     <p>Please enter the OTP code sent to your email to continue.</p>
