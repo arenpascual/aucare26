@@ -52,12 +52,25 @@
     cursor: pointer;
     z-index: 10;
 }
+
+
+         @media (max-width: 1024px) {
+            .fgCard {
+                width: 100%;
+                height: 100%;
+            }
+            .kik {
+                width: 100%;
+                box-shadow: none;
+                border-radius: 0;
+            }
+         }
     </style>
 </head>
 <body>
     <% if ( user.reset === true ) { %>
     <div class="fgCard bgWhite absolute left0 top0 index100">
-        <section class="height0 width30 bgWhite shadow1 col padding30 corner30 gap10">
+        <section class="height0 width30 bgWhite shadow1 col padding30 corner30 gap10 kik">
             <p class="size30">Change Password</p>
             <section class="height0 bgWhite alignStart col borderGray corner12">
                 <p>Take Note! Password must contain the following:</p>
