@@ -34,13 +34,11 @@
     <div class="padding10 width25 height100 col alignStart gap15">
         <a href="/um" class="nav"><i class="fas fa-chevron-left"></i> Return</a> 
         <div class="bgWhite corner15 justifyStart col padding20">
-            <section class="col ">
-                <img class="h80 w80" src="/images/profile.png" alt="">
-                <p class="size28 colorPrimary profile-name">
-                    <%= patient.fName %> <%= patient.mName ? patient.mName + ' ' : '' %><%= patient.lName %>
-                </p>
-                <p class="size16 blue"><%= patient.schoolId || '—' %></p>
-                <p class="size16 gray textWrap textCenter"><%= patient.email %></p>
+            <section class="col">
+                <img class="w80 h80" src="/images/profile.png" alt="">
+                <p class="size28 colorPrimary  textCenter"><%= patient.fName %></p>
+                <p class="size16 colorPrimary  textCenter" style="margin-top: -10px !important;"><%= patient.mName %> <%= patient.lName %> </p>
+                <p class="size14 textGreen600 textWrap textCenter"><%= patient.role || '' %> <i class="bi bi-patch-check-fill"></i></p>
             </section>
             <section class="col gap5">
                 <a href="/cr/<%= patient._id %>" class="nav pnav width100">Consultation Record</a>
@@ -56,46 +54,48 @@
         </div>
     
         <div class="height0 justifyStart gap10 padding0 ">
-            <section class="left width100 bgWhite corner14 col alignStart padding15 borderGray relative height0">
+            <section class="left width100 bgWhite corner14 col alignStart padding15 borderblack relative height0">
                 <a href="javascript:void(0)"class="nav cnav absolute right16 top10 lgBtn"data-target="editForm">
                     <i class="fas fa-pen"></i>
                 </a>
                 <p class="size20 str400">Personal Details</p>
-                <p class="size14 gray">Gender: <%= patient.gender || '—' %></p>
-                <p class="size14 gray">Address: <%= patient.address || '—' %></p>
-                <p class="size14 gray">Date of Birth: <%= (patient.bMonth && patient.bDay && patient.bYear) ? new Date(patient.bYear, patient.bMonth - 1, patient.bDay).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : (dob || '—') %></p>
+                <p class="size14 black">Gender: <%= patient.gender || '—' %></p>
+                <p class="size14 black">Address: <%= patient.address || '—' %></p>
+                <p class="size14 black">Date of Birth: <%= (patient.bMonth && patient.bDay && patient.bYear) ? new Date(patient.bYear, patient.bMonth - 1, patient.bDay).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : (dob || '—') %></p>
             </section>
         </div>
         
-        <section class="left width100 bgWhite corner14 col alignStart gap5 padding10 borderGray relative height0">
+        <section class="left width100 bgWhite corner14 col alignStart gap5 padding10 borderblack relative height0">
             <a href="javascript:void(0)"class="nav cnav absolute right16 top10 lgBtn"data-target="eseditForm">
                 <i class="fas fa-pen"></i>
             </a>
             <p class="size20 str400">School Information</p>
-            <p class="size14 gray">School ID: <%= patient.schoolId || '—' %></p>
-            <p class="size14 gray">Year Level: <%= patient.yearLevel || '—' %></p>
-            <p class="size14 gray">Course: <%= patient.course || '—' %></p>
-            <p class="size14 gray">Campus: <%= patient.campus || '—' %></p>
+            <p class="size14 black">Campus: <%= patient.campus || '—' %></p>
+            
+            <p class="size14 black">Email: <%= patient.email || 'N/A' %></p>
+            <p class="size14 black">School ID: <%= patient.schoolId || '—' %></p>
+            <p class="size14 black">Year Level: <%= patient.yearLevel || '—' %></p>
+            <p class="size14 black">Course: <%= patient.course || '—' %></p>
         </section>
             
         <div class="height0 gap10">
-            <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height100">
+            <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderblack relative height100">
                 <a href="javascript:void(0)"class="nav cnav absolute right16 top10 lgBtn"data-target="eaeditForm">
                     <i class="fas fa-pen"></i>
                 </a>
                 <p class="size20 str400">Allergies</p>
-                <p class="size14 gray">Food Allergies: <%= patient.fAllergy || 'None' %></p>
-                <p class="size14 gray">Medicines Allergies: <%= patient.mAllergy || 'None' %></p>
-                <p class="size14 gray hidden">Other Allergies: <%= patient.oAllergy || 'None' %></p>
+                <p class="size14 black">Food Allergies: <%= patient.fAllergy || 'None' %></p>
+                <p class="size14 black">Medicines Allergies: <%= patient.mAllergy || 'None' %></p>
+                <p class="size14 black hidden">Other Allergies: <%= patient.oAllergy || 'None' %></p>
             </section>
-            <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0">
+            <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderblack relative height0">
                 <a href="javascript:void(0)"class="nav cnav absolute right16 top10 lgBtn"data-target="eceditForm">
                     <i class="fas fa-pen"></i>
                 </a>
                 <p class="size20 str400">Emergency Contact</p>
-                <p class="size14 gray">Name: <%= patient.eName || '—' %></p>
-                <p class="size14 gray">Contact: <%= patient.ePhone || '—' %></p>
-                <p class="size14 gray">Address: <%= patient.eAddress || '—' %></p>
+                <p class="size14 black">Name: <%= patient.eName || '—' %></p>
+                <p class="size14 black">Contact: <%= patient.ePhone || '—' %></p>
+                <p class="size14 black">Address: <%= patient.eAddress || '—' %></p>
             </section>
         </div>
     </div>
@@ -120,7 +120,7 @@
             <p class="size16">Address: <%= patient.address || '—' %></p>
             <p class="size16">Contact Number: <%= patient.phone || '—' %></p>
         </section>
-        <section class="bgGray padding5">
+        <section class="bgblack padding5">
             <p class="size18 str500 upperCase">MEDICAL CONCERNS</p>
         </section>
         <section class="">
@@ -131,7 +131,7 @@
                 <p class="size16">Health History: </p>
             </section>
         </section>
-        <section class="bgGray padding5">
+        <section class="bgblack padding5">
             <p class="size18 str500 upperCase">EMERGENCY CONTACT</p>
         </section>
         <section class="t">

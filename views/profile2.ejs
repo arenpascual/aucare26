@@ -213,14 +213,12 @@
         <div class="padding10 width25 height100 col alignStart gap15 j">
             <a href="/h" class="nav"><i class="fas fa-chevron-left"></i> Return</a> 
             <div class="bgWhite corner15 justifyStart col padding20 jr2">
-                <section class="col ">
-                    <img class="h100 w100 bura corner500" src="/images/profile.png" alt="">
-                    <p class="size28 colorPrimary profile-name">
-                        <%= user.fName %> <%= user.mName %> <%= user.lName %> <%= user.xName %>
-                    </p>
-                    <p class="size16 blue"> <%= user.schoolId %></p>
-                    <p class="size16 gray"><%= user.email %></p>
-                </section>
+                <section class="col">
+                <img class="w80 h80" src="/images/profile.png" alt="">
+                <p class="size28 colorPrimary  textCenter"><%= user.fName %></p>
+                <p class="size16 colorPrimary  textCenter" style="margin-top: -10px !important;"><%= user.mName %> <%= user.lName %> <%= user.xName %></p>
+                <p class="size16 textGreen600 textWrap textCenter"><%= user.role || '' %> <i class="bi bi-patch-check-fill"></i></p>
+        </section>
                 <section class="col gap5">
                     <a href="javascript:void(0)" id="openPassword" class="nav pnav width100">
                         Change Password
@@ -247,12 +245,14 @@
                     <p class="size14 gray">Contact: <%= user.phone %></p>
                     <p class="size14 gray">Address: <%= user.address %></p>
                     <p class="size14 gray">Date of Birth: <%= ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][user.bMonth] || user.bMonth %> <%= user.bDay %>, <%= user.bYear %></p>
+                    <p class="size14 opacity0">hehehe</p>
 
                 </section>
                 <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderGray relative height0 lk1">
                     <a href="javascript:void(0)" class="nav cnav absolute right16 top10 lgBtn" data-target="eseditForm"><i class="fas fa-pen"></i></a>
                     <p class="size20 str400">School Information</p>
                     <p class="size14 gray">Campus: <%= user.campus %></p>
+                    <p class="size14 gray">Email: <%= user.email %></p>
                     <p class="size14 gray">School ID: <%= user.schoolId %></p>
                     <p class="size14 gray">Year Level: <%= user.yearLevel %></p>
                     <p class="size14 gray">Course: <%= user.course %></p>

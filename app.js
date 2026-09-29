@@ -2596,6 +2596,67 @@ app.get('/ra', async (req, res) => {
     res.render('RequestArchive', { title: 'RequestArchive', active: 'ra' });
 });
 
+app.get('/uav/:id', isLogin, async (req, res) => {
+    try {
+        const patient = await Users.findOne({
+            _id: req.params.id,
+            archive: true
+        }).lean();
+
+        if (!patient) {
+            req.session.error = "Archived user not found.";
+            return req.session.save(() => res.redirect('/ua'));
+        }
+
+        const dob = (patient.bMonth && patient.bDay && patient.bYear)
+            ? `${patient.bMonth}/${patient.bDay}/${patient.bYear}`
+            : 'N/A';
+
+        const fullName = [patient.fName, patient.mName, patient.lName, patient.xName]
+            .filter(Boolean)
+            .join(' ');
+
+        res.render('UserArchiveView', {
+            title: 'UserArchiveView',
+            active: 'um',
+            patient,
+            dob,
+            fullName
+        });
+    } catch (err) {
+        console.error('UserArchiveView Fetch Error:', err.message);
+        req.session.error = "Failed to load archived user details.";
+        res.redirect('/ua');
+    }
+});
+
+app.get('/paa', isLogin, async (req, res) => {
+    try {
+        const viewer = req.session.user;
+
+        const filter = { verify: true, archive: true };
+        if (['Admin', 'Sub Admin'].includes(viewer.role)) {
+            filter.campus = viewer.campus;
+        }
+
+        const declinedUsers = await Users.find(filter).sort({ _id: -1 }).lean();
+
+        res.render('PendingAccArchive', {
+            title: 'PendingAccArchive',
+            active: 'paa',
+            declinedUsers
+        });
+    } catch (err) {
+        console.error('Pending Archive Fetch Error:', err.message);
+        req.session.error = "Failed to load declined accounts.";
+        res.redirect('/pd');
+    }
+});
+
+app.get('/pav', async (req, res) => {
+    res.render('PendingArchiveView', { title: 'PendingArchiveView', active: 'pav' });
+});
+
 
 app.get('/seed-admins', async (req, res) => {
     try {
@@ -4482,8 +4543,17 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
 app.post('/api/users/reject/:id', isLogin, async (req, res) => {
     try {
         const { id } = req.params;
+        const reason = (req.body.reason || '').trim();
 
-        const user = await Users.findByIdAndDelete(id);
+        const user = await Users.findOneAndUpdate(
+            { _id: id, verify: true, archive: false },
+            {
+                archive: true,
+                declineReason: reason,
+                declinedAt: Date.now()
+            },
+            { new: true }
+        );
 
         if (!user) {
             return res.json({ success: false, message: 'User not found.' });
@@ -4491,7 +4561,7 @@ app.post('/api/users/reject/:id', isLogin, async (req, res) => {
 
         await Logs.create({
             who: req.session.user._id,
-            what: `Rejected pending account: ${user.username} (${user.fName} ${user.lName})`,
+            what: `Declined pending account: ${user.username} (${user.fName} ${user.lName})${reason ? ' - Reason: ' + reason : ''}`,
             archive: false
         });
 
@@ -4499,7 +4569,7 @@ app.post('/api/users/reject/:id', isLogin, async (req, res) => {
 
     } catch (err) {
         console.error('Reject Error:', err);
-        res.json({ success: false, message: 'Failed to reject account.' });
+        res.json({ success: false, message: 'Failed to decline account.' });
     }
 });
 

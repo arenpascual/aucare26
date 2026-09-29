@@ -18,6 +18,9 @@ const userSchema = new mongoose.Schema({
   suspendAt: { type: Date },
   isSuspend: { type: String, trim: true },
 
+  declineReason: { type: String, default: '' },
+  declinedAt: { type: Date, default: null },
+
   role: {
     type: String,
     enum: ['Student','Admin','Sub Admin','Super Admin', 'Faculty','Staff','Seed','Dev'],

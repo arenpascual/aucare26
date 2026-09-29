@@ -1,0 +1,56 @@
+<% layout('layout') %>
+
+<div class="gap10 polaroid alignStart">
+    <div class="padding10 width28 height100 col alignStart gap15">
+        <a href="/ua" class="nav"><i class="fas fa-chevron-left"></i> Return</a>
+        <div class="bgWhite corner15 justifyStart col padding20">
+            <section class="col">
+                <img class="w80 h80" src="/images/profile.png" alt="">
+                <p class="size28 colorPrimary profile-name textCenter"><%= patient.fName %></p>
+                <p class="size16 colorPrimary profile-name textCenter" style="margin-top: -10px !important;"><%= patient.mName %> <%= patient.lName %> </p>
+                <p class="size14 textGreen600 textWrap textCenter"><%= patient.role || '' %> <i class="bi bi-patch-check-fill"></i></p>
+            </section>
+            <section class="col gap5">
+                <a href="" class="nav pnav width100">Restore</a>
+            </section>
+        </div>
+    </div>
+
+    <div class="width72 col justifyStart padding15 gap15">
+        <div class="height0 justifyBetween gap10 padding0">
+            <p class="size28 str400 blue">Patient's Information</p>
+        </div>
+
+        <div class="height0 justifyStart gap10 padding0">
+            <section class="left width100 bgWhite corner14 col alignStart padding15 borderblack relative height0">
+                <p class="size20 str400">Personal Details</p>
+                <p class="size14 black">Gender: <%= patient.gender || 'N/A' %></p>
+                <p class="size14 black">Address: <%= patient.address || 'N/A' %></p>
+                <p class="size14 black">Date of Birth: <%= dob %></p>
+            </section>
+        </div>
+
+        <section class="left width100 bgWhite corner14 col alignStart gap5 padding10 borderblack relative height0">
+            <p class="size20 str400">School Information</p>
+            <p class="size14 black">Email: <%= patient.email || 'N/A' %></p>
+            <p class="size14 black">Campus: <%= patient.campus || 'N/A' %></p>
+            <p class="size14 black">School ID: <%= patient.schoolId || 'N/A' %></p>
+            <p class="size14 black">Year Level: <%= patient.yearLevel || 'N/A' %></p>
+            <p class="size14 black">Course: <%= patient.course || 'N/A' %></p>
+        </section>
+
+        <div class="height0 gap10">
+            <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderblack relative height100">
+                <p class="size20 str400">Allergies</p>
+                <p class="size14 black">Food Allergies: <%= patient.fAllergy || 'N/A' %></p>
+                <p class="size14 black">Medicines Allergies: <%= patient.mAllergy || 'N/A' %></p>
+            </section>
+            <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderblack relative height0">
+                <p class="size20 str400">Emergency Contact</p>
+                <p class="size14 black">Name: <%= patient.eName || 'N/A' %></p>
+                <p class="size14 black">Address: <%= patient.eAddress || 'N/A' %></p>
+                <p class="size14 black">Contact: <%= patient.ePhone || 'N/A' %></p>
+            </section>
+        </div>
+    </div>
+</div>

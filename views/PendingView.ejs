@@ -20,12 +20,12 @@
 
 <div class="gap20 polaroid alignStart justifyStart row padding20 height90">
     <div class="width25 bgWhite corner15 justifyStart col padding20">
-        <section class="col ">
-            <img class="h80 w80 bura corner500" src="/images/profile.png" alt="">
-            <p class="size28 colorPrimary profile-name ">
-                <%= pendingUser.fName %> <%= pendingUser.mName %> <%= pendingUser.lName %> <%= pendingUser.xName %>
-            </p>
-        </section>
+        <section class="col">
+                <img class="w80 h80" src="/images/profile.png" alt="">
+                <p class="size28 colorPrimary profile-name textCenter"><%= pendingUser.fName %></p>
+                <p class="size16 colorPrimary profile-name textCenter" style="margin-top: -10px !important;"><%= pendingUser.mName %> <%= pendingUser.lName %> <%= pendingUser.xName %> </p>
+                <p class="size14 textGreen600 textWrap textCenter"><%= pendingUser.role || '' %> <i class="bi bi-patch-check-fill"></i></p>
+            </section>
         <section class="col gap5">
             <a href="javascript:void(0)" class="approveBtn nav pnav width100">
                 <i class="fas fa-check"></i> Approve

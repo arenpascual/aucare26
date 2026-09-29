@@ -1,10 +1,11 @@
 <% layout('layout') %>
+
 <div class="height10 justifyBetween">
     
     <div class="width0 ">
-    <a href="/um" class="nav"><i class="fas fa-chevron-left"></i> Return </a> 
+    <a href="/pd" class="nav"><i class="fas fa-chevron-left"></i> Return</a> 
     </div>
-    <p class="size40 str400 "> Archive User Management</p>
+    <p class="size40 str400 "> Pending Account Archive</p>
 </div>
 <div class="height90 col justifyStart padding10">
     <div class="height0 justifyBetween">
@@ -29,25 +30,21 @@
                 <th class="width30">Course</th>
             </tr>
         </thead>
-      <tbody>
-    <% if (allUsers && allUsers.length > 0) { %>
-        <% allUsers.forEach((user, index) => { %>
+            <tbody>
+    <% if (declinedUsers && declinedUsers.length > 0) { %>
+        <% declinedUsers.forEach((u, index) => { %>
             <tr>
                 <td><%= index + 1 %></td>
-                <td>
-                    <a href="/uav/<%= user._id %>" class="underline navy">
-                        <%= user.fName %> <%= user.lName %>
-                    </a>
-                </td>
-                <td><%= user.schoolId || '—' %></td>
-                <td><%= user.email || '—' %></td>
-                <td><%= user.role %></td>
-                <td><%= user.course || '—' %></td>
+                 <td><a href="/pav" class="underline navy"><%= u.fName %> <%= u.lName %></a></td>
+                <td><%= u.schoolId || '—' %></td>
+                <td><%= u.email || '—' %></td>
+                <td><%= u.role %></td>
+                <td><%= u.course || '—' %></td>
             </tr>
         <% }) %>
     <% } else { %>
         <tr>
-            <td colspan="6" class="center">No archived users found.</td>
+            <td colspan="6" class="center">No declined accounts.</td>
         </tr>
     <% } %>
 </tbody>

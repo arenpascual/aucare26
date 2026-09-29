@@ -238,19 +238,17 @@
     background:#400291;
 }
 .mainf {
-    padding: 5;
+    padding: 0;
 }
 </style>
 
 <div class="gap20 polaroid alignStart justifyStart row padding20">
     <div class="width25 bgWhite corner15 justifyStart col padding20">
-        <section class="col ">
-            <img class="h100 w100 bura corner500" src="/images/profile.png" alt="">
-            <p class="size28 colorPrimary profile-name">
-                <%= user.fName %> <%= user.mName %> <%= user.lName %> <%= user.xName %>
-            </p>
-            <p class="size16 blue"><%= user.schoolId %></p>
-            <p class="size16 gray"><%= user.email %></p>
+        <section class="col">
+                <img class="w80 h80" src="/images/profile.png" alt="">
+                <p class="size28 colorPrimary  textCenter"><%= user.fName %></p>
+                <p class="size16 colorPrimary  textCenter" style="margin-top: -10px !important;"><%= user.mName %> <%= user.lName %> <%= user.xName %></p>
+                <p class="size16 textGreen600 textWrap textCenter"><%= user.role || '' %> <i class="bi bi-patch-check-fill"></i></p>
         </section>
         <section class="col gap5">
             <a href="javascript:void(0)" id="editCard" class="nav pnav width100">
@@ -341,8 +339,8 @@
     </div>
 
 
-
-<form id="editForm" action="/profile/update" method="POST" class="width50 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden" style="z-index:700;" novalidate>
+<div class="bgModal1 absolute translateCenter hidden"  id="editForm">
+    <form  action="/profile/update" method="POST" class="width50 col justifyStart alignStart padding20 gap5 height0 shadow1 " style="z-index:700;" novalidate>
     <p class="size28 str500">Edit Information</p>
     <section class="gap10 padding0">
         <div class="field ">
@@ -472,8 +470,8 @@
         <button type="submit" class="nav pnav width100">Save Changes</button>
     </section>
 </form>
-      
-        
+</div>
+
 </div>
 <div id="modal" class="modal hidden">
     <!-- PASSWORD CARD -->
