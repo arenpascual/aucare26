@@ -329,9 +329,18 @@
                     <label>Email</label>
                     <input type="email" name="email" id="email" maxlength="100" pattern="^[A-Za-z0-9._%+\-]+@phinmaed\.com$" title="Gumamit ng valid na @phinmaed.com email address" required>
                 </div>
-                <div class="field">
-                    <label id="schoolIdLabel">School ID</label>
-                    <input type="text" name="schoolId" id="schoolId" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
+               <div class="field">
+                        <label id="schoolIdLabel">School ID</label>
+                        <input
+                            type="text"
+                            name="schoolId"
+                            id="schoolId"
+                            maxlength="14"
+                            placeholder="01-2223-037126"
+                            autocomplete="off"
+                            required
+                        >
+                    <small id="schoolIdHint" style="color: #777;"></small>
                 </div>
                 <div class="field">
                     <label>Campus</label>
@@ -588,38 +597,212 @@
     alphaNumericLive(document.getElementById('section'), '\\-');
     alphaNumericLive(document.getElementById('course'), '\\-&.,()\\/');
 
-    // ---- Role-based field toggling (Student vs Faculty/Staff) ----
-    const roleSelect = document.getElementById('roleSelect');
-    const yearLevelField = document.getElementById('yearLevelField');
-    const courseField = document.getElementById('courseField');
-    const yearLevelSelect = document.getElementById('yearLevel');
-    const courseSelect = document.getElementById('course');
-    const schoolIdLabel = document.getElementById('schoolIdLabel');
+// ============================================================
+// ROLE-BASED FIELD TOGGLING + SCHOOL ID FORMAT
+// ============================================================
 
-    function applyRoleVisibility(){
-        if (!roleSelect) return;
-        const isStudent = roleSelect.value === 'Student';
+const roleSelect = document.getElementById('roleSelect');
+const yearLevelField = document.getElementById('yearLevelField');
+const courseField = document.getElementById('courseField');
+const yearLevelSelect = document.getElementById('yearLevel');
+const courseSelect = document.getElementById('course');
 
-        if (yearLevelField) yearLevelField.style.display = isStudent ? '' : 'none';
-        if (courseField) courseField.style.display = isStudent ? '' : 'none';
-        if (yearLevelSelect) {
-            yearLevelSelect.required = isStudent;
-            if (!isStudent) yearLevelSelect.value = '';
-        }
-        if (courseSelect) {
-            courseSelect.required = isStudent;
-            if (!isStudent) courseSelect.value = '';
-        }
+const schoolIdLabel = document.getElementById('schoolIdLabel');
+const schoolIdInput = document.getElementById('schoolId');
+const schoolIdHint = document.getElementById('schoolIdHint');
 
-        if (schoolIdLabel) {
-            schoolIdLabel.textContent = isStudent ? 'School ID' : 'Employee ID';
+// ------------------------------------------------------------
+// APPLY ROLE VISIBILITY
+// ------------------------------------------------------------
+
+function applyRoleVisibility() {
+
+    if (!roleSelect) return;
+
+    const role = roleSelect.value;
+    const isStudent = role === 'Student';
+    const isFaculty = role === 'Faculty';
+
+    // Student-only fields
+    if (yearLevelField) {
+        yearLevelField.style.display = isStudent ? '' : 'none';
+    }
+
+    if (courseField) {
+        courseField.style.display = isStudent ? '' : 'none';
+    }
+
+    if (yearLevelSelect) {
+        yearLevelSelect.required = isStudent;
+
+        if (!isStudent) {
+            yearLevelSelect.value = '';
         }
     }
 
-    if (roleSelect) {
-        roleSelect.addEventListener('change', applyRoleVisibility);
-        applyRoleVisibility();
+    if (courseSelect) {
+        courseSelect.required = isStudent;
+
+        if (!isStudent) {
+            courseSelect.value = '';
+        }
     }
+
+    // --------------------------------------------------------
+    // SCHOOL ID FORMAT BASED ON ROLE
+    // --------------------------------------------------------
+
+    if (isStudent) {
+
+        schoolIdLabel.textContent = 'School ID';
+
+        schoolIdInput.placeholder = '01-2223-037126';
+        schoolIdInput.maxLength = 14;
+        schoolIdInput.inputMode = 'numeric';
+
+        schoolIdInput.pattern = '^\\d{2}-\\d{4}-\\d{6}$';
+
+        schoolIdInput.title =
+            'Student School ID must follow the format 01-2223-037126';
+
+
+    } else if (isFaculty) {
+
+        schoolIdLabel.textContent = 'Employee ID';
+
+        schoolIdInput.placeholder = 'AU2026-073123';
+        schoolIdInput.maxLength = 13;
+        schoolIdInput.inputMode = 'text';
+
+        schoolIdInput.pattern = '^AU\\d{4}-\\d{6}$';
+
+        schoolIdInput.title =
+            'Faculty Employee ID must follow the format AU2026-073123';
+
+
+    } else{ 
+
+        schoolIdLabel.textContent = 'Employee ID';
+
+        schoolIdInput.placeholder = 'AU2026-073123';
+        schoolIdInput.maxLength = 13;
+        schoolIdInput.inputMode = 'text';
+
+        schoolIdInput.pattern = '^AU\\d{4}-\\d{6}$';
+
+        schoolIdInput.title =
+            'Staff Employee ID must follow the format AU2026-073123';
+
+    }
+
+    // Clear old value when switching roles
+    schoolIdInput.value = '';
+
+    schoolIdInput.setCustomValidity('');
+}
+
+// ------------------------------------------------------------
+// STUDENT SCHOOL ID FORMAT
+// 01-2223-037126
+// ------------------------------------------------------------
+
+function formatStudentSchoolId(value) {
+
+    let digits = value.replace(/\D/g, '').slice(0, 12);
+
+    if (digits.length > 6) {
+
+        return digits.slice(0, 2) + '-' +
+               digits.slice(2, 6) + '-' +
+               digits.slice(6);
+
+    } else if (digits.length > 2) {
+
+        return digits.slice(0, 2) + '-' +
+               digits.slice(2);
+
+    }
+
+    return digits;
+}
+
+// ------------------------------------------------------------
+// FACULTY EMPLOYEE ID FORMAT
+// AU2026-073123
+// ------------------------------------------------------------
+
+function formatFacultySchoolId(value) {
+
+    let cleaned = value.toUpperCase();
+
+    // Remove invalid characters
+    cleaned = cleaned.replace(/[^A-Z0-9]/g, '');
+
+    // If user completely deletes the input, keep it empty
+    if (cleaned === '') {
+        return '';
+    }
+
+    // Remove AU prefix if present
+    cleaned = cleaned.replace(/^AU/, '');
+
+    // Numbers only after AU
+    let digits = cleaned.replace(/\D/g, '').slice(0, 10);
+
+    // If empty after cleaning, don't force AU
+    if (digits === '') {
+        return '';
+    }
+
+    if (digits.length > 4) {
+
+        return 'AU' +
+               digits.slice(0, 4) +
+               '-' +
+               digits.slice(4);
+
+    }
+
+    return 'AU' + digits;
+}
+
+// ------------------------------------------------------------
+// LIVE SCHOOL ID FORMATTING
+// ------------------------------------------------------------
+
+schoolIdInput.addEventListener('input', function () {
+
+    const role = roleSelect.value;
+
+    if (role === 'Student') {
+
+        // Student: automatic format
+        this.value = formatStudentSchoolId(this.value);
+
+    } else if (role === 'Faculty') {
+
+        // Faculty: manual typing only
+        // No automatic AU prefix or hyphen
+
+        this.value = this.value.toUpperCase();
+
+    }
+
+    this.setCustomValidity('');
+
+});
+
+// ------------------------------------------------------------
+// ROLE CHANGE EVENT
+// ------------------------------------------------------------
+
+if (roleSelect) {
+
+    roleSelect.addEventListener('change', applyRoleVisibility);
+
+    applyRoleVisibility();
+
+}
 
 
     // Day: digits only, and never let it exceed 31 (or 29/30 depending on month, checked on step validation too)

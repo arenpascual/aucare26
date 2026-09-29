@@ -464,7 +464,7 @@ app.post('/login', async (req, res) => {
             } else if (['Student'].includes(user.role)) {
                 return res.redirect('/h');
             } else {
-                return res.redirect('/h');
+                return res.redirect('/');
             }
         });
 
