@@ -6,12 +6,14 @@
         <div class="bgWhite corner15 justifyStart col padding20">
             <section class="col">
                 <img class="w80 h80" src="/images/profile.png" alt="">
-                <p class="size28 colorPrimary profile-name textCenter">Jess Pagaling</p>
-                <p class="size16 colorPrimary profile-name textCenter" style="margin-top: -10px !important;">Nunez Pagaling </p>
-                <p class="size14 textGreen600 textWrap textCenter">Student <i class="bi bi-patch-check-fill"></i></p>
-            </section>
+                <p class="size28 colorPrimary  textCenter"><%= patient.fName %></p>
+                <p class="size16 colorPrimary  textCenter" style="margin-top: -10px !important;"><%= patient.mName %> <%= patient.lName %> <%= patient.xName %></p>
+                <p class="size16 textGreen600 textWrap textCenter"><%= patient.role || '' %> <i class="bi bi-patch-check-fill"></i></p>
+        </section>
             <section class="col gap5">
-                <a href="" class="nav pnav width100">Restore</a>
+                <form action="/pav/restore/<%= patient._id %>" method="POST" class="width100"  onsubmit="return confirm('Restore this account to Pending Accounts?');">
+                    <button type="submit" class="nav pnav width100">Restore</button>
+                </form>
             </section>
         </div>
     </div>
@@ -24,33 +26,41 @@
         <div class="height0 justifyStart gap10 padding0">
             <section class="left width100 bgWhite corner14 col alignStart padding15 borderblack relative height0">
                 <p class="size20 str400">Personal Details</p>
-                <p class="size14 black">Gender: </p>
-                <p class="size14 black">Address: </p>
-                <p class="size14 black">Date of Birth: </p>
+                <p class="size14 black">Gender: <%= patient.gender || 'N/A' %></p>
+                <p class="size14 black">Address: <%= patient.address || 'N/A' %></p>
+                <p class="size14 black">Phone: <%= patient.phone || 'N/A' %></p>
+                <p class="size14 black">Date of Birth: <%= (() => { const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; const p = String(dob).split('/'); return p.length === 3 ? m[p[0]-1] + ' ' + parseInt(p[1]) + ', ' + p[2] : dob; })() %></p>
             </section>
         </div>
 
         <section class="left width100 bgWhite corner14 col alignStart gap5 padding10 borderblack relative height0">
             <p class="size20 str400">School Information</p>
-            <p class="size14 black">Email: </p>
-            <p class="size14 black">Campus: </p>
-            <p class="size14 black">School ID: </p>
-            <p class="size14 black">Year Level: </p>
-            <p class="size14 black">Course: </p>
+            <p class="size14 black">Email: <%= patient.email || 'N/A' %></p>
+            <p class="size14 black">Campus: <%= patient.campus || 'N/A' %></p>
+            <p class="size14 black">School ID: <%= patient.schoolId || 'N/A' %></p>
+            <p class="size14 black">Year Level: <%= patient.yearLevel || 'N/A' %></p>
+            <p class="size14 black">Course: <%= patient.course || 'N/A' %></p>
         </section>
 
         <div class="height0 gap10">
             <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderblack relative height100">
                 <p class="size20 str400">Allergies</p>
-                <p class="size14 black">Food Allergies: </p>
-                <p class="size14 black">Medicines Allergies: </p>
+                <p class="size14 black">Food Allergies: <%= patient.fAllergy || 'None' %></p>
+                <p class="size14 black">Medicines Allergies: <%= patient.mAllergy || 'None' %></p>
             </section>
             <section class="left width50 bgWhite corner14 col alignStart gap5 padding15 borderblack relative height0">
                 <p class="size20 str400">Emergency Contact</p>
-                <p class="size14 black">Name: </p>
-                <p class="size14 black">Address: </p>
-                <p class="size14 black">Contact:</p>
+                <p class="size14 black">Name: <%= patient.eName || 'N/A' %></p>
+                <p class="size14 black">Address: <%= patient.eAddress || 'N/A' %></p>
+                <p class="size14 black">Contact: <%= patient.ePhone || 'N/A' %></p>
             </section>
         </div>
+
+        <% if (patient.declineReason) { %>
+        <section class="left width100 bgWhite corner14 col alignStart gap5 padding15 borderblack relative height0">
+            <p class="size20 str400">Decline Reason</p>
+            <p class="size14 black"><%= patient.declineReason %></p>
+        </section>
+        <% } %>
     </div>
 </div>

@@ -49,18 +49,24 @@
 
 <div class="height90 col justifyStart padding10 overflow-y1 block">
     <div class="height0 justifyBetween">
-        <div class="width0">
+        <div class="width0 gap5">
             <div class="selectBar w190">
-                <i class="fas fa-filter"></i>
-                <select name="" id="">
-                    <option value="">Filter By</option>
+                <i class="fas fa-user-tag"></i>
+                <select id="roleFilter">
+                    <option value="">All Roles</option>
+                </select>
+            </div>
+            <div class="selectBar w190">
+                <i class="fas fa-building"></i>
+                <select id="deptFilter">
+                    <option value="">All Departments</option>
                 </select>
             </div>
         </div>
         <div class="width0 gap8 ">
             <div class="searchBar w220">
                 <i class="fas fa-search"></i>
-                <input type="search" name="" id="pendingSearchInput" placeholder="Search name, ID, role, dept...">
+                <input type="search" id="pendingSearchInput" placeholder="Search name, ID, role, dept...">
             </div>
         </div>
     </div>
@@ -79,7 +85,10 @@
         <tbody id="pendingTableBody">
             <% if (pendingUsers && pendingUsers.length > 0) { %>
                 <% pendingUsers.forEach((u, index) => { %>
-                    <tr id="row-<%= u._id %>">
+                    <tr id="row-<%= u._id %>"
+                        data-role="<%= u.role || '' %>"
+                        data-dept="<%= u.course || u.department || '' %>"
+                        data-search="<%= [u.fName, u.lName, u.schoolId, u.role, u.course || u.department].filter(Boolean).join(' ').toLowerCase() %>">
                         <td><%= index + 1 %></td>
                         <td><a href="/pdview/<%= u._id %>" class="underline navy"><%= u.fName %> <%= u.lName %></a></td>
                         <td><%= u.schoolId || '' %></td>
@@ -126,7 +135,6 @@
             <p class="size14 gray textCenter">Please select a reason for declining this request:</p>
         </section>
 
-        <!-- Dynamic Form Options -->
         <form id="declineReasonForm" class="width100 col gap10 padding0">
             <div class="reason-box">
                 <select class="reason-select" id="declineReasonSelect" required>
@@ -139,7 +147,6 @@
                 </select>
             </div>
 
-            <!-- Custom Textarea for "Others" -->
             <div id="customReasonWrapper" class="width100 hidden">
                 <textarea id="customReasonInput" class="custom-reason-area" rows="3" placeholder="Enter custom reason here..."></textarea>
             </div>
@@ -154,30 +161,52 @@
 
 <script>
 // =============================
-// LIVE SEARCH (Pending Accounts)
+// FILTERS (Role, Department, Search)
 // =============================
-const pendingSearchInput = document.getElementById('pendingSearchInput');
-const pendingTableBody = document.getElementById('pendingTableBody');
-const noResultsMsg = document.getElementById('noResultsMsg');
+(function () {
+    const tbody = document.getElementById('pendingTableBody');
+    const roleSel = document.getElementById('roleFilter');
+    const deptSel = document.getElementById('deptFilter');
+    const searchInput = document.getElementById('pendingSearchInput');
+    const noResults = document.getElementById('noResultsMsg');
+    if (!tbody) return;
 
-if (pendingSearchInput && pendingTableBody) {
-    pendingSearchInput.addEventListener('input', function () {
-        const query = this.value.trim().toLowerCase();
-        const rows = Array.from(pendingTableBody.querySelectorAll('tr'));
-        let visibleCount = 0;
+    const getRows = () => Array.from(tbody.querySelectorAll('tr[data-role]'));
 
-        rows.forEach(row => {
-            const rowText = row.textContent.toLowerCase();
-            const matches = rowText.includes(query);
-            row.style.display = matches ? '' : 'none';
-            if (matches) visibleCount++;
+    function fillSelect(select, attr, allLabel) {
+        select.innerHTML = `<option value="">${allLabel}</option>`;
+        [...new Set(getRows().map(r => r.dataset[attr]).filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b))
+            .forEach(v => select.add(new Option(v, v)));
+    }
+    fillSelect(roleSel, 'role', 'All Roles');
+    fillSelect(deptSel, 'dept', 'All Departments');
+
+    function applyFilters() {
+        const role = roleSel.value;
+        const dept = deptSel.value;
+        const q = searchInput.value.trim().toLowerCase();
+        let visible = 0;
+
+        getRows().forEach(row => {
+            const ok =
+                (!role || row.dataset.role === role) &&
+                (!dept || row.dataset.dept === dept) &&
+                (!q || row.dataset.search.includes(q));
+            row.style.display = ok ? '' : 'none';
+            if (ok) row.cells[0].textContent = ++visible;
         });
 
-        if (noResultsMsg) {
-            noResultsMsg.classList.toggle('hidden', visibleCount > 0);
-        }
-    });
-}
+        noResults.classList.toggle('hidden', visible > 0 || getRows().length === 0);
+    }
+
+    roleSel.addEventListener('change', applyFilters);
+    deptSel.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+
+    // Mag-re-apply kapag may na-remove na row (after approve/decline)
+    new MutationObserver(applyFilters).observe(tbody, { childList: true });
+})();
 
 // =============================
 // APPROVE MODAL
@@ -227,7 +256,7 @@ appApproveBtn.addEventListener('click', async function () {
 });
 
 // =============================
-// ENHANCED REJECT MODAL LOGIC
+// REJECT MODAL LOGIC
 // =============================
 const rejnotif = document.getElementById('rejnotif');
 const rejCancelBtn = document.getElementById('rejCancelBtn');
@@ -238,7 +267,6 @@ const customReasonInput = document.getElementById('customReasonInput');
 
 let selectedRejectId = null;
 
-// Open modal
 document.querySelectorAll('.rejectBtn').forEach(btn => {
     btn.addEventListener('click', function () {
         selectedRejectId = this.dataset.id;
@@ -249,7 +277,6 @@ document.querySelectorAll('.rejectBtn').forEach(btn => {
     });
 });
 
-// Toggle Custom Reason Textarea
 declineReasonSelect.addEventListener('change', function () {
     if (this.value === 'Others') {
         customReasonWrapper.classList.remove('hidden');
@@ -261,14 +288,12 @@ declineReasonSelect.addEventListener('change', function () {
     }
 });
 
-// Close modal
 rejCancelBtn.addEventListener('click', function (e) {
     e.preventDefault();
     rejnotif.classList.add('hidden');
     selectedRejectId = null;
 });
 
-// Submit Decline Form with Reason
 declineReasonForm.addEventListener('submit', async function (e) {
     e.preventDefault();
     if (!selectedRejectId) return;

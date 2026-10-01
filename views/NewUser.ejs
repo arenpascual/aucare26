@@ -1,4 +1,9 @@
 <% layout('layout') %>
+<%
+    const viewer = (typeof user !== 'undefined' && user) ? user : null;
+    const isSuperAdmin = viewer && viewer.role === 'Super Admin';
+    const fixedCampus = (viewer && viewer.campus) ? viewer.campus : '';
+%>
 <style>
     div {
     display: flex;
@@ -72,16 +77,18 @@
         <div class="up height0 padding10 block width90">
         <br>
         <form id="registrationForm"
-      action="/signup"
+      action="/new-user"
       method="POST"
       class="bgWhite shadow1 height0 gap10 padding15 width100 justifyStart"
       novalidate>
             <p class="size20 str500">New User</p>
+
+            <!-- STEP 1 -->
             <div class="form-section active" id="step-1">
                 <div class="field">
                     <label>Role</label>
                     <div class="selectBar">
-                        <select name="role" required>
+                        <select name="role" id="roleSelect" required>
                             <option value="" selected disabled>--Select--</option>
                             <option value="Student">Student</option>
                             <option value="Staff">Staff</option>
@@ -154,7 +161,8 @@
                 </div>
 
                 <div class="pagination-buttons">
-                    <div class="side-spacer"></div> <div class="pagination-wrapper">
+                    <div class="side-spacer"></div>
+                    <div class="pagination-wrapper">
                         <span class="nav-arrow">&lt;</span>
                         <div class="step-circle active">1</div>
                         <div class="step-circle">2</div>
@@ -167,37 +175,54 @@
                 </div>
             </div>
 
+            <!-- STEP 2 -->
             <div class="form-section" id="step-2">
                 <div class="field">
                     <label>Address</label>
-                        <input type="text" name="address" id="address" placeholder="Street No#, Barangay, City, Province" maxlength="150" pattern="^[A-Za-z0-9\s\-.']+$" title="Letters and numbers only" required>
-                    <p class="field-error" id="addressError"></p>
-                    <!-- Auto-filled na buo address, ito yung ipapasa sa backend -->
-                    <input type="hidden" name="address" id="address">
-                </div>
-                <div class="field">
-                    <label>Email</label>
-                    <input type="email" name="email" id="email" maxlength="100" required>
-                </div>
-                <div class="field">
-                    <label>School ID</label>
-                    <input type="text" name="schoolId" id="schoolId" maxlength="20" pattern="^[A-Za-z0-9\-]+$" title="Letters, numbers and hyphens only" required>
-                </div>
-                <div class="field">
-                    <label>Campus</label>
-                    <div class="selectBar">
-                        <select name="campus" required>
-                            <option value="" selected disabled>--Select--</option>
-                            <option value="Main">Main</option>
-                            <option value="South">South</option>
-                            <option value="San Jose">San Jose</option>
-                        </select>
+                    <div class="row gap5">
+                        <input type="text" name="address" id="address" placeholder="Street No#, Barangay, City, Province" maxlength="150" pattern="^[A-Za-z0-9À-ÿ\s\-.,#'\/]+$" title="Letters, numbers, and common address symbols only (# , . - ' /)" required>
                     </div>
                 </div>
                 <div class="field">
+                    <label>Email</label>
+                    <input type="email" name="email" id="email" maxlength="100" pattern="^[A-Za-z0-9._%+\-]+@phinmaed\.com$" title="Gumamit ng valid na @phinmaed.com email address" required>
+                </div>
+                <div class="field">
+                    <label id="schoolIdLabel">School ID</label>
+                    <input
+                        type="text"
+                        name="schoolId"
+                        id="schoolId"
+                        maxlength="14"
+                        placeholder="01-2223-037126"
+                        autocomplete="off"
+                        required
+                    >
+                    <small id="schoolIdHint" style="color: #777;"></small>
+                </div>
+
+                <!-- CAMPUS: Super Admin lang ang may dropdown. Admin / Sub Admin = naka-fix sa sariling campus -->
+                <div class="field">
+                    <label>Campus</label>
+                    <% if (isSuperAdmin) { %>
+                        <div class="selectBar">
+                            <select name="campus" required>
+                                <option value="" selected disabled>--Select--</option>
+                                <option value="Main">Main</option>
+                                <option value="South">South</option>
+                                <option value="San Jose">San Jose</option>
+                            </select>
+                        </div>
+                    <% } else { %>
+                        <input type="text" value="<%= fixedCampus || 'No campus assigned' %>" disabled>
+                        <input type="hidden" name="campus" value="<%= fixedCampus %>">
+                    <% } %>
+                </div>
+
+                <div class="field" id="yearLevelField">
                     <label>Year Level</label>
                     <div class="selectBar">
-                        <select name="yearLevel" required>
+                        <select name="yearLevel" id="yearLevel" required>
                             <option value="" selected disabled>--Select--</option>
                             <option value="4th Year">4th Year</option>
                             <option value="3rd Year">3rd Year</option>
@@ -207,8 +232,8 @@
                     </div>
                 </div>
                 <div class="field" id="courseField">
-                        <label>Course</label>
-                        <div class="selectBar">
+                    <label>Course</label>
+                    <div class="selectBar">
                         <select name="course" id="course" required>
                             <option value="Bachelor of Arts in Political Science">Bachelor of Arts in Political Science</option>
                             <option value="Bachelor of Early Childhood Education">Bachelor of Early Childhood Education</option>
@@ -275,6 +300,7 @@
                 </div>
             </div>
 
+            <!-- STEP 3 -->
             <div class="form-section" id="step-3">
                 <div class="field">
                     <label>Any Allergies to Medicines?</label>
@@ -311,7 +337,6 @@
                     <input type="text" name="eAddress" maxlength="150" required>
                 </div>
 
-
                 <div class="pagination-buttons">
                     <div class="side-spacer">
                         <button type="button" id="prev3" class="nav pnav width100">Previous</button>
@@ -332,14 +357,14 @@
         </form>
     </div>
     
-    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="notificationBox">
-        <img class="h100 w100" src="/images/like.png" alt="">
-            <section class="padding0 col alignCenter">
-        <p class="size23 str500">Request Submitted</p>
-        <p class="size17">Wait for the admin's approval within this day.</p>
-            </section>
-        <a class="nav w120 size15" href="/" id="gotItBtn">Got It!</a>
+    <section class="absolute translateCenter shadow3 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="notificationBox" style="width: 380px !important; max-width: 90vw !important; box-sizing: border-box;">
+    <img class="h100 w100" src="/images/like.png" alt="" style="width: 100px; height: 100px;">
+    <section class="padding0 col alignCenter" style="width: 100%;">
+        <p class="size23 str500 textCenter textBalance">Account Created</p>
+        <p class="size17 textCenter textBalance">A temporary password has been sent to the user's email.</p>
     </section>
+    <a class="nav pnav w120 size15" href="/um" id="gotItBtn">Got It!</a>
+</section>
 
 </div>
 <script>
@@ -354,7 +379,7 @@
 
     // ---- Live clamp: digits only, and cap length (para sa phone numbers) ----
     function digitsOnlyLive(input, maxLen){
-        if (!input) return; // huwag mag-error kung walang ganitong field sa form
+        if (!input) return;
         input.addEventListener('input', () => {
             let raw = input.value.replace(/[^0-9]/g, '');
             if (raw.length > maxLen) raw = raw.slice(0, maxLen);
@@ -363,11 +388,8 @@
     }
 
     // ---- Live clamp: letters, spaces, hyphens, apostrophes only (para sa pangalan) ----
-    // Hindi na kelangan mag-type ng number sa mga name fields, kaagad na tatanggalin
-    // ang number/symbol habang nagta-type ang user.
     function lettersOnlyLive(input, extraAllowedChars){
-        if (!input) return; // huwag mag-error kung walang ganitong field sa form
-        // extraAllowedChars = regex character class content na dagdag pa sa letters/space
+        if (!input) return;
         const allowed = new RegExp(`[^A-Za-z\\s${extraAllowedChars || ''}]`, 'g');
         input.addEventListener('input', () => {
             const start = input.selectionStart;
@@ -375,13 +397,11 @@
             const cleaned = before.replace(allowed, '');
             if (cleaned !== before) {
                 input.value = cleaned;
-                // ayusin ang cursor position pagkatapos matanggal ang invalid char
                 const diff = before.length - cleaned.length;
                 const pos = Math.max(0, (start || 0) - diff);
                 input.setSelectionRange(pos, pos);
             }
         });
-        // hadlangan din ang paste ng number/invalid characters
         input.addEventListener('paste', (e) => {
             e.preventDefault();
             const text = (e.clipboardData || window.clipboardData).getData('text');
@@ -393,9 +413,9 @@
         });
     }
 
-    // ---- Live clamp: letters and numbers only (para sa text fields na dapat walang special symbols) ----
+    // ---- Live clamp: letters and numbers only ----
     function alphaNumericLive(input, extraAllowedChars){
-        if (!input) return; // huwag mag-error kung walang ganitong field sa form
+        if (!input) return;
         const allowed = new RegExp(`[^A-Za-z0-9\\s${extraAllowedChars || ''}]`, 'g');
         input.addEventListener('input', () => {
             const start = input.selectionStart;
@@ -421,32 +441,107 @@
     // Extension name: letters, dots, spaces lang (Jr., Sr., III)
     lettersOnlyLive(document.getElementById('xName'), '.');
 
-    // Address parts: letters lang ang Province/City, letters+numbers ang Barangay
-    lettersOnlyLive(document.getElementById('province'), '\\-.\'');
-    lettersOnlyLive(document.getElementById('city'), '\\-.\'');
-    alphaNumericLive(document.getElementById('barangay'), '\\-.\'');
+    // Address: letters, numbers, at common address symbols na lang ang papayagan
+    alphaNumericLive(document.getElementById('address'), '\\-.,#\'\\/');
 
-    // Kung meron mang text-input version ng section/course sa ibang page, gagana rin ito
-    // dahil may null-guard na; hindi na sila mag-e-error kung wala silang match dito.
     alphaNumericLive(document.getElementById('section'), '\\-');
     alphaNumericLive(document.getElementById('course'), '\\-&.,()\\/');
 
-    // Pagsamahin ang address parts sa hidden "address" field bago mag-submit
-    function buildFullAddress(){
-        const street = document.getElementById('street');
-        const barangay = document.getElementById('barangay');
-        const city = document.getElementById('city');
-        const province = document.getElementById('province');
-        const addressField = document.getElementById('address');
-        if (!street || !barangay || !city || !province || !addressField) return;
+    // ============================================================
+    // ROLE-BASED FIELD TOGGLING + SCHOOL ID FORMAT
+    // ============================================================
+    const roleSelect = document.getElementById('roleSelect');
+    const yearLevelField = document.getElementById('yearLevelField');
+    const courseField = document.getElementById('courseField');
+    const yearLevelSelect = document.getElementById('yearLevel');
+    const courseSelect = document.getElementById('course');
 
-        const parts = [street.value, barangay.value, city.value, province.value]
-            .map(v => v.trim())
-            .filter(v => v.length > 0);
-        addressField.value = parts.join(', ');
+    const schoolIdLabel = document.getElementById('schoolIdLabel');
+    const schoolIdInput = document.getElementById('schoolId');
+
+    function applyRoleVisibility() {
+        if (!roleSelect) return;
+
+        const role = roleSelect.value;
+        const isStudent = role === 'Student';
+        const isFaculty = role === 'Faculty';
+
+        // Student-only fields
+        if (yearLevelField) yearLevelField.style.display = isStudent ? '' : 'none';
+        if (courseField) courseField.style.display = isStudent ? '' : 'none';
+
+        if (yearLevelSelect) {
+            yearLevelSelect.required = isStudent;
+            if (!isStudent) yearLevelSelect.value = '';
+        }
+
+        if (courseSelect) {
+            courseSelect.required = isStudent;
+            if (!isStudent) courseSelect.value = '';
+        }
+
+        // School ID format based on role
+        if (isStudent) {
+            schoolIdLabel.textContent = 'School ID';
+            schoolIdInput.placeholder = '01-2223-037126';
+            schoolIdInput.maxLength = 14;
+            schoolIdInput.inputMode = 'numeric';
+            schoolIdInput.pattern = '^\\d{2}-\\d{4}-\\d{6}$';
+            schoolIdInput.title = 'Student School ID must follow the format 01-2223-037126';
+        } else if (isFaculty) {
+            schoolIdLabel.textContent = 'Employee ID';
+            schoolIdInput.placeholder = 'AU2026-073123';
+            schoolIdInput.maxLength = 13;
+            schoolIdInput.inputMode = 'text';
+            schoolIdInput.pattern = '^AU\\d{4}-\\d{6}$';
+            schoolIdInput.title = 'Faculty Employee ID must follow the format AU2026-073123';
+        } else {
+            schoolIdLabel.textContent = 'Employee ID';
+            schoolIdInput.placeholder = 'AU2026-073123';
+            schoolIdInput.maxLength = 13;
+            schoolIdInput.inputMode = 'text';
+            schoolIdInput.pattern = '^AU\\d{4}-\\d{6}$';
+            schoolIdInput.title = 'Staff Employee ID must follow the format AU2026-073123';
+        }
+
+        // Clear old value when switching roles
+        schoolIdInput.value = '';
+        schoolIdInput.setCustomValidity('');
     }
 
-    // Day: digits only, and never let it exceed 31 (or 29/30 depending on month, checked on step validation too)
+    // Student School ID format: 01-2223-037126
+    function formatStudentSchoolId(value) {
+        let digits = value.replace(/\D/g, '').slice(0, 12);
+
+        if (digits.length > 6) {
+            return digits.slice(0, 2) + '-' + digits.slice(2, 6) + '-' + digits.slice(6);
+        } else if (digits.length > 2) {
+            return digits.slice(0, 2) + '-' + digits.slice(2);
+        }
+        return digits;
+    }
+
+    // Live School ID formatting
+    schoolIdInput.addEventListener('input', function () {
+        const role = roleSelect.value;
+
+        if (role === 'Student') {
+            // Student: automatic format
+            this.value = formatStudentSchoolId(this.value);
+        } else if (role === 'Faculty') {
+            // Faculty: manual typing only
+            this.value = this.value.toUpperCase();
+        }
+
+        this.setCustomValidity('');
+    });
+
+    if (roleSelect) {
+        roleSelect.addEventListener('change', applyRoleVisibility);
+        applyRoleVisibility();
+    }
+
+    // Day: digits only, and never let it exceed 31
     bDayInput.addEventListener('input', () => {
         let raw = bDayInput.value.replace(/[^0-9]/g, '');
         if (raw.length > 2) raw = raw.slice(0, 2);
@@ -458,7 +553,8 @@
     function validateSection(section){
         const inputs = section.querySelectorAll('input, select');
         for (const input of inputs) {
-            if (input.type === 'hidden') continue; // hindi na kailangang i-validate ang hidden address field
+            if (input.type === 'hidden') continue;
+            if (input.offsetParent === null) continue; // laktawan ang mga itinagong field (role-based toggling)
             if (!input.checkValidity()) {
                 input.reportValidity();
                 input.focus();
@@ -477,7 +573,7 @@
         dobError.style.display = 'none';
         dobError.textContent = '';
 
-        if (!month || !day || !year) return true; // let required/pattern handle empties
+        if (!month || !day || !year) return true;
 
         const daysInMonth = new Date(year, month, 0).getDate();
         if (day < 1 || day > daysInMonth) {
@@ -515,10 +611,15 @@
     const gotItBtn = document.getElementById('gotItBtn');
 
     registrationForm.addEventListener('submit', async function (e) {
-        e.preventDefault(); // laging pigilan muna, AJAX na tayo
+        e.preventDefault();
 
-        // Validate every step before submitting (in case step-3 button was
-        // reached without properly passing step 1/2, e.g. via browser autofill)
+        // Admin / Sub Admin: kailangan may valid na campus ang account nila
+        const fixedCampusInput = registrationForm.querySelector('input[type="hidden"][name="campus"]');
+        if (fixedCampusInput && !fixedCampusInput.value) {
+            alert('Your account has no valid campus assigned. Please contact the Super Admin.');
+            return;
+        }
+
         if (!validateSection(step1) || !validateDob()) {
             step1.classList.add('active');
             step2.classList.remove('active');
@@ -534,12 +635,10 @@
             return;
         }
 
-        buildFullAddress(); // isahin ang Province/City/Barangay/Street bago i-submit
-
         try {
             const formData = new URLSearchParams(new FormData(registrationForm));
 
-            const response = await fetch('/signup', {
+            const response = await fetch('/new-user', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: formData
@@ -554,14 +653,14 @@
             }
 
         } catch (err) {
-            console.error('Signup fetch error:', err);
+            console.error('New user fetch error:', err);
             alert("May error habang nagsu-submit. Subukan ulit.");
         }
     });
 
     gotItBtn.addEventListener('click', function (e) {
         e.preventDefault();
-        window.location.href = '/'; // saka lang siya mag-navigate paalis
+        window.location.href = '/um';
     });
 })();
 </script>

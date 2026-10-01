@@ -758,7 +758,7 @@ const DEPARTMENT_COURSES = {
         "Bachelor of Science in Civil Engineering"
     ],
 
-    "College for Information Technology": [
+    "CIT": [
         "Bachelor of Science in Information Technology"
     ],
 
@@ -2653,10 +2653,87 @@ app.get('/paa', isLogin, async (req, res) => {
     }
 });
 
-app.get('/pav', async (req, res) => {
-    res.render('PendingArchiveView', { title: 'PendingArchiveView', active: 'pav' });
+app.get('/pav/:id', isLogin, async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            req.session.error = "Declined account not found.";
+            return req.session.save(() => res.redirect('/paa'));
+        }
+
+        const patient = await Users.findOne({
+            _id: req.params.id,
+            verify: true,
+            archive: true
+        }).lean();
+
+        if (!patient) {
+            req.session.error = "Declined account not found.";
+            return req.session.save(() => res.redirect('/paa'));
+        }
+
+        // Campus scoping: Admin / Sub Admin, sariling campus lang
+        const viewer = req.session.user;
+        if (['Admin', 'Sub Admin'].includes(viewer.role) && viewer.campus !== patient.campus) {
+            req.session.error = "This account belongs to another campus.";
+            return req.session.save(() => res.redirect('/paa'));
+        }
+
+        const dob = (patient.bMonth && patient.bDay && patient.bYear)
+            ? `${patient.bMonth}/${patient.bDay}/${patient.bYear}`
+            : 'N/A';
+
+        const fullName = [patient.fName, patient.mName, patient.lName, patient.xName]
+            .filter(Boolean)
+            .join(' ');
+
+        res.render('PendingArchiveView', {
+            title: 'PendingArchiveView',
+            active: 'pav',
+            patient,
+            dob,
+            fullName
+        });
+    } catch (err) {
+        console.error('PendingArchiveView Fetch Error:', err.message);
+        req.session.error = "Failed to load declined account details.";
+        req.session.save(() => res.redirect('/paa'));
+    }
 });
 
+app.post('/pav/restore/:id', isLogin, async (req, res) => {
+    try {
+        const viewer = req.session.user;
+
+        const filter = { _id: req.params.id, verify: true, archive: true };
+        if (['Admin', 'Sub Admin'].includes(viewer.role)) {
+            filter.campus = viewer.campus;
+        }
+
+        const restored = await Users.findOneAndUpdate(
+            filter,
+            { archive: false, $unset: { declineReason: '', declinedAt: '' } },
+            { new: true }
+        );
+
+        if (!restored) {
+            req.session.error = "Declined account not found.";
+            return req.session.save(() => res.redirect('/paa'));
+        }
+
+        await Logs.create({
+            who: viewer._id,
+            what: `Restored declined account to pending: ${restored.username} (${restored.fName} ${restored.lName})`,
+            archive: false
+        });
+
+        req.session.success = `${restored.fName} ${restored.lName} has been restored to Pending Accounts.`;
+        req.session.save(() => res.redirect('/pd'));
+    } catch (err) {
+        console.error('Restore Declined Account Error:', err.message);
+        req.session.error = "Failed to restore account.";
+        req.session.save(() => res.redirect('/paa'));
+    }
+});
 
 app.get('/seed-admins', async (req, res) => {
     try {
@@ -4235,34 +4312,69 @@ app.post('/visit/medicine/delete/:id', async (req, res) => {
         }
 
         const visit = await Visits.findById(dispensedItem.visitId);
-        const wasDeducted = visit && visit.status === 'Attended';
 
+        if (!visit) {
+            return res.redirect('back');
+        }
+
+        // Check kung na-deduct na ang stock
+        const wasDeducted = visit.status === 'Attended';
+
+        // Kunin ang campus mula sa patient record
+        const patient = await Users.findById(visit.patient);
+
+        if (!patient) {
+            req.session.error = 'Patient record not found. Medicine was not deleted.';
+            return res.redirect(`/vv2/${dispensedItem.visitId}`);
+        }
+
+        // Delete medicine record
         await Dispense.findByIdAndDelete(req.params.id);
 
         let restoredStock = null;
 
+        // Restore stock only if the visit was already attended
         if (wasDeducted) {
             restoredStock = await Stocks.findOneAndUpdate(
-                { name: dispensedItem.item, type: 'medicine' },
-                { $inc: { remaining: dispensedItem.qty } },
-                { new: true }
+                {
+                    name: dispensedItem.item,
+                    type: 'medicine',
+                    campus: patient.campus,
+                    archive: false
+                },
+                {
+                    $inc: {
+                        remaining: dispensedItem.qty
+                    }
+                },
+                {
+                    new: true
+                }
             );
+
+            if (!restoredStock) {
+                console.error(
+                    `Stock not found: ${dispensedItem.item} - ${patient.campus}`
+                );
+
+                req.session.warning =
+                    `Medicine deleted, but stock was not restored because no matching stock was found in ${patient.campus} campus.`;
+            }
         }
 
         await Logs.create({
             who: req.session.user._id,
-            what: !wasDeducted
-                ? `Removed medicine "${dispensedItem.item}" (${dispensedItem.qty} ${dispensedItem.unit}) from visit ID: ${dispensedItem.visitId} (not yet deducted, no stock restore needed)`
-                : restoredStock
-                    ? `Removed medicine "${dispensedItem.item}" (${dispensedItem.qty} ${dispensedItem.unit}) from visit ID: ${dispensedItem.visitId} — stock restored (now ${restoredStock.remaining} ${restoredStock.unit})`
-                    : `Removed medicine "${dispensedItem.item}" from visit ID: ${dispensedItem.visitId} — WARNING: matching stock item not found, stock not restored`,
+            what: `Deleted medicine ${dispensedItem.item} from visit record.`,
             archive: false
         });
 
-        res.redirect(`/vv2/${dispensedItem.visitId}`);
+        return res.redirect(`/vv2/${dispensedItem.visitId}`);
+
     } catch (err) {
-        console.error('Error in medicine delete route:', err.message);
-        res.redirect('back');
+        console.error('Delete Medicine Error:', err);
+
+        req.session.error = 'Failed to delete medicine.';
+        return res.redirect('back');
     }
 });
 
@@ -4426,6 +4538,166 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+// ============================================================
+// NEW USER (Admin / Sub Admin / Super Admin ang gumagawa ng account)
+// Direktang active — walang pending approval
+// ============================================================
+app.post('/new-user', isLogin, async (req, res) => {
+    try {
+        const creator = req.session.user;
+
+        if (!['Super Admin', 'Admin', 'Sub Admin'].includes(creator.role)) {
+            return res.status(403).json({
+                success: false,
+                message: "You are not authorized to create accounts."
+            });
+        }
+
+        const {
+            fName, mName, lName, xName,
+            role,
+            phone, gender, address, email,
+            schoolId, campus, course, yearLevel, section,
+            bDay, bMonth, bYear,
+            fAllergy, mAllergy,
+            eName, ePhone, eAddress
+        } = req.body;
+
+        if (!role || !fName || !lName || !email || !schoolId) {
+            return res.status(400).json({ success: false, message: "Please fill in all required fields." });
+        }
+
+        // Campus: Super Admin = siya ang pipili. Admin / Sub Admin = laging sariling campus.
+        const VALID_CAMPUS = ['South', 'San Jose', 'Main'];
+        let finalCampus;
+
+        if (creator.role === 'Super Admin') {
+            finalCampus = VALID_CAMPUS.includes(campus) ? campus : null;
+        } else {
+            finalCampus = VALID_CAMPUS.includes(creator.campus) ? creator.campus : null;
+        }
+
+        if (!finalCampus) {
+            return res.status(400).json({
+                success: false,
+                message: "No valid campus. Please contact the Super Admin."
+            });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+
+        const emailExist = await Users.findOne({ email: normalizedEmail });
+        if (emailExist) {
+            return res.status(400).json({ success: false, message: "Email already exists." });
+        }
+
+        const schoolIdExist = await Users.findOne({ schoolId });
+        if (schoolIdExist) {
+            return res.status(400).json({ success: false, message: "That School/Employee ID is already registered." });
+        }
+
+        // Temp password — ipapadala sa email ng user
+        const tempPassword = crypto.randomBytes(4).toString('hex');
+
+        const newUser = await Users.create({
+            fName, mName, lName, xName,
+            role,
+            phone, gender, address, email: normalizedEmail,
+            schoolId, campus: finalCampus, course, yearLevel, section,
+            bDay, bMonth, bYear,
+            fAllergy, mAllergy,
+            username: normalizedEmail,
+            password: tempPassword,
+            eName, ePhone, eAddress,
+            archive: false,
+            verify: false,
+            verifyAt: Date.now(),
+            isVerify: creator.username,
+            suspend: false,
+            access: 0,
+            reset: true,
+            dump: false
+        });
+
+        await Logs.create({
+            who: creator._id,
+            what: `Created new user account: ${newUser.username} (${newUser.fName} ${newUser.lName}, ${newUser.role}, ${finalCampus})`,
+            archive: false
+        });
+
+        // ==========================
+        // SEND EMAIL (SENDGRID)
+        // ==========================
+        try {
+            await sgMail.send({
+                from: `AuCare Support <${process.env.EMAIL_USER}>`,
+                to: newUser.email,
+                subject: "Your AuCare Account Has Been Created",
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                        <h2 style="color:#0056b3;text-align:center;">
+                            Welcome to AuCare!
+                        </h2>
+
+                        <p>Hello ${newUser.fName},</p>
+
+                        <p>
+                            An AuCare account has been created for you at the clinic.
+                            Log in using your email and the temporary password below:
+                        </p>
+
+                        <p>
+                            <strong>Email (Username):</strong> ${newUser.email}
+                        </p>
+
+                        <div style="
+                            background:#f4f4f4;
+                            padding:15px;
+                            text-align:center;
+                            font-size:28px;
+                            font-weight:bold;
+                            letter-spacing:4px;
+                        ">
+                            ${tempPassword}
+                        </div>
+
+                        <p style="color:red;">
+                            You'll be required to set a new password immediately after logging in.
+                        </p>
+
+                        <p>
+                            Thank you,<br>
+                            <strong>AuCare Team</strong>
+                        </p>
+                    </div>
+                `
+            });
+            console.log(`New user email sent to ${newUser.email}`);
+        } catch (emailErr) {
+            console.error('================ EMAIL ERROR ================');
+            console.error(emailErr);
+
+            if (emailErr.response) {
+                console.error(emailErr.response.body);
+            }
+
+            console.error('Failed to send new user email to:', newUser.email);
+            // Huwag i-throw. Nagawa na ang account.
+        }
+
+        return res.status(200).json({ success: true });
+
+    } catch (err) {
+        console.error('New User Error:', err);
+
+        if (err.code === 11000) {
+            return res.status(400).json({ success: false, message: "That email or School/Employee ID is already registered." });
+        }
+
+        return res.status(500).json({ success: false, message: "Failed to create account. " + err.message });
+    }
+});
+
 app.post('/api/users/approve/:id', isLogin, async (req, res) => {
     try {
         const { id } = req.params;
@@ -4433,8 +4705,9 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
         // Real temp password, generated only now that the account is approved
         const tempPassword = crypto.randomBytes(4).toString('hex');
 
-        const user = await Users.findByIdAndUpdate(
-            id,
+        // Guard: pending (verify: true) at hindi pa na-decline (archive: false) lang ang puwedeng i-approve
+        const user = await Users.findOneAndUpdate(
+            { _id: id, verify: true, archive: false },
             {
                 verify: false,
                 verifyAt: Date.now(),
@@ -4448,7 +4721,7 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
         if (!user) {
             return res.json({
                 success: false,
-                message: 'User not found.'
+                message: 'Account not found or already processed.'
             });
         }
 
@@ -4565,7 +4838,77 @@ app.post('/api/users/reject/:id', isLogin, async (req, res) => {
             archive: false
         });
 
+        // Return success immediately
         res.json({ success: true });
+
+        // Send decline email in the background
+        const escapeHtml = (str) => String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
+        const mailOptions = {
+            from: `AuCare Support <${process.env.EMAIL_USER}>`,
+            to: user.email,
+            subject: "AuCare: Your Account Request Needs Attention",
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                    <h2 style="color:#c0392b;text-align:center;">
+                        Account Request Declined
+                    </h2>
+
+                    <p>Hello ${escapeHtml(user.fName)},</p>
+
+                    <p>
+                        We reviewed your AuCare account request, and it could not be approved at this time.
+                    </p>
+
+                    <p><strong>Reason:</strong></p>
+
+                    <div style="
+                        background:#f4f4f4;
+                        padding:15px;
+                        border-radius:8px;
+                        font-size:16px;
+                    ">
+                        ${escapeHtml(reason || 'No reason was provided.')}
+                    </div>
+
+                    <p>
+                        Please visit the clinic${user.campus ? ' (' + escapeHtml(user.campus) + ' campus)' : ''}
+                        so we can help you fix this and process your account.
+                        Clinic hours are <strong>7:30 AM to 5:30 PM</strong>.
+                    </p>
+
+                    <p style="color:#555;">
+                        Please bring a valid school ID or any document that can help verify your information.
+                    </p>
+
+                    <p>
+                        Thank you,<br>
+                        <strong>AuCare Team</strong>
+                    </p>
+                </div>
+            `
+        };
+
+        try {
+            await sgMail.send(mailOptions);
+            console.log(`Decline email sent to ${user.email}`);
+        } catch (emailErr) {
+            console.error('================ EMAIL ERROR ================');
+            console.error(emailErr);
+
+            if (emailErr.response) {
+                console.error(emailErr.response.body);
+            }
+
+            console.error('Failed to send decline email to:', user.email);
+            // Don't throw the error.
+            // The account is already declined.
+        }
 
     } catch (err) {
         console.error('Reject Error:', err);

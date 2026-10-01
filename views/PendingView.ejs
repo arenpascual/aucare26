@@ -9,6 +9,41 @@
     margin-top:10px;
     line-height:1.3;
     }
+
+    /* Styling para sa Reject Modal dropdown at custom textarea */
+    .reason-box {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+        box-sizing: border-box;
+        text-align: left;
+    }
+    .reason-select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px;
+        font-size: 14px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        cursor: pointer;
+        background-color: #fff;
+        color: #333;
+    }
+    .reason-select:focus {
+        outline: none;
+        border-color: #999;
+    }
+    .custom-reason-area {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 13px;
+        resize: vertical;
+        box-sizing: border-box;
+    }
 </style>
 
 <div class="height10 justifyBetween ">
@@ -27,10 +62,10 @@
                 <p class="size14 textGreen600 textWrap textCenter"><%= pendingUser.role || '' %> <i class="bi bi-patch-check-fill"></i></p>
             </section>
         <section class="col gap5">
-            <a href="javascript:void(0)" class="approveBtn nav pnav width100">
+            <a href="javascript:void(0)" class="approveBtn nav pnav width100" data-id="<%= pendingUser._id %>">
                 <i class="fas fa-check"></i> Approve
             </a>
-            <a href="javascript:void(0)" class="rejectBtn nav width100" >
+            <a href="javascript:void(0)" class="rejectBtn nav width100" data-id="<%= pendingUser._id %>">
                 <i class="fas fa-times"></i>Decline
             </a>
         </section>
@@ -163,35 +198,166 @@
 
 </div>
 
+<!-- APPROVE MODAL -->
+<section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="appnotif">
+    <img class="h100 w100" src="/images/like.png" alt="">
+    <section class="padding0 col alignCenter">
+        <p class="size20 str500 textCenter textBalance"> Everything is in order. Are you sure you want to approve? </p>
+    </section>
+    <section class="justifyBetween gap10 padding0">
+        <a class="nav width50" href="javascript:void(0)">Cancel</a>
+        <button class="nav pnav width50">Approve</button>
+    </section>
+</section>
+
+<!-- DECLINE MODAL -->
+<section class="absolute translateCenter shadow3 width35 padding25 gap15 index500 bgWhite col corner15 height0 hidden" id="rejnotif">
+    <img class="h80 w80" src="/images/ekis.svg" alt="">
+    <section class="padding0 col alignCenter gap5">
+        <p class="size20 str600 textCenter textBalance">Decline Account Request</p>
+        <p class="size14 gray textCenter">Please select a reason for declining this request:</p>
+    </section>
+
+    <form id="declineReasonForm" class="width100 col gap10 padding0">
+        <div class="reason-box">
+            <select class="reason-select" id="declineReasonSelect" required>
+                <option value="" selected disabled>-- Select a reason --</option>
+                <option value="Invalid / Mismatched School ID">Invalid / Mismatched School ID</option>
+                <option value="Incomplete or Incorrect Profile Details">Incomplete or Incorrect Profile Details</option>
+                <option value="Duplicate Account Request">Duplicate Account Request</option>
+                <option value="Unrecognized Department / Role">Unrecognized Department / Role</option>
+                <option value="Others">Others (Specify)</option>
+            </select>
+        </div>
+
+        <div id="customReasonWrapper" class="width100 hidden">
+            <textarea id="customReasonInput" class="custom-reason-area" rows="3" placeholder="Enter custom reason here..."></textarea>
+        </div>
+
+        <section class="justifyBetween gap10 padding0 marginTop10">
+            <a class="nav width50 textCenter" id="rejCancelBtn" href="javascript:void(0)">Cancel</a>
+            <button type="submit" class="nav pnav width50">Confirm Decline</button>
+        </section>
+    </form>
+</section>
+
 <script>
-document.querySelector('.approveBtn')?.addEventListener('click', async function () {
-    const id = this.dataset.id;
+// =============================
+// APPROVE
+// =============================
+const appnotif = document.getElementById('appnotif');
+const appCancelBtn = appnotif.querySelector('a.nav');
+const appApproveBtn = appnotif.querySelector('button');
+
+let selectedApproveId = null;
+
+document.querySelector('.approveBtn').addEventListener('click', function () {
+    selectedApproveId = this.dataset.id;
+    appnotif.classList.remove('hidden');
+});
+
+appCancelBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    appnotif.classList.add('hidden');
+    selectedApproveId = null;
+});
+
+appApproveBtn.addEventListener('click', async function () {
+    if (!selectedApproveId) return;
+
     try {
-        const res = await fetch(`/api/users/approve/${id}`, { method: 'POST' });
+        const res = await fetch(`/api/users/approve/${selectedApproveId}`, { method: 'POST' });
         const data = await res.json();
+
         if (data.success) {
             window.location.href = '/pd';
         } else {
             alert(data.message || 'Failed to approve account.');
         }
     } catch (err) {
-        console.error(err);
+        console.error('Approve error:', err);
         alert('An error occurred while approving.');
     }
 });
 
-document.querySelector('.rejectBtn')?.addEventListener('click', async function () {
-    const id = this.dataset.id;
+// =============================
+// DECLINE
+// =============================
+const rejnotif = document.getElementById('rejnotif');
+const rejCancelBtn = document.getElementById('rejCancelBtn');
+const declineReasonForm = document.getElementById('declineReasonForm');
+const declineReasonSelect = document.getElementById('declineReasonSelect');
+const customReasonWrapper = document.getElementById('customReasonWrapper');
+const customReasonInput = document.getElementById('customReasonInput');
+
+let selectedRejectId = null;
+
+// Open modal
+document.querySelector('.rejectBtn').addEventListener('click', function () {
+    selectedRejectId = this.dataset.id;
+    declineReasonForm.reset();
+    customReasonWrapper.classList.add('hidden');
+    customReasonInput.removeAttribute('required');
+    rejnotif.classList.remove('hidden');
+});
+
+// Toggle custom reason textarea
+declineReasonSelect.addEventListener('change', function () {
+    if (this.value === 'Others') {
+        customReasonWrapper.classList.remove('hidden');
+        customReasonInput.setAttribute('required', 'true');
+        customReasonInput.focus();
+    } else {
+        customReasonWrapper.classList.add('hidden');
+        customReasonInput.removeAttribute('required');
+    }
+});
+
+// Close modal
+rejCancelBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    rejnotif.classList.add('hidden');
+    selectedRejectId = null;
+});
+
+// Submit decline with reason
+declineReasonForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    if (!selectedRejectId) return;
+
+    const selectedValue = declineReasonSelect.value;
+
+    if (!selectedValue) {
+        alert('Please select a reason.');
+        return;
+    }
+
+    let finalReason = selectedValue;
+    if (finalReason === 'Others') {
+        finalReason = customReasonInput.value.trim();
+        if (!finalReason) {
+            alert('Please specify a reason.');
+            customReasonInput.focus();
+            return;
+        }
+    }
+
     try {
-        const res = await fetch(`/api/users/reject/${id}`, { method: 'POST' });
+        const res = await fetch(`/api/users/reject/${selectedRejectId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: finalReason })
+        });
+
         const data = await res.json();
+
         if (data.success) {
             window.location.href = '/pd';
         } else {
             alert(data.message || 'Failed to reject account.');
         }
     } catch (err) {
-        console.error(err);
+        console.error('Reject error:', err);
         alert('An error occurred while rejecting.');
     }
 });

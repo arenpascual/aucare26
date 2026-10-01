@@ -1,20 +1,32 @@
 <% layout('layout') %>
+
 <div class="height10 justifyBetween">
-    
     <div class="width0 ">
-    <a href="/um" class="nav"><i class="fas fa-chevron-left"></i> Return </a> 
+        <a href="/um" class="nav"><i class="fas fa-chevron-left"></i> Return </a>
     </div>
     <p class="size40 str400 "> Archive User Management</p>
 </div>
 <div class="height90 col justifyStart padding10">
     <div class="height0 justifyBetween">
-        <div class="width0">
-            <div class="selectBar w190"><i class="fas fa-filter"></i><select name="" id="">
-                <option value=""></i> Filter By</option>
-            </select></div>
+        <div class="width0 gap5">
+            <div class="selectBar w190">
+                <i class="fas fa-user-tag"></i>
+                <select id="roleFilter">
+                    <option value="">All Roles</option>
+                </select>
+            </div>
+            <div class="selectBar w190">
+                <i class="fas fa-building"></i>
+                <select id="deptFilter">
+                    <option value="">All Departments</option>
+                </select>
+            </div>
         </div>
         <div class="width0 gap8 ">
-            <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" name="" id=""></div>
+            <div class="searchBar w220">
+                <i class="fas fa-search"></i>
+                <input type="search" id="archiveSearch" placeholder="Search name, ID, email, role...">
+            </div>
         </div>
     </div>
     <br>
@@ -29,27 +41,74 @@
                 <th class="width30">Course</th>
             </tr>
         </thead>
-      <tbody>
-    <% if (allUsers && allUsers.length > 0) { %>
-        <% allUsers.forEach((user, index) => { %>
-            <tr>
-                <td><%= index + 1 %></td>
-                <td>
-                    <a href="/uav/<%= user._id %>" class="underline navy">
-                        <%= user.fName %> <%= user.lName %>
-                    </a>
-                </td>
-                <td><%= user.schoolId || '—' %></td>
-                <td><%= user.email || '—' %></td>
-                <td><%= user.role %></td>
-                <td><%= user.course || '—' %></td>
-            </tr>
-        <% }) %>
-    <% } else { %>
-        <tr>
-            <td colspan="6" class="center">No archived users found.</td>
-        </tr>
-    <% } %>
-</tbody>
+        <tbody id="archiveBody">
+            <% if (allUsers && allUsers.length > 0) { %>
+                <% allUsers.forEach((user, index) => { %>
+                    <tr data-role="<%= user.role || '' %>"
+                        data-dept="<%= user.course || '' %>"
+                        data-search="<%= [user.fName, user.lName, user.schoolId, user.email, user.role, user.course].filter(Boolean).join(' ').toLowerCase() %>">
+                        <td><%= index + 1 %></td>
+                        <td>
+                            <a href="/uav/<%= user._id %>" class="underline navy">
+                                <%= user.fName %> <%= user.lName %>
+                            </a>
+                        </td>
+                        <td><%= user.schoolId || '—' %></td>
+                        <td><%= user.email || '—' %></td>
+                        <td><%= user.role %></td>
+                        <td><%= user.course || '—' %></td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="6" class="center">No archived users found.</td>
+                </tr>
+            <% } %>
+        </tbody>
     </table>
+    <p id="noResultsMsg" class="size14 gray hidden" style="padding: 15px 0;">No matching users found.</p>
 </div>
+
+<script>
+(function () {
+    const tbody = document.getElementById('archiveBody');
+    const roleSel = document.getElementById('roleFilter');
+    const deptSel = document.getElementById('deptFilter');
+    const searchInput = document.getElementById('archiveSearch');
+    const noResults = document.getElementById('noResultsMsg');
+    if (!tbody) return;
+
+    const getRows = () => Array.from(tbody.querySelectorAll('tr[data-role]'));
+
+    function fillSelect(select, attr, allLabel) {
+        select.innerHTML = `<option value="">${allLabel}</option>`;
+        [...new Set(getRows().map(r => r.dataset[attr]).filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b))
+            .forEach(v => select.add(new Option(v, v)));
+    }
+    fillSelect(roleSel, 'role', 'All Roles');
+    fillSelect(deptSel, 'dept', 'All Departments');
+
+    function applyFilters() {
+        const role = roleSel.value;
+        const dept = deptSel.value;
+        const q = searchInput.value.trim().toLowerCase();
+        let visible = 0;
+
+        getRows().forEach(row => {
+            const ok =
+                (!role || row.dataset.role === role) &&
+                (!dept || row.dataset.dept === dept) &&
+                (!q || row.dataset.search.includes(q));
+            row.style.display = ok ? '' : 'none';
+            if (ok) row.cells[0].textContent = ++visible;
+        });
+
+        noResults.classList.toggle('hidden', visible > 0 || getRows().length === 0);
+    }
+
+    roleSel.addEventListener('change', applyFilters);
+    deptSel.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+})();
+</script>
