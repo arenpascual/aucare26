@@ -9,10 +9,10 @@
                 <p class="size28 colorPrimary  textCenter"><%= patient.fName %></p>
                 <p class="size16 colorPrimary  textCenter" style="margin-top: -10px !important;"><%= patient.mName %> <%= patient.lName %> <%= patient.xName %></p>
                 <p class="size16 textGreen600 textWrap textCenter"><%= patient.role || '' %> <i class="bi bi-patch-check-fill"></i></p>
-        </section>
+            </section>
             <section class="col gap5">
-                <form action="/pav/restore/<%= patient._id %>" method="POST" class="width100"  onsubmit="return confirm('Restore this account to Pending Accounts?');">
-                    <button type="submit" class="nav pnav width100">Restore</button>
+                <form id="restoreForm" action="/pav/restore/<%= patient._id %>" method="POST" class="width100">
+                    <button type="button" id="openRestore" class="nav pnav width100">Restore</button>
                 </form>
             </section>
         </div>
@@ -63,4 +63,66 @@
         </section>
         <% } %>
     </div>
+
+    <!-- RESTORE CONFIRM MODAL -->
+    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="restorenotif">
+        <img class="h100 w100" src="/images/like.png" alt="">
+        <section class="padding0 col alignCenter">
+            <p class="size20 str500 textCenter textBalance">Restore this account to Pending Accounts?</p>
+        </section>
+        <section class="justifyBetween gap10 padding0 marginTop10">
+            <a class="nav width50 textCenter" id="cancelRestore" href="javascript:void(0)">Cancel</a>
+            <button type="button" id="confirmRestore" class="nav pnav width50">Restore</button>
+        </section>
+    </section>
+
+    <!-- RESTORE SUCCESS MODAL -->
+    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="restoresuccess">
+        <img class="h100 w100" src="/images/like.png" alt="">
+        <section class="padding0 col alignCenter">
+            <p class="size20 str500 textCenter textBalance">This account successfully restored!</p>
+        </section>
+        <section class="justifyCenter gap10 padding0">
+            <a class="nav width50 pnav" id="gotIt" href="/paa">Got it</a>
+        </section>
+    </section>
 </div>
+
+<script>
+(function () {
+    const form = document.getElementById('restoreForm');
+    const confirmModal = document.getElementById('restorenotif');
+    const successModal = document.getElementById('restoresuccess');
+    const confirmBtn = document.getElementById('confirmRestore');
+
+    document.getElementById('openRestore').addEventListener('click', () => {
+        confirmModal.classList.remove('hidden');
+    });
+
+    document.getElementById('cancelRestore').addEventListener('click', () => {
+        confirmModal.classList.add('hidden');
+    });
+
+    confirmBtn.addEventListener('click', async () => {
+        confirmBtn.disabled = true;
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                redirect: 'manual'
+            });
+
+            // 'opaqueredirect' = nag-redirect ang backend (success)
+            if (res.type === 'opaqueredirect' || res.ok) {
+                confirmModal.classList.add('hidden');
+                successModal.classList.remove('hidden');
+            } else {
+                throw new Error('Restore failed: ' + res.status);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Failed to restore account. Please try again.');
+            confirmBtn.disabled = false;
+        }
+    });
+})();
+</script>

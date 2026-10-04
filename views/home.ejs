@@ -238,7 +238,7 @@
 </section>
 </form>
 
-<section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden mdl4" id="notificationBox">
+<section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden mdl4" id="notificationsuccessBox">
     <img class="h100 w100" src="/images/like.png" alt="">
     <section class="padding0 col alignCenter">
         <p class="size23 str500">Request Submitted</p>
@@ -356,14 +356,18 @@ closeForm.addEventListener("click", function(){
 
 
 // =============================
-// NOTIFICATION
+// SUCCESS NOTIFICATION
 // =============================
 const gotItBtn = document.getElementById("gotItBtn");
-const notification = document.getElementById("notificationBox");
+const notification = document.getElementById("notificationsuccessBox");
 
 gotItBtn.addEventListener("click", function(){
     notification.classList.add("hidden");
 });
+
+// Pagka-submit, nagre-redirect ang backend pabalik sa /h at nagse-set ng
+// success message. Kapag iyon ang message, ipakita ang popup.
+<% if (typeof success !== 'undefined' && success === 'Request Submitted Successfully!') { %>
+    notification.classList.remove("hidden");
+<% } %>
 </script>
-
-

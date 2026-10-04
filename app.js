@@ -2119,10 +2119,25 @@ app.get('/np', isLogin, async (req, res) => {
 
 app.get('/sa', isLogin, async (req, res) => {
     try {
-        const allVisits = await Visits.find({
+        const visits = await Visits.find({
             patient: req.session.user._id,
             archive: false
         }).sort({ createdAt: -1 });
+
+        // Kunin ang mga complaint ng lahat ng visit
+        const visitIds = visits.map(v => v._id);
+        const allComplaints = await Complaint.find({
+            visitId: { $in: visitIds }
+        }).lean();
+
+        // Ilagay ang complaints sa bawat visit
+        const allVisits = visits.map(v => {
+            const obj = v.toObject();
+            obj.complaints = allComplaints.filter(
+                c => c.visitId && c.visitId.toString() === v._id.toString()
+            );
+            return obj;
+        });
 
         const now = dayjs();
         const openTime = dayjs().hour(7).minute(30).second(0);

@@ -62,6 +62,14 @@
                     <option value="">All Departments</option>
                 </select>
             </div>
+            <div class="selectBar w200"><i class="fas fa-building"></i>
+                <select id="Campus">
+                    <option value="">All Campus</option>
+                    <option value="Main">Main</option>
+                    <option value="South">South</option>
+                    <option value="San Jose">San Jose</option>
+                </select>
+            </div>
         </div>
         <div class="width0 gap8 ">
             <div class="searchBar w220">
@@ -127,6 +135,17 @@
         </section>
     </section>
 
+    <!-- APPROVE SUCCESS MODAL -->
+    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="appsuccess">
+        <img class="h100 w100" src="/images/like.png" alt="">
+        <section class="padding0 col alignCenter">
+            <p class="size20 str500 textCenter textBalance"> This account has been successfully approved! </p>
+        </section>
+        <section class="justifyCenter gap10 padding0">
+            <a class="nav width50 pnav" href="javascript:void(0)">Got it</a>
+        </section>
+    </section>
+
     <!-- ENHANCED REJECT / DECLINE MODAL -->
     <section class="absolute translateCenter shadow3 width35 padding25 gap15 index500 bgWhite col corner15 height0 hidden" id="rejnotif">
         <img class="h80 w80" src="/images/ekis.svg" alt="">
@@ -156,6 +175,17 @@
                 <button type="submit" class="nav pnav width50">Confirm Decline</button>
             </section>
         </form>
+    </section>
+
+    <!-- DECLINE SUCCESS MODAL -->
+    <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="decsuccess">
+        <img class="h100 w100" src="/images/ekis.svg" alt="">
+        <section class="padding0 col alignCenter">
+            <p class="size20 str500 textCenter textBalance">This account registration has been declined!</p>
+        </section>
+        <section class="justifyCenter gap10 padding0">
+            <a class="nav width50 pnav" href="javascript:void(0)">Got it</a>
+        </section>
     </section>
 </div>
 
@@ -204,7 +234,7 @@
     deptSel.addEventListener('change', applyFilters);
     searchInput.addEventListener('input', applyFilters);
 
-    // Mag-re-apply kapag may na-remove na row (after approve/decline)
+    // Mag-re-apply kapag may na-remove na row
     new MutationObserver(applyFilters).observe(tbody, { childList: true });
 })();
 
@@ -212,8 +242,10 @@
 // APPROVE MODAL
 // =============================
 const appnotif = document.getElementById('appnotif');
+const appsuccess = document.getElementById('appsuccess');
 const appCancelBtn = appnotif.querySelector('a.nav');
 const appApproveBtn = appnotif.querySelector('button');
+const appGotItBtn = appsuccess.querySelector('a.nav');
 
 let selectedApproveId = null;
 
@@ -233,6 +265,8 @@ appCancelBtn.addEventListener('click', function (e) {
 appApproveBtn.addEventListener('click', async function () {
     if (!selectedApproveId) return;
 
+    appApproveBtn.disabled = true; // iwas double click
+
     try {
         const response = await fetch(`/api/users/approve/${selectedApproveId}`, {
             method: 'POST'
@@ -241,10 +275,9 @@ appApproveBtn.addEventListener('click', async function () {
         const data = await response.json();
 
         if (data.success) {
-            const row = document.getElementById(`row-${selectedApproveId}`);
-            if (row) row.remove();
-
+            // Itago ang confirm modal, ipakita ang success modal
             appnotif.classList.add('hidden');
+            appsuccess.classList.remove('hidden');
             selectedApproveId = null;
         } else {
             alert(data.message || 'Failed to approve account.');
@@ -252,13 +285,23 @@ appApproveBtn.addEventListener('click', async function () {
     } catch (err) {
         console.error('Approve error:', err);
         alert('An error occurred while approving.');
+    } finally {
+        appApproveBtn.disabled = false;
     }
+});
+
+// "Got it" → balik sa /pd
+appGotItBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    window.location.href = '/pd';
 });
 
 // =============================
 // REJECT MODAL LOGIC
 // =============================
 const rejnotif = document.getElementById('rejnotif');
+const decsuccess = document.getElementById('decsuccess');
+const decGotItBtn = decsuccess.querySelector('a.nav');
 const rejCancelBtn = document.getElementById('rejCancelBtn');
 const declineReasonForm = document.getElementById('declineReasonForm');
 const declineReasonSelect = document.getElementById('declineReasonSelect');
@@ -315,22 +358,22 @@ declineReasonForm.addEventListener('submit', async function (e) {
         }
     }
 
+    const submitBtn = declineReasonForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true; // iwas double submit
+
     try {
         const response = await fetch(`/api/users/reject/${selectedRejectId}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ reason: finalReason })
         });
 
         const data = await response.json();
 
         if (data.success) {
-            const row = document.getElementById(`row-${selectedRejectId}`);
-            if (row) row.remove();
-
+            // Itago ang decline modal, ipakita ang success modal
             rejnotif.classList.add('hidden');
+            decsuccess.classList.remove('hidden');
             selectedRejectId = null;
         } else {
             alert(data.message || 'Failed to reject account.');
@@ -338,6 +381,14 @@ declineReasonForm.addEventListener('submit', async function (e) {
     } catch (err) {
         console.error('Reject error:', err);
         alert('An error occurred while rejecting.');
+    } finally {
+        submitBtn.disabled = false;
     }
+});
+
+// "Got it" → balik sa /pd
+decGotItBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    window.location.href = '/pd';
 });
 </script>
