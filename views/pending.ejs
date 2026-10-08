@@ -62,6 +62,7 @@
                     <option value="">All Departments</option>
                 </select>
             </div>
+            <% if (user && user.role === 'Super Admin') { %>
             <div class="selectBar w200"><i class="fas fa-building"></i>
                 <select id="Campus">
                     <option value="">All Campus</option>
@@ -70,6 +71,7 @@
                     <option value="San Jose">San Jose</option>
                 </select>
             </div>
+            <% } %>
         </div>
         <div class="width0 gap8 ">
             <div class="searchBar w220">
@@ -96,6 +98,7 @@
                     <tr id="row-<%= u._id %>"
                         data-role="<%= u.role || '' %>"
                         data-dept="<%= u.course || u.department || '' %>"
+                        data-campus="<%= u.campus || '' %>"
                         data-search="<%= [u.fName, u.lName, u.schoolId, u.role, u.course || u.department].filter(Boolean).join(' ').toLowerCase() %>">
                         <td><%= index + 1 %></td>
                         <td><a href="/pdview/<%= u._id %>" class="underline navy"><%= u.fName %> <%= u.lName %></a></td>
@@ -197,6 +200,7 @@
     const tbody = document.getElementById('pendingTableBody');
     const roleSel = document.getElementById('roleFilter');
     const deptSel = document.getElementById('deptFilter');
+    const campusSel = document.getElementById('Campus'); // wala ito kapag hindi Super Admin
     const searchInput = document.getElementById('pendingSearchInput');
     const noResults = document.getElementById('noResultsMsg');
     if (!tbody) return;
@@ -215,6 +219,7 @@
     function applyFilters() {
         const role = roleSel.value;
         const dept = deptSel.value;
+        const campus = campusSel ? campusSel.value : '';
         const q = searchInput.value.trim().toLowerCase();
         let visible = 0;
 
@@ -222,6 +227,7 @@
             const ok =
                 (!role || row.dataset.role === role) &&
                 (!dept || row.dataset.dept === dept) &&
+                (!campus || row.dataset.campus === campus) &&
                 (!q || row.dataset.search.includes(q));
             row.style.display = ok ? '' : 'none';
             if (ok) row.cells[0].textContent = ++visible;
@@ -232,6 +238,7 @@
 
     roleSel.addEventListener('change', applyFilters);
     deptSel.addEventListener('change', applyFilters);
+    if (campusSel) campusSel.addEventListener('change', applyFilters);
     searchInput.addEventListener('input', applyFilters);
 
     // Mag-re-apply kapag may na-remove na row

@@ -1784,6 +1784,17 @@ app.get('/um', isUsers, isLogin, async (req, res) => {
 
 app.get('/uv/:id', isLogin, async (req, res) => {
     try {
+        // GUARD: dapat naka-verify ng password bago makita ang record
+        const verifiedAt = req.session.verifiedPatients?.[req.params.id];
+
+        if (!verifiedAt || Date.now() - verifiedAt > VERIFY_WINDOW_MS) {
+            req.session.error = "Please enter your password to view this record.";
+            return req.session.save(() => res.redirect('/um'));
+        }
+
+        // Sliding window: i-refresh ang oras habang ginagamit ang page
+        req.session.verifiedPatients[req.params.id] = Date.now();
+
         const patient = await Users.findOne({
             _id: req.params.id,
             archive: false
@@ -1809,6 +1820,42 @@ app.get('/uv/:id', isLogin, async (req, res) => {
         console.error('UserView Fetch Error:', err.message);
         req.session.error = "Failed to load user details.";
         res.redirect('/um');
+    }
+});
+
+// ============================================================
+// VERIFY PASSWORD bago makita ang patient record
+// ============================================================
+const VERIFY_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+
+app.post('/verify-password', isLogin, async (req, res) => {
+    try {
+        const { password, patientId } = req.body;
+
+        if (!password || !patientId || !mongoose.Types.ObjectId.isValid(patientId)) {
+            return res.json({ success: false });
+        }
+
+        const currentUser = await Users.findById(req.session.user._id);
+
+        if (!currentUser || currentUser.password !== password) {
+            await Logs.create({
+                who: req.session.user._id,
+                what: `Failed password verification when opening a patient record (ID: ${patientId})`,
+                archive: false
+            });
+            return res.json({ success: false });
+        }
+
+        // I-save sa session na verified na ang user para sa patient na ito
+        req.session.verifiedPatients = req.session.verifiedPatients || {};
+        req.session.verifiedPatients[patientId] = Date.now();
+
+        req.session.save(() => res.json({ success: true }));
+
+    } catch (err) {
+        console.error('Verify Password Error:', err.message);
+        res.status(500).json({ success: false });
     }
 });
 

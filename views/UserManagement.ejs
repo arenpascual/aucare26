@@ -30,38 +30,37 @@
 
         <div class="width0 gap8">
 
-<div class="selectBar w170">
-    <i class="fas fa-user-tag"></i>
-    <select id="roleFilter">
-        <option value="">All Roles</option>
-        <% [...new Set(allUsers.map(u => u.role).filter(Boolean))].sort().forEach(role => { %>
-            <option value="<%= role %>"><%= role %></option>
-        <% }) %>
-    </select>
-</div>
+            <div class="selectBar w170">
+                <i class="fas fa-user-tag"></i>
+                <select id="roleFilter">
+                    <option value="">All Roles</option>
+                    <% [...new Set(allUsers.map(u => u.role).filter(Boolean))].sort().forEach(role => { %>
+                        <option value="<%= role %>"><%= role %></option>
+                    <% }) %>
+                </select>
+            </div>
 
-<div class="selectBar w200"><i class="fas fa-building"></i>
-    <select id="departmentFilter">
-        <option value="">All Departments</option>
-        <% [...new Set(allUsers.map(u => (u.course || u.department)).filter(Boolean))].sort().forEach(dept => { %>
-            <option value="<%= dept %>"><%= dept %></option>
-        <% }) %>
-    </select>
-</div>
+            <div class="selectBar w200"><i class="fas fa-building"></i>
+                <select id="departmentFilter">
+                    <option value="">All Departments</option>
+                    <% [...new Set(allUsers.map(u => (u.course || u.department)).filter(Boolean))].sort().forEach(dept => { %>
+                        <option value="<%= dept %>"><%= dept %></option>
+                    <% }) %>
+                </select>
+            </div>
 
-<% if (user && user.role === 'Super Admin') { %>
-<div class="selectBar w200"><i class="fas fa-building"></i>
-    <select id="Campus">
-        <option value="">All Campus</option>
-        <option value="Main">Main</option>
-        <option value="South">South</option>
-        <option value="San Jose">San Jose</option>
-    </select>
-</div>
-<% } %>
+            <% if (user && user.role === 'Super Admin') { %>
+            <div class="selectBar w200"><i class="fas fa-building"></i>
+                <select id="Campus">
+                    <option value="">All Campus</option>
+                    <option value="Main">Main</option>
+                    <option value="South">South</option>
+                    <option value="San Jose">San Jose</option>
+                </select>
+            </div>
+            <% } %>
 
-
-</div>
+        </div>
 
         <div class="width0 gap8">
             <div class="searchBar w220">
@@ -108,20 +107,20 @@
 
                     <tr data-campus="<%= user.campus || '' %>">
                         <td><%= index + 1 %></td>
-                    
+
                         <td>
-                            <a href="/uv/<%= user._id %>" class="underline navy">
+                           <a href="/uv/<%= user._id %>" class="underline navy patientLink" data-href="/uv/<%= user._id %>" data-id="<%= user._id %>">
                                 <%= user.fName %> <%= user.lName %>
                             </a>
                         </td>
-                    
+
                         <td><%= user.schoolId || '—' %></td>
-                    
+
                         <td><%= user.role %></td>
-                    
+
                         <td><%= user.course || user.department || '—' %></td>
                     </tr>
-                
+
                 <% }) %>
 
             <% } else { %>
@@ -144,7 +143,26 @@
        No matching users found.
     </p>
 
+</div> <!-- dulo ng .height90 container -->
+
+<div id="proceedOverlay" class="hidden"
+     style="position:fixed; top:0; right:0; bottom:0; left:240px; background:rgba(0,0,0,0.4); z-index:1000;">
 </div>
+
+<section id="proceednotif"
+         class="hidden shadow3 width25 padding30 gap10 bgWhite col corner15 height0"
+         style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1001; background:#fff; opacity:1;">
+    <img src="/images/password.png" alt="" class="h100 w100 corner500">
+    <p class="size14">Please enter the password to proceed.</p>
+
+    <input type="password" id="proceedPassword" placeholder="Password" autocomplete="current-password">
+    <p id="proceedError" class="size12 hidden" style="color:red; margin:0;">Incorrect password.</p>
+
+    <section class="justifyBetween gap10 padding0">
+        <a id="proceedCancel" class="nav width100">Cancel</a>
+        <button type="button" id="proceedConfirm" class="nav pnav width100">Proceed</button>
+    </section>
+</section>
 
 <script>
 
@@ -211,5 +229,89 @@ departmentFilter.addEventListener("change", filterUsers);
 if (campusFilter) {
     campusFilter.addEventListener("change", filterUsers);
 }
+
+/* ===== Password popup ===== */
+
+const proceedNotif = document.getElementById("proceednotif");
+const proceedOverlay = document.getElementById("proceedOverlay");
+const proceedPassword = document.getElementById("proceedPassword");
+const proceedError = document.getElementById("proceedError");
+const proceedConfirm = document.getElementById("proceedConfirm");
+const proceedCancel = document.getElementById("proceedCancel");
+
+let targetHref = null;
+let targetId = null;
+
+function openProceed(href, id) {
+    targetHref = href;
+    targetId = id;
+    proceedPassword.value = "";
+    proceedError.textContent = "Incorrect password.";
+    proceedError.classList.add("hidden");
+    proceedNotif.classList.remove("hidden");
+    proceedOverlay.classList.remove("hidden");
+    proceedPassword.focus();
+}
+
+function closeProceed() {
+    targetHref = null;
+    targetId = null;
+    proceedPassword.value = "";
+    proceedNotif.classList.add("hidden");
+    proceedOverlay.classList.add("hidden");
+}
+
+// Click sa pangalan -> popup
+tableBody.addEventListener("click", (e) => {
+    const link = e.target.closest(".patientLink");
+    if (!link) return;
+    e.preventDefault();
+    openProceed(link.dataset.href, link.dataset.id);
+});
+
+let isSubmitting = false;
+
+async function submitProceed() {
+    const password = proceedPassword.value;
+    if (!password || !targetHref || !targetId || isSubmitting) return;
+
+    isSubmitting = true;
+    proceedConfirm.disabled = true;
+
+    try {
+        const res = await fetch("/verify-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password, patientId: targetId })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            window.location.href = targetHref;
+        } else {
+            proceedError.textContent = "Incorrect password.";
+            proceedError.classList.remove("hidden");
+            proceedPassword.value = "";
+            proceedPassword.focus();
+        }
+    } catch (err) {
+        proceedError.textContent = "Something went wrong. Try again.";
+        proceedError.classList.remove("hidden");
+    } finally {
+        isSubmitting = false;
+        proceedConfirm.disabled = false;
+    }
+}
+
+proceedConfirm.addEventListener("click", submitProceed);
+proceedCancel.addEventListener("click", closeProceed);
+proceedOverlay.addEventListener("click", closeProceed);
+
+proceedPassword.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") submitProceed();
+});
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeProceed();
+});
 
 </script>

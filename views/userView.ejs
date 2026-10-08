@@ -42,7 +42,7 @@
             </section>
             <section class="col gap5">
                 <a href="/cr/<%= patient._id %>" class="nav pnav width100">Consultation Record</a>
-                <a href="javascript:void(0)" id="exportCard" class="nav pnav width100">Export Health Card</a>
+                <a href="javascript:void(0)" id="exportCard" class="nav pnav width100 hidden">Export Health Card</a>
                 <a href="javascript:void(0)" id="archiveBtn" data-id="<%= patient._id %>" class="nav pnav width100"> Archive</a>
             </section>
         </div>
@@ -124,7 +124,7 @@
 </div>
 
 <div id="modal" class="bgWhite corner200 hidden">
-    <div class="bgWhite shadow1 absolute left20 top70 width40 height0 justifyStart col hidden" id="healthCard">
+    <div class="bgWhite shadow1 absolute left20 top70 width40 height0 justifyStart col" id="healthCard">
         <section class="justifyBetween padding0 relative">
             <section class="bgIndigo950 justifyStart width60 gap5" style="border-bottom-right-radius: 40px;">
                 <img src="/images/logo.png" alt="" class="corner500 h50 w50">
@@ -183,7 +183,7 @@
 <form id="editForm"
       action="/uv/update/<%= patient._id %>"
       method="POST"
-      class="width40 col justifyStart alignStart padding20 gap5 height0 shadow1 absolute translateCenter hidden"
+      class="width40 col justifyStart alignStart padding25 gap10 height0 shadow1 absolute translateCenter hidden"
       style="z-index:700;"
       novalidate>
 
@@ -216,7 +216,7 @@
 
 
     <!-- FIRST + MIDDLE NAME -->
-    <section class="gap10">
+    <section class="gap10 padding0">
 
         <div class="field">
             <label>First Name</label>
@@ -232,7 +232,7 @@
         </div>
 
 
-        <div class="field">
+        <div class="field ">
             <label>Middle Name</label>
 
             <input type="text"
@@ -248,7 +248,7 @@
 
 
     <!-- LAST + EXTENSION NAME -->
-    <section class="gap10">
+    <section class="gap10 padding0">
 
         <div class="field">
             <label>Last Name</label>
@@ -281,18 +281,7 @@
 
 
     <!-- EMAIL + PHONE -->
-    <section class="gap10">
-
-        <div class="field">
-            <label>Email</label>
-
-            <input type="email"
-                   name="email"
-                   id="editEmail"
-                   value="<%= patient.email || '' %>"
-                   maxlength="100"
-                   required>
-        </div>
+    <section class="gap10 padding0">
 
 
         <div class="field">
@@ -314,7 +303,7 @@
 
 
     <!-- ADDRESS -->
-    <section>
+    <section class="padding0">
 
         <div class="field">
             <label>Address</label>
@@ -467,7 +456,7 @@
 
 
     <!-- BUTTONS -->
-    <section class="gap20">
+    <section class="gap20 padding0">
 
         <a href="javascript:void(0)"
            class="nav width100 closeEditBtn">
@@ -498,6 +487,41 @@
 
     <p class="size30 str500">Edit School Information</p>
 
+        <div class="field">
+
+        <label>Campus</label>
+
+        <div class="selectBar">
+
+            <select name="campus"
+                    required>
+
+                <option value=""
+                        disabled
+                        <%= !patient.campus ? 'selected' : '' %>>
+                    --Select--
+                </option>
+
+                <option value="Main"
+                    <%= patient.campus === 'Main' ? 'selected' : '' %>>
+                    Main
+                </option>
+
+                <option value="South"
+                    <%= patient.campus === 'South' ? 'selected' : '' %>>
+                    South
+                </option>
+
+                <option value="San Jose"
+                    <%= patient.campus === 'San Jose' ? 'selected' : '' %>>
+                    San Jose
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
 
     <!-- SCHOOL ID -->
     <div class="field">
@@ -558,41 +582,7 @@
     </div>
 
 
-       <div class="field">
-
-        <label>Campus</label>
-
-        <div class="selectBar">
-
-            <select name="campus"
-                    required>
-
-                <option value=""
-                        disabled
-                        <%= !patient.campus ? 'selected' : '' %>>
-                    --Select--
-                </option>
-
-                <option value="Main"
-                    <%= patient.campus === 'Main' ? 'selected' : '' %>>
-                    Main
-                </option>
-
-                <option value="South"
-                    <%= patient.campus === 'South' ? 'selected' : '' %>>
-                    South
-                </option>
-
-                <option value="San Jose"
-                    <%= patient.campus === 'San Jose' ? 'selected' : '' %>>
-                    San Jose
-                </option>
-
-            </select>
-
-        </div>
-
-    </div>
+       
 
 
  
