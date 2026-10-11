@@ -5088,13 +5088,18 @@ app.post('/api/users/reject/:id', isLogin, async (req, res) => {
     }
 });
 
-
 app.use((req, res) => {
     res.status(404);
     res.locals.error = 'Oops! Page cannot be found!';
     console.log(`404 triggered: ${res.locals.error}`);
-    res.render('index', { title: 'Invalid URL' });
+
+    res.render('index', {
+        title: 'Invalid URL',
+        recaptchaSiteKey: process.env.RECAPTCHA_SITE_KEY || '',
+        error: res.locals.error
+    });
 });
+
 
 app.use((err, req, res, next) => {
     console.error('⚠️ Error occurred:', err.message);
