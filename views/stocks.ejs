@@ -1,3 +1,4 @@
+
 <% layout('layout') %>
 
 <style>
@@ -25,10 +26,23 @@
     position: fixed;
 }
 #modalBackdrop.hidden { display: none; }
-#addCard, #editCard, #archiveCard { z-index: 100; padding: 24px; max-height: 90vh; overflow-y: auto; }
+#addCard, #editCard, #archiveCard {
+    z-index: 100;
+    padding: 24px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+#addconfirmnotif, #editconfirmnotif { z-index: 101; }
 .field { width: 100%; display: flex; flex-direction: column; gap: 4px; }
 .field input, .field select, .field textarea { width: 100%; }
-.checkbox-field { display: flex; align-items: center; gap: 8px; border: 1px solid rgb(168, 168, 168) !important; padding: 10px; border-radius: 8px; }
+.checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgb(168, 168, 168) !important;
+    padding: 10px;
+    border-radius: 8px;
+}
 </style>
 
 <!-- OVERLAY BACKDROP -->
@@ -41,47 +55,57 @@
   <div class="field">
     <label for="addType">Category Type</label>
     <div class="selectBar">
-        <select id="addType" name="type" class="w100" required>
+      <select id="addType" name="type" class="w100" required>
         <option value="">Select Category</option>
         <option value="medicine">Medicine</option>
         <option value="supply">Supply</option>
-        </select>
+      </select>
     </div>
   </div>
 
-<div class="field">
+  <div class="field">
     <label for="addName">Item / Generic Name</label>
-    <input type="text" id="addName" name="name" placeholder="e.g. Paracetamol / Ethyl Alcohol" required>
-</div>
+    <input
+      type="text"
+      id="addName"
+      name="name"
+      placeholder="e.g. Paracetamol / Ethyl Alcohol"
+      minlength="2"
+      maxlength="50"
+      required
+    >
+  </div>
 
-<!-- Medicine Fields -->
-<div id="addMedicineFields" class="col gap10 width100 hidden">
+  <!-- Medicine Fields -->
+  <div id="addMedicineFields" class="col gap10 width100 hidden">
     <div class="gap10">
-        <div class="field">
+      <div class="field">
         <label for="addBrandName">Brand Name</label>
         <input type="text" id="addBrandName" name="brandName" placeholder="e.g. Biogesic">
-        </div>
+      </div>
     </div>
+
     <div class="gap10">
-        <div class="field">
+      <div class="field">
         <label for="addMedicineForm">Medicine Form</label>
         <div class="selectBar">
-            <select id="addMedicineForm" name="medicineForm" class="w100">
-                <option value="">Select Form</option>
-                <option value="Tablet">Tablet</option>
-                <option value="Capsule">Capsule</option>
-                <option value="Syrup">Syrup</option>
-                <option value="Suspension">Suspension</option>
-                <option value="Ointment">Ointment</option>
-                <option value="Drop">Drop</option>
-                <option value="Inhaler">Inhaler</option>
-            </select>
-            </div>
+          <select id="addMedicineForm" name="medicineForm" class="w100">
+            <option value="">Select Form</option>
+            <option value="Tablet">Tablet</option>
+            <option value="Capsule">Capsule</option>
+            <option value="Syrup">Syrup</option>
+            <option value="Suspension">Suspension</option>
+            <option value="Ointment">Ointment</option>
+            <option value="Drop">Drop</option>
+            <option value="Inhaler">Inhaler</option>
+          </select>
         </div>
-        <div class="field">
+      </div>
+
+      <div class="field">
         <label for="addDosageStrength">Dosage / Strength</label>
         <input type="text" id="addDosageStrength" name="dosageStrength" placeholder="e.g. 500mg, 120mg/5ml">
-        </div>
+      </div>
     </div>
   </div>
 
@@ -99,24 +123,32 @@
         </select>
       </div>
     </div>
+
     <div class="field">
       <label for="addSizeSpecification">Size / Specification</label>
       <input type="text" id="addSizeSpecification" name="sizeSpecification" placeholder="e.g. 500ml, 2x2 inches">
     </div>
   </div>
 
-
   <div class="gap10">
     <div class="field">
-        <label for="addRemaining">Quantity on Hand</label>
-        <input type="number" id="addRemaining" name="remaining" min="0" placeholder="0" required>
+      <label for="addRemaining">Quantity on Hand</label>
+      <input
+        type="number"
+        id="addRemaining"
+        name="remaining"
+        min="0"
+        max="1000"
+        placeholder="0"
+        required
+      >
     </div>
 
     <div class="field">
-        <label for="addExpirationDate">Expiration Date</label>
-        <input type="date" id="addExpirationDate" name="expirationDate">
+      <label for="addExpirationDate">Expiration Date</label>
+      <input type="date" id="addExpirationDate" name="expirationDate">
     </div>
-</div>
+  </div>
 
   <div class="field">
     <label for="addDescription">Description</label>
@@ -136,88 +168,104 @@
 
   <div class="gap20">
     <div class="field">
-        <label for="editType">Category Type</label>
-        <div class="selectBar">
-            <select id="editType" name="type" class="w100" required>
-            <option value="medicine">Medicine</option>
-            <option value="supply">Supply</option>
-            </select>
-        </div>
+      <label for="editType">Category Type</label>
+      <div class="selectBar">
+        <select id="editType" name="type" class="w100" required>
+          <option value="medicine">Medicine</option>
+          <option value="supply">Supply</option>
+        </select>
+      </div>
     </div>
 
     <div class="field">
-        <label for="editName">Item / Generic Name</label>
-        <input type="text" id="editName" name="name" required>
+      <label for="editName">Item / Generic Name</label>
+      <input
+        type="text"
+        id="editName"
+        name="name"
+        minlength="2"
+        maxlength="50"
+        required
+      >
     </div>
-    </div>
+  </div>
 
   <!-- Medicine Fields -->
   <div id="editMedicineFields" class="col gap10 width100 hidden">
     <div class="gap20">
-        <div class="field">
-          <label for="editBrandName">Brand Name</label>
-          <input type="text" id="editBrandName" name="brandName">
-        </div>
+      <div class="field">
+        <label for="editBrandName">Brand Name</label>
+        <input type="text" id="editBrandName" name="brandName">
+      </div>
     </div>
+
     <div class="gap20">
-        <div class="field">
+      <div class="field">
         <label for="editMedicineForm">Medicine Form</label>
         <div class="selectBar">
-            <select id="editMedicineForm" name="medicineForm" class="w100">
-                <option value="">Select Form</option>
-                <option value="Tablet">Tablet</option>
-                <option value="Capsule">Capsule</option>
-                <option value="Syrup">Syrup</option>
-                <option value="Suspension">Suspension</option>
-                <option value="Ointment">Ointment</option>
-                <option value="Drop">Drop</option>
-                <option value="Inhaler">Inhaler</option>
-            </select>
-            </div>
+          <select id="editMedicineForm" name="medicineForm" class="w100">
+            <option value="">Select Form</option>
+            <option value="Tablet">Tablet</option>
+            <option value="Capsule">Capsule</option>
+            <option value="Syrup">Syrup</option>
+            <option value="Suspension">Suspension</option>
+            <option value="Ointment">Ointment</option>
+            <option value="Drop">Drop</option>
+            <option value="Inhaler">Inhaler</option>
+          </select>
         </div>
-        <div class="field">
+      </div>
+
+      <div class="field">
         <label for="editDosageStrength">Dosage / Strength</label>
         <input type="text" id="editDosageStrength" name="dosageStrength">
-        </div>
+      </div>
     </div>
   </div>
 
   <!-- Supply Fields -->
   <div id="editSupplyFields" class="row gap10 width100 hidden">
-    <div class="field ">
+    <div class="field">
       <label for="editCategory">Supply Category</label>
       <div class="selectBar">
         <select id="editCategory" name="category" class="w100">
-            <option value="">Select Category</option>
-            <option value="Disinfectant">Disinfectant</option>
-            <option value="Bandaging">Bandaging</option>
-            <option value="Personal Protective Equipment (PPE)">Personal Protective Equipment (PPE)</option>
-            <option value="Diagnostic Tool">Diagnostic Tool</option>
+          <option value="">Select Category</option>
+          <option value="Disinfectant">Disinfectant</option>
+          <option value="Bandaging">Bandaging</option>
+          <option value="Personal Protective Equipment (PPE)">Personal Protective Equipment (PPE)</option>
+          <option value="Diagnostic Tool">Diagnostic Tool</option>
         </select>
       </div>
     </div>
+
     <div class="field">
       <label for="editSizeSpecification">Size / Specification</label>
       <input type="text" id="editSizeSpecification" name="sizeSpecification">
     </div>
   </div>
 
-
   <div class="gap20">
     <div class="field">
-        <label for="editRemaining">Quantity on Hand</label>
-        <input type="number" id="editRemaining" name="remaining" min="0" required>
+      <label for="editRemaining">Quantity on Hand</label>
+      <input
+        type="number"
+        id="editRemaining"
+        name="remaining"
+        min="0"
+        max="1000"
+        required
+      >
     </div>
 
     <div class="field">
-        <label for="editExpirationDate">Expiration Date</label>
-        <input type="date" id="editExpirationDate" name="expirationDate">
+      <label for="editExpirationDate">Expiration Date</label>
+      <input type="date" id="editExpirationDate" name="expirationDate">
     </div>
-</div>
+  </div>
 
   <div class="field">
     <label for="editDescription">Description</label>
-    <textarea id="editDescription" name="description" rows="2" style="resize: none; width:100%; padding:6px; border:1px solid var(--gray5); border-radius:6px; font-size:12px;"></textarea>
+    <textarea id="editDescription" name="description" rows="2" style="resize:none; width:100%; padding:6px; border:1px solid var(--gray5); border-radius:6px; font-size:12px;"></textarea>
   </div>
 
   <div class="height0 gap10 justifyBetween">
@@ -232,6 +280,7 @@
   <p class="size14" style="color:var(--black10);">This item will be moved to the archive. You can restore it anytime.</p>
   <input type="hidden" id="archiveId">
   <p class="size16 str500" id="archiveItemName" style="color:var(--primary);"></p>
+
   <div class="height0 gap10" style="width:100%; margin-top:10px;">
     <button type="button" class="nav borderPrimary width100" id="cancelArchive">Cancel</button>
     <button type="button" class="nav width100" id="confirmArchive" style="background:var(--bs-danger); color:white;">Archive</button>
@@ -267,22 +316,27 @@
     <p class="size28 str500" style="color:var(--primary);"><%= stocks.length %></p>
     <p class="size12" style="color:var(--black10);">Total Items</p>
   </div>
+
   <div class="summ">
     <p class="size28 str500" style="color:var(--primary);"><%= inStocks.length %></p>
     <p class="size12 flex gap10" style="color:var(--black10);">In Stocks</p>
   </div>
+
   <div class="summ">
     <p class="size28 str500" style="color:var(--bs-warning);"><%= lowStocks.length %></p>
     <p class="size12" style="color:var(--black10);">Low Stock</p>
   </div>
+
   <div class="summ">
     <p class="size28 str500" style="color:var(--red500);"><%= outOfStocks.length %></p>
     <p class="size12" style="color:var(--black10);">Out of Stock</p>
   </div>
+
   <div class="summ">
     <p class="size28 str500"><%= medicines.length %></p>
     <p class="size12" style="color:var(--black10);">Medicines</p>
   </div>
+
   <div class="summ">
     <p class="size28 str500"><%= supplies.length %></p>
     <p class="size12" style="color:var(--black10);">Supplies</p>
@@ -297,8 +351,13 @@
     <div class="cursor pointer selectBar w90 filterTab" data-filter="low">Low Stock</div>
     <div class="cursor pointer selectBar w100 filterTab" data-filter="out">Out of Stock</div>
   </div>
- <div class="width0 gap8">
-    <div class="searchBar w220"><i class="fas fa-search"></i><input type="search" id="searchInput" placeholder="Search..."></div>
+
+  <div class="width0 gap8">
+    <div class="searchBar w220">
+      <i class="fas fa-search"></i>
+      <input type="search" id="searchInput" placeholder="Search...">
+    </div>
+
     <div class="selectBar w190">
       <i class="fas fa-filter"></i>
       <select id="categoryFilter">
@@ -307,28 +366,30 @@
         <option value="supply">Supplies</option>
       </select>
     </div>
+
     <% if (isSuperAdmin) { %>
     <div class="selectBar w190">
       <i class="fas fa-building"></i>
-<select id="campusFilter">
-    <option value="Main" <%= selectedCampus === 'Main' ? 'selected' : '' %>> Main </option>
-    <option value="South" <%= selectedCampus === 'South' ? 'selected' : '' %>> South </option>
-    <option value="San Jose" <%= selectedCampus === 'San Jose' ? 'selected' : '' %>> San Jose </option>
-</select>
+      <select id="campusFilter">
+        <option value="Main" <%= selectedCampus === 'Main' ? 'selected' : '' %>>Main</option>
+        <option value="South" <%= selectedCampus === 'South' ? 'selected' : '' %>>South</option>
+        <option value="San Jose" <%= selectedCampus === 'San Jose' ? 'selected' : '' %>>San Jose</option>
+      </select>
     </div>
     <% } %>
   </div>
-  </div>
+</div>
 
 <!-- MAIN CONTENT -->
 <div class="height65 block overflow-y1 col justifyStart">
   <section class="wrap justifyStart alignStretch gap20" id="stockGrid">
     <% if (stocks && stocks.length > 0) { %>
       <% stocks.forEach(item => { %>
-        <% 
+        <%
           let statusLabel = 'In Stock';
           let statusColor = 'var(--bs-success)';
           let filterTag = 'in';
+
           if (item.remaining === 0) {
             statusLabel = 'Out of Stock';
             statusColor = 'var(--bs-danger)';
@@ -338,14 +399,18 @@
             statusColor = 'var(--bs-warning)';
             filterTag = 'low';
           }
+
           const typeIcon = item.type === 'medicine' ? 'fa-stethoscope' : 'fa-box-open';
-          const formattedExp = item.expirationDate ? new Date(item.expirationDate).toISOString().split('T')[0] : '';
+          const formattedExp = item.expirationDate
+            ? new Date(item.expirationDate).toISOString().split('T')[0]
+            : '';
         %>
+
         <section class="stCard width20 gap5 shadow1 corner10 padding15 relative height col alignStart justifyStart"
           data-filter="<%= filterTag %>"
           data-category="<%= item.type %>"
           data-name="<%= item.name.toLowerCase() %>">
-          
+
           <div class="cnav absolute top15 right15 borderGray" title="<%= item.type %>">
             <i class="fas <%= typeIcon %>"></i>
           </div>
@@ -353,33 +418,45 @@
           <div class="absolute hidden" style="top:12px; left:12px; width:8px; height:8px; border-radius:10px; background:<%= statusColor %>;" title="<%= statusLabel %>"></div>
 
           <img src="/images/item.png" alt="<%= item.name %>" class="h100 corner10">
-          
+
           <p class="size20 str500"><%= item.name %></p>
-          
-           <% if (item.type === 'medicine') { %>
-            <% if (item.brandName) { %><p class="size12" style="color:var(--black10);">Brand: <%= item.brandName %></p><% } %>
-            <% if (item.dosageStrength || item.medicineForm) { %><p class="size12" style="color:var(--black10);"><%= item.dosageStrength %> - <%= item.medicineForm %></p><% } %>
+
+          <% if (item.type === 'medicine') { %>
+            <% if (item.brandName) { %>
+              <p class="size12" style="color:var(--black10);">Brand: <%= item.brandName %></p>
+            <% } %>
+
+            <% if (item.dosageStrength || item.medicineForm) { %>
+              <p class="size12" style="color:var(--black10);"><%= item.dosageStrength %> - <%= item.medicineForm %></p>
+            <% } %>
           <% } else { %>
-            <% if (item.category) { %><p class="size12" style="color:var(--black10);">Cat: <%= item.category %></p><% } %>
-            <% if (item.sizeSpecification) { %><p class="size12" style="color:var(--black10);">Spec: <%= item.sizeSpecification %></p><% } %>
+            <% if (item.category) { %>
+              <p class="size12" style="color:var(--black10);">Cat: <%= item.category %></p>
+            <% } %>
+
+            <% if (item.sizeSpecification) { %>
+              <p class="size12" style="color:var(--black10);">Spec: <%= item.sizeSpecification %></p>
+            <% } %>
           <% } %>
 
-          <p class="size14" style="color: <%= statusColor %>; font-weight:600;">
+          <p class="size14" style="color:<%= statusColor %>; font-weight:600;">
             <%= item.remaining %>
-            <span class="size11" style="color: <%= statusColor %>; font-weight:400; margin-left: 4px;">(<%= statusLabel %>)</span>
+            <span class="size11" style="color:<%= statusColor %>; font-weight:400; margin-left:4px;">(<%= statusLabel %>)</span>
           </p>
 
           <% if (item.expirationDate) { %>
             <p class="size11" style="color:var(--black10);">Exp: <%= formattedExp %></p>
           <% } %>
 
-          <p class="size11" style="color:var(--black12); text-transform:uppercase; letter-spacing: 0.5px; margin: 2px 0;"><%= item.type %></p>
+          <p class="size11" style="color:var(--black12); text-transform:uppercase; letter-spacing:0.5px; margin:2px 0;"><%= item.type %></p>
+
           <p class="size12 textWrap" style="color:var(--black10);"><%= item.description || 'No description provided.' %></p>
 
-          <div class="height0 gap8" style="width:100%; padding-top: 10px; margin-top:auto;">
+          <div class="height0 gap8" style="width:100%; padding-top:10px; margin-top:auto;">
             <a href="javascript:void(0)" class="archiveBtn nav" style="flex:1; text-align:center; font-size:11px;" data-id="<%= item._id %>" data-name="<%= item.name %>">
               <i class="fas fa-archive"></i> Archive
             </a>
+
             <a href="javascript:void(0)" class="editBtn nav pnav" style="flex:1; text-align:center; font-size:11px;"
               data-id="<%= item._id %>"
               data-name="<%= item.name %>"
@@ -413,26 +490,60 @@
       <p class="size16 str400" style="color:var(--black12); margin-top:12px;">No items found.</p>
     </div>
   </section>
+
+  <!-- ADD ITEM CONFIRMATION MODAL -->
+  <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="addconfirmnotif">
+    <img class="h100 w100" src="/images/like.png" alt="">
+
+    <section class="padding0 col alignCenter">
+      <p class="size20 str500 textCenter textBalance">
+        Please review all the information you entered. Is everything correct and ready to be processed?
+      </p>
+    </section>
+
+    <section class="justifyBetween gap10 padding0 marginTop10">
+      <button type="button" class="nav width50 textCenter" id="cancelAddConfirm">Cancel</button>
+      <button type="button" id="confirmAddItem" class="nav pnav width50">Confirm</button>
+    </section>
+  </section>
+
+  <!-- EDIT ITEM CONFIRMATION MODAL -->
+  <section class="absolute translateCenter shadow3 width30 padding30 gap10 index500 bgWhite col corner15 height0 hidden" id="editconfirmnotif">
+    <img class="h100 w100" src="/images/like.png" alt="">
+
+    <section class="padding0 col alignCenter">
+      <p class="size20 str500 textCenter textBalance">
+        Are you sure you want to save these changes? Please ensure all information is correct before proceeding.
+      </p>
+    </section>
+
+    <section class="justifyBetween gap10 padding0 marginTop10">
+      <button type="button" class="nav width50 textCenter" id="cancelEditConfirm">Cancel</button>
+      <button type="button" id="confirmEditItem" class="nav pnav width50">Confirm</button>
+    </section>
+  </section>
 </div>
 
 <script>
-
 function changeCampus(campus) {
     if (!campus) return;
 
-    window.location.href =
-        '/st?campus=' + encodeURIComponent(campus);
+    window.location.href = '/st?campus=' + encodeURIComponent(campus);
 }
 
 const campusFilter = document.getElementById('campusFilter');
+
 if (campusFilter) {
-  campusFilter.addEventListener('change', (e) => changeCampus(e.target.value));
+    campusFilter.addEventListener('change', (e) => changeCampus(e.target.value));
 }
 
 const backdrop = document.getElementById('modalBackdrop');
 const addCard = document.getElementById('addCard');
 const editCard = document.getElementById('editCard');
 const archiveCard = document.getElementById('archiveCard');
+const addConfirmNotif = document.getElementById('addconfirmnotif');
+const editConfirmNotif = document.getElementById('editconfirmnotif');
+
 const addTrigger = document.getElementById('addCardTrigger');
 const editBtns = document.querySelectorAll('.editBtn');
 const archiveBtns = document.querySelectorAll('.archiveBtn');
@@ -441,6 +552,7 @@ const searchInput = document.getElementById('searchInput');
 const categoryFilter = document.getElementById('categoryFilter');
 const cards = document.querySelectorAll('.stCard[data-filter]');
 const emptyState = document.getElementById('emptyState');
+
 let activeFilter = 'all';
 
 // Type Handlers for Add/Edit
@@ -448,93 +560,183 @@ const addTypeSelect = document.getElementById('addType');
 const editTypeSelect = document.getElementById('editType');
 
 function toggleTypeFields(type, medDiv, supDiv) {
-  if (type === 'medicine') {
-    medDiv.classList.remove('hidden');
-    supDiv.classList.add('hidden');
-  } else if (type === 'supply') {
-    supDiv.classList.remove('hidden');
-    medDiv.classList.add('hidden');
-  } else {
-    medDiv.classList.add('hidden');
-    supDiv.classList.add('hidden');
-  }
+    if (type === 'medicine') {
+        medDiv.classList.remove('hidden');
+        supDiv.classList.add('hidden');
+    } else if (type === 'supply') {
+        supDiv.classList.remove('hidden');
+        medDiv.classList.add('hidden');
+    } else {
+        medDiv.classList.add('hidden');
+        supDiv.classList.add('hidden');
+    }
 }
 
 addTypeSelect.addEventListener('change', (e) => {
-  toggleTypeFields(e.target.value, document.getElementById('addMedicineFields'), document.getElementById('addSupplyFields'));
+    toggleTypeFields(
+        e.target.value,
+        document.getElementById('addMedicineFields'),
+        document.getElementById('addSupplyFields')
+    );
 });
 
 editTypeSelect.addEventListener('change', (e) => {
-  toggleTypeFields(e.target.value, document.getElementById('editMedicineFields'), document.getElementById('editSupplyFields'));
+    toggleTypeFields(
+        e.target.value,
+        document.getElementById('editMedicineFields'),
+        document.getElementById('editSupplyFields')
+    );
 });
 
 // Open/Close Helpers
 function openModal(modal) {
-  [addCard, editCard, archiveCard].forEach(m => m.classList.add('hidden'));
-  backdrop.classList.remove('hidden');
-  modal.classList.remove('hidden');
+    [addCard, editCard, archiveCard, addConfirmNotif, editConfirmNotif].forEach(m => {
+        m.classList.add('hidden');
+    });
+
+    backdrop.classList.remove('hidden');
+    modal.classList.remove('hidden');
 }
 
 function closeAll() {
-  [addCard, editCard, archiveCard].forEach(m => m.classList.add('hidden'));
-  backdrop.classList.add('hidden');
+    [addCard, editCard, archiveCard, addConfirmNotif, editConfirmNotif].forEach(m => {
+        m.classList.add('hidden');
+    });
+
+    backdrop.classList.add('hidden');
 }
 
 // Add Modal
 addTrigger.addEventListener('click', () => {
-  addCard.reset();
-  toggleTypeFields('', document.getElementById('addMedicineFields'), document.getElementById('addSupplyFields'));
-  openModal(addCard);
+    addCard.reset();
+
+    toggleTypeFields(
+        '',
+        document.getElementById('addMedicineFields'),
+        document.getElementById('addSupplyFields')
+    );
+
+    openModal(addCard);
 });
+
 document.getElementById('cancelAdd').addEventListener('click', closeAll);
+
+// Add Item Confirmation
+const cancelAddConfirm = document.getElementById('cancelAddConfirm');
+const confirmAddItem = document.getElementById('confirmAddItem');
+
+// Intercept Add Item form submission
+addCard.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    if (!addCard.checkValidity()) {
+        addCard.reportValidity();
+        return;
+    }
+
+    addCard.classList.add('hidden');
+    addConfirmNotif.classList.remove('hidden');
+});
+
+// Cancel confirmation and return to Add Item form
+cancelAddConfirm.addEventListener('click', () => {
+    addConfirmNotif.classList.add('hidden');
+    addCard.classList.remove('hidden');
+});
+
+// Confirm and submit Add Item form
+confirmAddItem.addEventListener('click', () => {
+    confirmAddItem.disabled = true;
+    HTMLFormElement.prototype.submit.call(addCard);
+});
+
+// Edit Item Confirmation
+const cancelEditConfirm = document.getElementById('cancelEditConfirm');
+const confirmEditItem = document.getElementById('confirmEditItem');
+
+// Show confirmation when Update is clicked
+editCard.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    if (!editCard.checkValidity()) {
+        editCard.reportValidity();
+        return;
+    }
+
+    editCard.classList.add('hidden');
+    editConfirmNotif.classList.remove('hidden');
+});
+
+// Cancel confirmation and return to Edit Item form
+cancelEditConfirm.addEventListener('click', () => {
+    editConfirmNotif.classList.add('hidden');
+    editCard.classList.remove('hidden');
+});
+
+// Confirm and submit Edit Item form
+confirmEditItem.addEventListener('click', () => {
+    confirmEditItem.disabled = true;
+    HTMLFormElement.prototype.submit.call(editCard);
+});
 
 // Edit Modal
 editBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const id = btn.dataset.id;
-    document.getElementById('editId').value = id;
-    document.getElementById('editName').value = btn.dataset.name;
-    document.getElementById('editType').value = btn.dataset.type;
-    document.getElementById('editRemaining').value = btn.dataset.remaining;
-    document.getElementById('editDescription').value = btn.dataset.description;
-    document.getElementById('editExpirationDate').value = btn.dataset.expirationdate;
+    btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
 
-    toggleTypeFields(btn.dataset.type, document.getElementById('editMedicineFields'), document.getElementById('editSupplyFields'));
+        document.getElementById('editId').value = id;
+        document.getElementById('editName').value = btn.dataset.name;
+        document.getElementById('editType').value = btn.dataset.type;
+        document.getElementById('editRemaining').value = btn.dataset.remaining;
+        document.getElementById('editDescription').value = btn.dataset.description;
+        document.getElementById('editExpirationDate').value = btn.dataset.expirationdate;
 
-    if (btn.dataset.type === 'medicine') {
-      document.getElementById('editBrandName').value = btn.dataset.brandname;
-      document.getElementById('editMedicineForm').value = btn.dataset.medicineform;
-      document.getElementById('editDosageStrength').value = btn.dataset.dosagestrength;
-    } else if (btn.dataset.type === 'supply') {
-      document.getElementById('editCategory').value = btn.dataset.category;
-      document.getElementById('editSizeSpecification').value = btn.dataset.sizespecification;
-    }
+        toggleTypeFields(
+            btn.dataset.type,
+            document.getElementById('editMedicineFields'),
+            document.getElementById('editSupplyFields')
+        );
 
-    editCard.action = `/api/stocks/edit/${id}`;
-    openModal(editCard);
-  });
+        if (btn.dataset.type === 'medicine') {
+            document.getElementById('editBrandName').value = btn.dataset.brandname;
+            document.getElementById('editMedicineForm').value = btn.dataset.medicineform;
+            document.getElementById('editDosageStrength').value = btn.dataset.dosagestrength;
+        } else if (btn.dataset.type === 'supply') {
+            document.getElementById('editCategory').value = btn.dataset.category;
+            document.getElementById('editSizeSpecification').value = btn.dataset.sizespecification;
+        }
+
+        editCard.action = `/api/stocks/edit/${id}`;
+        openModal(editCard);
+    });
 });
+
 document.getElementById('cancelEdit').addEventListener('click', closeAll);
 
 // Archive Modal
 archiveBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.getElementById('archiveId').value = btn.dataset.id;
-    document.getElementById('archiveItemName').textContent = btn.dataset.name;
-    openModal(archiveCard);
-  });
+    btn.addEventListener('click', () => {
+        document.getElementById('archiveId').value = btn.dataset.id;
+        document.getElementById('archiveItemName').textContent = btn.dataset.name;
+        openModal(archiveCard);
+    });
 });
+
 document.getElementById('cancelArchive').addEventListener('click', closeAll);
 
 document.getElementById('confirmArchive').addEventListener('click', () => {
-  const id = document.getElementById('archiveId').value;
-  fetch(`/api/stocks/archive/${id}`, { method: 'POST' })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) window.location.reload();
-      else alert(data.message || 'Archive failed.');
-    })
-    .catch(() => alert('Something went wrong.'));
+    const id = document.getElementById('archiveId').value;
+
+    fetch(`/api/stocks/archive/${id}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(data.message || 'Archive failed.');
+            }
+        })
+        .catch(() => alert('Something went wrong.'));
 });
 
 // Close on backdrop
@@ -542,12 +744,13 @@ backdrop.addEventListener('click', closeAll);
 
 // Filter Tabs
 filterTabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    filterTabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    activeFilter = tab.dataset.filter;
-    applyFilters();
-  });
+    tab.addEventListener('click', () => {
+        filterTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        activeFilter = tab.dataset.filter;
+        applyFilters();
+    });
 });
 
 // Search + Category Filter
@@ -555,23 +758,23 @@ searchInput.addEventListener('input', applyFilters);
 categoryFilter.addEventListener('change', applyFilters);
 
 function applyFilters() {
-  const search = searchInput.value.toLowerCase().trim();
-  const cat = categoryFilter.value;
-  let visible = 0;
+    const search = searchInput.value.toLowerCase().trim();
+    const cat = categoryFilter.value;
+    let visible = 0;
 
-  cards.forEach(card => {
-    const matchFilter = activeFilter === 'all' || card.dataset.filter === activeFilter;
-    const matchSearch = !search || card.dataset.name.includes(search);
-    const matchCat = !cat || card.dataset.category === cat;
+    cards.forEach(card => {
+        const matchFilter = activeFilter === 'all' || card.dataset.filter === activeFilter;
+        const matchSearch = !search || card.dataset.name.includes(search);
+        const matchCat = !cat || card.dataset.category === cat;
 
-    if (matchFilter && matchSearch && matchCat) {
-      card.style.display = '';
-      visible++;
-    } else {
-      card.style.display = 'none';
-    }
-  });
+        if (matchFilter && matchSearch && matchCat) {
+            card.style.display = '';
+            visible++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
 
-  emptyState.classList.toggle('hidden', visible > 0);
+    emptyState.classList.toggle('hidden', visible > 0);
 }
 </script>

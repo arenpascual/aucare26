@@ -3647,7 +3647,7 @@ app.post('/api/stocks/edit/:id', isLogin, async (req, res) => {
         archive: false
       });
 
-   req.session.success = `"${updated.name}" has been updated.`;
+
    req.session.save(() => res.redirect(redirectUrl));
  } catch (err) {
    console.error('Edit Stock Error:', err.message);

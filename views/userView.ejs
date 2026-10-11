@@ -124,7 +124,7 @@
 </div>
 
 <div id="modal" class="bgWhite corner200 hidden">
-    <div class="bgWhite shadow1 absolute left20 top70 width40 height0 justifyStart col" id="healthCard">
+    <div class="bgWhite shadow1 absolute left20 top70 width40 height0 justifyStart col hidden" id="healthCard">
         <section class="justifyBetween padding0 relative">
             <section class="bgIndigo950 justifyStart width60 gap5" style="border-bottom-right-radius: 40px;">
                 <img src="/images/logo.png" alt="" class="corner500 h50 w50">
@@ -580,15 +580,10 @@
         </div>
 
     </div>
-
-
-       
-
-
  
     <!-- COURSE -->
     
-                <div class="field" id="courseField">
+        <div class="field" id="courseField">
         <label>Course</label>
         <div class="selectBar">
         <select name="course" id="course" required>
@@ -631,13 +626,10 @@
                 "Master of Arts Major in Public Management",
                 "Master of Arts Major in Science Education",
                 "Master of Science in Business Administration major in Management",
-                "ABM Specializes in Hospitality and Tourism",
-                "GAS - Criminology",
-                "GAS - Education",
-                "GAS - Information Technology",
+                "ABM",
+                "GAS",
                 "HUMSS",
                 "STEM",
-                "STEM Health (Nursing, Pharmacy, Medical Laboratory Science, Psychology)"
             ]; %>
 
             <% courseOptions.forEach(function(c) { %>
