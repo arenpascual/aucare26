@@ -362,6 +362,8 @@
                             <option value="3rd Year">3rd Year</option>
                             <option value="2nd Year">2nd Year</option>
                             <option value="1st Year">1st Year</option>
+                            <option value="Grade 12">Grade 12</option>   
+                            <option value="Grade 11">Grade 11</option>
                         </select>
                     </div>
                 </div>
@@ -406,16 +408,32 @@
                             <option value="Master of Arts Major in Public Management">Master of Arts Major in Public Management</option>
                             <option value="Master of Arts Major in Science Education">Master of Arts Major in Science Education</option>
                             <option value="Master of Science in Business Administration major in Management">Master of Science in Business Administration major in Management</option>
-                            <option value="ABM Specializes in Hospitality and Tourism">ABM Specializes in Hospitality and Tourism</option>
-                            <option value="GAS - Criminology">GAS - Criminology</option>
-                            <option value="GAS - Education">GAS - Education</option>
-                            <option value="GAS - Information Technology">GAS - Information Technology</option>
+                            <option value="ABM">ABM </option>
+                            <option value="GAS">GAS</option>
                             <option value="HUMSS">HUMSS</option>
                             <option value="STEM">STEM</option>
-                            <option value="STEM Health (Nursing, Pharmacy, Medical Laboratory Science, Psychology)">STEM Health (Nursing, Pharmacy, Medical Laboratory Science, Psychology)</option>
                         </select>
                     </div>
                 </div>
+
+                <!-- ADDED: Department field (Faculty / Staff only) -->
+                <div class="field" id="departmentField" style="display:none;">
+                    <label>Department</label>
+                    <div class="selectBar">
+                        <select name="department" id="department">
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="CMA">CMA</option>
+                            <option value="COE">COE</option>
+                            <option value="CIT">CIT</option>
+                            <option value="CAHS">CAHS</option>
+                            <option value="CELA">CELA</option>
+                            <option value="CCJE">CCJE</option>
+                            <option value="CAS">CAS</option>
+                            <option value="Others" id="deptOthersOption">Others</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- END ADDED -->
 
                 <div class="pagination-buttons">
                     <div class="side-spacer">
@@ -607,6 +625,11 @@ const courseField = document.getElementById('courseField');
 const yearLevelSelect = document.getElementById('yearLevel');
 const courseSelect = document.getElementById('course');
 
+// ADDED: Department (Faculty / Staff only)
+const departmentField = document.getElementById('departmentField');
+const departmentSelect = document.getElementById('department');
+const deptOthersOption = document.getElementById('deptOthersOption');
+
 const schoolIdLabel = document.getElementById('schoolIdLabel');
 const schoolIdInput = document.getElementById('schoolId');
 const schoolIdHint = document.getElementById('schoolIdHint');
@@ -622,6 +645,9 @@ function applyRoleVisibility() {
     const role = roleSelect.value;
     const isStudent = role === 'Student';
     const isFaculty = role === 'Faculty';
+    // ADDED
+    const isStaff = role === 'Staff';
+    const needsDepartment = isFaculty || isStaff;
 
     // Student-only fields
     if (yearLevelField) {
@@ -645,6 +671,29 @@ function applyRoleVisibility() {
 
         if (!isStudent) {
             courseSelect.value = '';
+        }
+    }
+
+    // ADDED: Department toggle (Faculty / Staff)
+    if (departmentField) {
+        departmentField.style.display = needsDepartment ? '' : 'none';
+    }
+
+    if (departmentSelect) {
+        departmentSelect.required = needsDepartment;
+
+        if (!needsDepartment) {
+            departmentSelect.value = '';
+        }
+    }
+
+    // "Others" ay para sa Staff lang
+    if (deptOthersOption) {
+        deptOthersOption.hidden = !isStaff;
+        deptOthersOption.disabled = !isStaff;
+
+        if (!isStaff && departmentSelect && departmentSelect.value === 'Others') {
+            departmentSelect.value = '';
         }
     }
 

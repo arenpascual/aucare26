@@ -228,6 +228,8 @@
                             <option value="3rd Year">3rd Year</option>
                             <option value="2nd Year">2nd Year</option>
                             <option value="1st Year">1st Year</option>
+                            <option value="Grade 12">Grade 12</option> <!-- ADDED -->
+                            <option value="Grade 11">Grade 11</option> <!-- ADDED -->
                         </select>
                     </div>
                 </div>
@@ -282,6 +284,25 @@
                         </select>
                     </div>
                 </div>
+
+                <!-- ADDED: Department field (Faculty / Staff only) -->
+                <div class="field" id="departmentField" style="display:none;">
+                    <label>Department</label>
+                    <div class="selectBar">
+                        <select name="department" id="department">
+                            <option value="" selected disabled>--Select--</option>
+                            <option value="CMA">CMA</option>
+                            <option value="COE">COE</option>
+                            <option value="CIT">CIT</option>
+                            <option value="CAHS">CAHS</option>
+                            <option value="CELA">CELA</option>
+                            <option value="CCJE">CCJE</option>
+                            <option value="CAS">CAS</option>
+                            <option value="Others" id="deptOthersOption">Others</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- END ADDED -->
 
                 <div class="pagination-buttons">
                     <div class="side-spacer">
@@ -456,6 +477,11 @@
     const yearLevelSelect = document.getElementById('yearLevel');
     const courseSelect = document.getElementById('course');
 
+    // ADDED: Department (Faculty / Staff only)
+    const departmentField = document.getElementById('departmentField');
+    const departmentSelect = document.getElementById('department');
+    const deptOthersOption = document.getElementById('deptOthersOption');
+
     const schoolIdLabel = document.getElementById('schoolIdLabel');
     const schoolIdInput = document.getElementById('schoolId');
 
@@ -465,6 +491,9 @@
         const role = roleSelect.value;
         const isStudent = role === 'Student';
         const isFaculty = role === 'Faculty';
+        // ADDED
+        const isStaff = role === 'Staff';
+        const needsDepartment = isFaculty || isStaff;
 
         // Student-only fields
         if (yearLevelField) yearLevelField.style.display = isStudent ? '' : 'none';
@@ -478,6 +507,29 @@
         if (courseSelect) {
             courseSelect.required = isStudent;
             if (!isStudent) courseSelect.value = '';
+        }
+
+        // ADDED: Department toggle (Faculty / Staff)
+        if (departmentField) {
+            departmentField.style.display = needsDepartment ? '' : 'none';
+        }
+
+        if (departmentSelect) {
+            departmentSelect.required = needsDepartment;
+
+            if (!needsDepartment) {
+                departmentSelect.value = '';
+            }
+        }
+
+        // "Others" ay para sa Staff lang
+        if (deptOthersOption) {
+            deptOthersOption.hidden = !isStaff;
+            deptOthersOption.disabled = !isStaff;
+
+            if (!isStaff && departmentSelect && departmentSelect.value === 'Others') {
+                departmentSelect.value = '';
+            }
         }
 
         // School ID format based on role

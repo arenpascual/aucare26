@@ -119,7 +119,9 @@ app.use(
                 "https://kit.fontawesome.com",
                 "https://ka-f.fontawesome.com",
                 "https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js",
-                "https://cdn.sheetjs.com/*"
+                "https://cdn.sheetjs.com/*",
+                "https://www.google.com/recaptcha/",
+                "https://www.gstatic.com/recaptcha/"
             ],
             styleSrc: [
                 "'self'",
@@ -127,7 +129,9 @@ app.use(
                 "https://fonts.googleapis.com",
                 "https://cdnjs.cloudflare.com",
                 "https://cdn.jsdelivr.net",
-                "https://ka-f.fontawesome.com"
+                "https://ka-f.fontawesome.com",
+                "https://www.google.com/recaptcha/",
+                "https://www.gstatic.com/recaptcha/"
             ],
             fontSrc: [
                 "'self'",
@@ -148,7 +152,11 @@ app.use(
                 "https://cdn.jsdelivr.net"
             ],
             objectSrc: ["'none'"],
-            frameSrc: ["'self'"],
+            frameSrc: [
+                 "'self'",
+                 "https://www.google.com/recaptcha/",
+                 "https://recaptcha.google.com/recaptcha/"
+]
         }
     })
 );
@@ -319,8 +327,14 @@ app.use(isCampus);
 
 // routes
 
+
 app.get('/', async (req, res) => {
-    res.render('index');
+    res.render('index', {
+        recaptchaSiteKey: process.env.RECAPTCHA_SITE_KEY || '',
+        error: req.session.error || null
+    });
+
+    req.session.error = null;
 });
 
 app.get('/x', async (req, res) => {
@@ -406,12 +420,58 @@ app.post('/vip-login', async (req, res) => {
 
 app.post('/login', async (req, res) => {
     try {
-        const { email, password, captcha_input, captcha_expected } = req.body;
+        const { email, password } = req.body;
+        const recaptchaToken = req.body['g-recaptcha-response'];
 
-        if (!captcha_input || captcha_input !== captcha_expected) {
-            req.session.error = "Captcha is incorrect. Please try again.";
+        if (!recaptchaToken) {
+            req.session.error = 'Please complete the reCAPTCHA verification.';
             return req.session.save(() => res.redirect('/'));
         }
+
+        if (!process.env.RECAPTCHA_SECRET_KEY) {
+            console.error('RECAPTCHA_SECRET_KEY is not configured.');
+            req.session.error =
+                'Login verification is temporarily unavailable. Please try again later.';
+            return req.session.save(() => res.redirect('/'));
+        }
+
+        try {
+            const verifyResponse = await fetch(
+                'https://www.google.com/recaptcha/api/siteverify',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        secret: process.env.RECAPTCHA_SECRET_KEY,
+                        response: recaptchaToken,
+                        remoteip: req.ip
+                    })
+                }
+            );
+
+            const verifyResult = await verifyResponse.json();
+
+            if (!verifyResponse.ok || verifyResult.success !== true) {
+                req.session.error =
+                    'Captcha verification failed. Please try again.';
+                return req.session.save(() => res.redirect('/'));
+            }
+        } catch (verifyError) {
+            console.error(
+                'reCAPTCHA verification error:',
+                verifyError.message
+            );
+            req.session.error =
+                'Unable to verify CAPTCHA right now. Please try again.';
+            return req.session.save(() => res.redirect('/'));
+        }
+
+        // Ilagay rito ang natitirang original login code mo.
+        // Magsimula sa existing: if (!email || !password) { ... }
+
+
 
         if (!email || !password) {
             req.session.error = "Please provide both email and password.";
@@ -4537,19 +4597,54 @@ app.post('/visit/complaint2/delete/:id', async (req, res) => {
     } catch (err) { res.redirect('back'); }
 });
 
+// ADDED: Department ng Student (batay sa year level / course)
+function getStudentDepartment(yearLevel, course) {
+    // 1. Grade 11 / Grade 12 (Senior High) -> CELA
+    if (yearLevel === 'Grade 11' || yearLevel === 'Grade 12') {
+        return 'CELA';
+    }
+
+    // 2. 1st Year -> CAS
+    if (yearLevel === '1st Year') {
+        return 'CAS';
+    }
+
+    // 3. 2nd Year pataas -> hanapin sa course
+    for (const [dept, courses] of Object.entries(DEPARTMENT_COURSES)) {
+        if (courses.includes(course)) {
+            return dept;
+        }
+    }
+
+    return undefined;
+}
+
 app.post('/signup', async (req, res) => {
     try {
         const {
             fName, mName, lName, xName,
             role,
             phone, gender, address, email,
-            schoolId, campus, course, yearLevel, section,
+            schoolId, campus, course, department, yearLevel, section, // ADDED: department
             bDay, bMonth, bYear,
             fAllergy, mAllergy,
             eName, ePhone, eAddress
         } = req.body;
 
         const normalizedEmail = email.trim().toLowerCase();
+
+                // ADDED: Department (Student = auto, Faculty / Staff = dropdown)
+        const VALID_DEPARTMENTS = ['CMA', 'COE', 'CIT', 'CAHS', 'CELA', 'CCJE'];
+        let finalDepartment;
+
+        if (role === 'Student') {
+            finalDepartment = getStudentDepartment(yearLevel, course);
+        } else if (
+            (role === 'Faculty' && VALID_DEPARTMENTS.includes(department)) ||
+            (role === 'Staff' && [...VALID_DEPARTMENTS, 'Others'].includes(department))
+        ) {
+            finalDepartment = department;
+        }
 
         const emailExist = await Users.findOne({ email: normalizedEmail });
         if (emailExist) {
@@ -4566,6 +4661,7 @@ app.post('/signup', async (req, res) => {
             role,
             phone, gender, address, email: normalizedEmail,
             schoolId, campus, course, yearLevel, section,
+            department: finalDepartment, // ADDED
             bDay, bMonth, bYear,
             fAllergy, mAllergy,
             username: normalizedEmail,
@@ -4619,7 +4715,7 @@ app.post('/new-user', isLogin, async (req, res) => {
             fName, mName, lName, xName,
             role,
             phone, gender, address, email,
-            schoolId, campus, course, yearLevel, section,
+            schoolId, campus, course, department, yearLevel, section, // ADDED: department
             bDay, bMonth, bYear,
             fAllergy, mAllergy,
             eName, ePhone, eAddress
@@ -4646,6 +4742,19 @@ app.post('/new-user', isLogin, async (req, res) => {
             });
         }
 
+        // ADDED: Department (Student = auto, Faculty / Staff = dropdown)
+        const VALID_DEPARTMENTS = ['CMA', 'COE', 'CIT', 'CAHS', 'CELA', 'CCJE'];
+        let finalDepartment;
+
+        if (role === 'Student') {
+            finalDepartment = getStudentDepartment(yearLevel, course);
+        } else if (
+            (role === 'Faculty' && VALID_DEPARTMENTS.includes(department)) ||
+            (role === 'Staff' && [...VALID_DEPARTMENTS, 'Others'].includes(department))
+        ) {
+            finalDepartment = department;
+        }
+
         const normalizedEmail = email.trim().toLowerCase();
 
         const emailExist = await Users.findOne({ email: normalizedEmail });
@@ -4666,6 +4775,7 @@ app.post('/new-user', isLogin, async (req, res) => {
             role,
             phone, gender, address, email: normalizedEmail,
             schoolId, campus: finalCampus, course, yearLevel, section,
+            department: finalDepartment, // ADDED
             bDay, bMonth, bYear,
             fAllergy, mAllergy,
             username: normalizedEmail,
@@ -4990,10 +5100,11 @@ app.use((err, req, res, next) => {
     console.error('⚠️ Error occurred:', err.message);
     res.locals.error = 'Oh no! Page is missing!';
     res.status(500).render('index', {
-        title: 'File Missing',
-        message: `OH NO! File in Directory is missing!' ${err.message}`,
-        error: `OH NO! File in Directory is missing!`
-    });
+    title: 'File Missing',
+    message: `OH NO! File in Directory is missing! ${err.message}`,
+    error: 'OH NO! File in Directory is missing!',
+    recaptchaSiteKey: process.env.RECAPTCHA_SITE_KEY || ''
+});
 });
 
 // ============================================================
