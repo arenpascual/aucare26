@@ -15,4 +15,6 @@ const complaintSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+complaintSchema.index({ visitId: 1 });
+
 module.exports = mongoose.model('complaint', complaintSchema);

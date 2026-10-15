@@ -74,4 +74,6 @@ dump: { type: Boolean, default: false }
   timestamps: true
 });
 
+userSchema.index({ archive: 1, verify: 1, suspend: 1, role: 1, campus: 1, gender: 1, department: 1, course: 1 });
+
 module.exports = mongoose.model('user', userSchema);

@@ -78,4 +78,6 @@ const stockSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+stockSchema.index({ archive: 1, campus: 1, type: 1, remaining: 1, expirationDate: 1 });
+
 module.exports = mongoose.model('Stocks', stockSchema);

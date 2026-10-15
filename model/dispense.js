@@ -37,4 +37,6 @@ const dispenseSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+dispenseSchema.index({ visitId: 1 });
+
 module.exports = mongoose.model('dispense', dispenseSchema);

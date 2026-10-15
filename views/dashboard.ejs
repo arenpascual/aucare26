@@ -141,8 +141,7 @@ margin-bottom: 25px;
 }
 .kpi-card {
 border: 1px solid #ddd;
-padding: 20px;
-min-height: 125px;
+padding: 10px !important;
 border-radius: 16px;
 color: white;
 background: 
@@ -153,19 +152,25 @@ background:
 background-blend-mode: lighten; 
 backdrop-filter: blur(10px);
 background-color: var(--shade4);
-gap: 0;
+gap: 0 !important;
 }
 
 .kpi-label {
 color: white;
 font-size: 13px;
+display: none !important;
 }
 .kpi-value {
 font-size: 40px;
+padding: 2px;
 }
 .kpi-description {
 color: white;
-font-size: 12px;
+font-size: 16px;
+padding: 0 !important;
+}
+.kpi-description:hover {
+    transform: scale(1.08);
 }
 
 /* =========================================================
@@ -200,7 +205,12 @@ color: rgb(8, 8, 36);
 .chart-container {
 position: relative;
 width: 100%;
-height: 320px;
+height: 230px;
+}
+.chart-container.small {
+position: relative;
+width: 100%;
+height: 180px;
 }
 
 /* =========================================================
@@ -340,6 +350,34 @@ padding: 30px;
 color: #777;
 font-size: 13px;
 }
+/* Four demographic charts in one row */
+.demographics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.demographics-grid > .dashboard-card {
+    min-width: 0;
+    width: 100%;
+}
+
+.demographics-grid .chart-container {
+    max-height: 180px;
+}
+
+/* Responsive layout for smaller screens */
+@media (max-width: 1200px) {
+    .demographics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .demographics-grid {
+        grid-template-columns: 1fr;
+    }
+}
 
 /* =========================================================
 RESPONSIVE
@@ -394,6 +432,15 @@ flex-direction: column;
 gap: 5px;
 }
 }
+
+#exportPasswordModal {
+    display: none !important;
+}
+
+/* Show modal only when explicitly opened */
+#exportPasswordModal.show {
+    display: flex !important;
+}
 </style>
 </head>
 <body class="padding0">
@@ -401,14 +448,11 @@ gap: 5px;
 <!-- =========================================================
 HEADER
 ========================================================== -->
-<section class="dashboard-header width100 padding15 corner18 bgWhite relative" style="height: 150px !important;">
-    <img src="/images/iconj.png" alt="" class="absolute height90" style="right: 16%;">
+
+<section class="dashboard-header width100 padding15 corner18 bgWhite relative" style="height: auto !important;">
+    <img src="/images/iconj.png" alt="" class="absolute height90 hidden" style="right: 10%; transform: scale(1.2);">
     <section class="col justifyStart alignStart padding0">
         <p class="size35 str500 ">Analytics Dashboard</p>
-        <section class="width0 padding5 paddingLeft0 relative">
-            <a href="/pd" class="nav"><i class="fas fa-bell"></i> Pending</a>
-            <div class="padding5 h20 w20 bgSky950 white absolute top0 right0 corner500" id="pendingVisits"></div>
-        </section>
         <p id="dateRangeText" class="marginTop5">
         Loading dashboard data...
         </p>
@@ -420,10 +464,16 @@ HEADER
         Loading
         </span>
     </section>
-    <div class="dashboard-status col alignEnd colorPrimary corner10 padding10 height100 width25 bgSky50" style="height: 100% !important; gap: 0 !important;">
-        <p class="size16" >Today is</p>
-        <p class="size26 str500" id="todayDay"></p>
+    <div class="dashboard-status justifyEnd colorPrimary corner10 padding10 height100 bgSky50" style="height: 100% !important; gap: 0 !important;">
+        <section class="width0 padding5 paddingLeft0 relative">
+            <a href="/pd" class="nav pnav"><i class="fas fa-bell"></i> Pending Accounts</a>
+            <div class="padding5 h20 w20 bgSky500 white absolute top0 right0 corner500" id="pendingVisits"></div>
+        </section>
+        <button type="button" class="nav pnav" id="exportDashboardBtn">
+            <i class="fas fa-download"></i> Export Reports
+        </button>
     </div>
+</section>
     <script>
     const days = [
         "SUNDAY",
@@ -437,7 +487,6 @@ HEADER
 
     document.getElementById("todayDay").textContent = days[new Date().getDay()];
 </script>
-</section>
 
 <!-- =========================================================
 ERROR
@@ -467,7 +516,7 @@ KPI CARDS
 ========================================================== -->
 <section class="kpi-grid padding0">
 <article class="kpi-card">
-<div class="kpi-label">
+<div class="kpi-label hidden">
 Total Users
 </div>
 <div
@@ -476,9 +525,9 @@ id="totalUsers"
 >
 0
 </div>
-<div class="kpi-description">
-Registered users
-</div>
+<a href="/um" class="kpi-description height0 width100">
+Total Users <i class="fas fa-chevron-right"></i>
+</a>
 </article>
 
 <article class="kpi-card">
@@ -492,9 +541,9 @@ id="totalVisits"
 0
 </div>
 
-<div class="kpi-description">
-Clinic Visits
-</div>
+<a href="/v2" class="kpi-description height0 width100">
+Total Visits <i class="fas fa-chevron-right"></i>
+</a>
 </article>
 
 <article class="kpi-card" style="opacity: 0; display: none !important;">
@@ -507,9 +556,9 @@ id="uniquePatients"
 >
 0
 </div>
-<div class="kpi-description">
-Distinct patients
-</div>
+<a href="/um" class="kpi-description height0 width100">
+Distinct patients <i class="fas fa-chevron-right"></i>
+</a>
 </article>
 
 <article class="kpi-card">
@@ -522,9 +571,9 @@ id="todayVisits"
 >
 0
 </div>
-<div class="kpi-description">
-Current day
-</div>
+<a href="/v2" class="kpi-description height0 width100">
+Today's Visits <i class="fas fa-chevron-right"></i>
+</a>
 
 </article>
 
@@ -538,9 +587,9 @@ id="expiredMedicines"
 >
 0
 </div>
-<div class="kpi-description">
-Past expiry
-</div>
+<a href="/st" class="kpi-description height0 width100">
+Expired Medicines <i class="fas fa-chevron-right"></i>
+</a>
 </article>
 
 <article class="kpi-card">
@@ -554,9 +603,9 @@ id="lowStock"
 >
 0
 </div>
-<div class="kpi-description">
-Items with 1–10 remaining
-</div>
+<a href="/st" class="kpi-description height0 width100">
+Low Stock <i class="fas fa-chevron-right"></i>
+</a>
 </article>
 
 <article class="kpi-card">
@@ -569,9 +618,9 @@ id="outOfStock"
 >
 0
 </div>
-<div class="kpi-description">
-Items with zero remaining
-</div>
+<a href="/st" class="kpi-description height0 width100">
+Out of Stock <i class="fas fa-chevron-right"></i>
+</a>
 </article>
 </section>
 
@@ -727,31 +776,16 @@ CHARTS
 
 <section class="dashboard-grid padding0">
 
-<!-- DISPENSING -->
-<article class="dashboard-card">
-<h2>
-Medicine and Supply Consumption
-</h2>
-<p>
-Quantity dispensed by item type.
-</p>
-<div class="chart-container">
-<canvas id="dispensingChart"></canvas>
-</div>
-</article>
 
 <!-- INVENTORY -->
 
-<article class="dashboard-card">
-<h2>
-Inventory Status
-</h2>
-<p>
-Current inventory condition.
-</p>
-<div class="chart-container">
-<canvas id="inventoryChart"></canvas>
-</div>
+<article class="dashboard-card relative">
+    <a href="/st" class="nav absolute right15 top15">View Stock List <i class="fas fa-chevron-right"></i></a>
+    <h2> Inventory Status </h2>
+    <p> Current inventory condition. </p>
+    <div class="chart-container">
+        <canvas id="inventoryChart"></canvas>
+    </div>
 </article>
 
 
@@ -782,6 +816,19 @@ Most frequently recorded health complaints.
 </div>
 </article>
 
+<!-- DISPENSING -->
+<article class="dashboard-card">
+<h2>
+Medicine and Supply Consumption
+</h2>
+<p>
+Quantity dispensed by item type.
+</p>
+<div class="chart-container">
+<canvas id="dispensingChart"></canvas>
+</div>
+</article>
+
 
 <!-- VISIT TREND -->
 <article class="dashboard-card full-width">
@@ -794,6 +841,34 @@ Number of visits recorded during the selected period.
 <div class="chart-container" style="max-height: 200px;">
 <canvas id="visitTrendChart"></canvas>
 </div>
+</article>
+
+<article class="dashboard-card full-width">
+    <h2>Patient Demographics &amp; Visit Distribution</h2>
+    <p>Clinic visits grouped by gender, campus, department, and role.</p>
+
+    <div class="dashboard-grid demographics-grid" style="margin-top: 20px; margin-bottom: 0;">
+        <article class="dashboard-card">
+            <h2>Visits by Gender</h2>
+            <div class="chart-container">
+                <canvas id="demographicGenderChart"></canvas>
+            </div>
+        </article>
+
+        <article class="dashboard-card">
+            <h2>Visits by Campus</h2>
+            <div class="chart-container">
+                <canvas id="demographicCampusChart"></canvas>
+            </div>
+        </article>
+
+        <article class="dashboard-card">
+            <h2>Visits by Department</h2>
+            <div class="chart-container">
+                <canvas id="demographicDepartmentChart"></canvas>
+            </div>
+        </article>
+    </div>
 </article>
 
 
@@ -823,7 +898,6 @@ Distribution of visit statuses.
 <canvas id="visitStatusChart"></canvas>
 </div>
 </article>
-
 
 
 <!-- ALERTS -->
@@ -881,8 +955,73 @@ Key Insights
         <div class="empty-state">Loading AI insights...</div>
     </div>
 </article>
+
+
+
 </section>
 </main>
+
+
+<div id="exportPasswordModal" class="col"
+ style="
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    background:rgba(0,0,0,.55);
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+">
+    <div style="
+        background:white;
+        padding:25px;
+        border-radius:14px;
+        width:100%;
+        max-width:400px;
+    flex-direction: column !important;
+    ">
+        <h2 style="margin-bottom:10px;">Verify Your Password</h2>
+
+        <p style="margin-bottom:15px;">
+            Enter your account password to export the dashboard PDF.
+        </p>
+
+        <form id="exportPasswordForm">
+            <input
+                type="password"
+                id="exportPassword"
+                placeholder="Enter your password"
+                required
+                autocomplete="current-password"
+                style="
+                    width:100%;
+                    padding:12px;
+                    border:1px solid #ccc;
+                    border-radius:8px;
+                "
+            >
+
+            <p id="exportPasswordError"
+               style="color:red;margin-top:10px;"></p>
+
+            <div style="
+                display:flex;
+                justify-content:flex-end;
+                gap:10px;
+                margin-top:15px;
+            ">
+                <button class="nav" type="button" id="cancelExportBtn">
+                    Cancel
+                </button>
+
+                <button class="nav pnav" type="submit" id="confirmExportBtn">
+                    Verify & Export
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <script>
 
@@ -891,6 +1030,120 @@ GLOBAL VARIABLES
 ========================================================= */
 let charts = {};
 let currentDashboardData = null;
+
+// NEW: DEMOGRAPHIC CHARTS
+
+function createDemographicCharts(chartData) {
+    const definitions = [
+        {
+            key: 'demographicGenderChart',
+            data: chartData.visitsByGender || [],
+            type: 'doughnut',
+            title: 'Visits by Gender',
+            colors: ['#36A2EB', '#9AD0F5']
+        },
+        {
+            key: 'demographicCampusChart',
+            data: chartData.visitsByCampus || [],
+            type: 'bar',
+            title: 'Visits by Campus',
+            colors: '#36A2EB',
+            vertical: true
+        },
+        {
+            key: 'demographicDepartmentChart',
+            data: chartData.visitsByDepartment || [],
+            type: 'bar',
+            title: 'Visits by Department',
+            colors: '#36A2EB',
+            vertical: false
+        },
+        //{
+        //    key: 'demographicRoleChart',
+        //    data: chartData.visitsByRoleComparison || [],
+        //    type: 'doughnut',
+        //    title: 'Visits by Role',
+        //    colors: ['#36A2EB', '#9AD0F5','blue']
+        //}
+    ];
+
+    definitions.forEach(item => {
+        const canvas = document.getElementById(item.key);
+        if (!canvas) return;
+
+        if (charts[item.key]) {
+            charts[item.key].destroy();
+        }
+
+        const isBar = item.type === 'bar';
+        const isVertical = isBar && item.vertical;
+
+        charts[item.key] = new Chart(canvas, {
+            type: item.type,
+
+            data: {
+                labels: item.data.map(row => row._id),
+                datasets: [{
+                    label: item.title,
+                    data: item.data.map(row => row.count),
+                    backgroundColor: item.colors,
+                    borderColor: isBar ? '#36A2EB' : '#FFFFFF',
+                    borderWidth: isBar ? 1 : 2,
+                    borderRadius: isBar ? 4 : 0
+                }]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                // Campus: vertical bars; others: horizontal bars
+                indexAxis: isVertical ? 'x' : 'y',
+
+                plugins: {
+                    legend: {
+                        display: item.type === 'doughnut',
+                        position: 'bottom'
+                    }
+                },
+
+                scales: isBar ? {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        },
+                        grid: {
+                            // Vertical grid lines only for Campus
+                            display: isVertical,
+                            drawTicks: true
+                        },
+                        border: {
+                            display: true
+                        }
+                    },
+
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: isVertical ? 0 : undefined
+                        },
+                        grid: {
+                            // Horizontal grid lines only for horizontal bars
+                            display: !isVertical,
+                            drawTicks: true
+                        },
+                        border: {
+                            display: true
+                        }
+                    }
+                } : {}
+            }
+        });
+    });
+}
+
+
 
 /* =========================================================
 DOM ELEMENTS
@@ -1224,35 +1477,18 @@ JANUARY - DECEMBER
 function createVisitTrendChart(data) {
     destroyChart('visitTrend');
 
-    // January to December
-    const monthLabels = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December'
-    ];
-
-    // Initialize all months with 0 visits
-    const monthlyVisits = Array(12).fill(0);
-
-    // Group daily visit data by month
-    data.forEach(item => {
-        if (!item._id || !item._id.month) return;
-
-        const monthIndex = Number(item._id.month) - 1;
-
-        if (monthIndex >= 0 && monthIndex < 12) {
-            monthlyVisits[monthIndex] += Number(item.visits) || 0;
-        }
-    });
+ const pad = n => String(n).padStart(2, '0');
+ const months = new Set(data.map(i => `${i._id.year}-${i._id.month}`));
+ const daily = months.size <= 1;
+ const buckets = {};
+ data.forEach(i => {
+   const { year, month, day } = i._id || {};
+   if (!year) return;
+   const key = daily ? `${year}-${pad(month)}-${pad(day)}` : `${year}-${pad(month)}`;
+   buckets[key] = (buckets[key] || 0) + (Number(i.visits) || 0);
+ });
+ const monthLabels = Object.keys(buckets);
+ const monthlyVisits = Object.values(buckets);
 
     charts.visitTrend = new Chart(
         document.getElementById('visitTrendChart'),
@@ -1320,18 +1556,29 @@ function createVisitsByRoleChart(data) {
             type: 'bar',
             data: {
                 labels,
-                datasets: [{ label: 'Visits (%)', data: values, borderWidth: 1 }]
+                datasets: [{ label: 'Visits (%)', data: values, borderWidth: 1, borderRadius: 10 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
+                    x: {
+                        grid: {
+                            display: true // Patayo (vertical) na grid lines
+                        }
+                    },
                     y: {
                         beginAtZero: true,
-                        ticks: { callback: value => value + '%' }
+                        ticks: { callback: value => value + '%' },
+                        grid: {
+                            display: false // Tinatanggal ang pahigang grid lines
+                        }
                     }
                 },
                 plugins: {
+                    legend: {
+                        display: false // Tinatanggal ang label/legend na "Visits (%)"
+                    },
                     tooltip: {
                         callbacks: { label: ctx => `${ctx.parsed.y}%` }
                     }
@@ -1393,67 +1640,52 @@ false
 /* =========================================================
 TOP COMPLAINTS CHART
 ========================================================= */
-function createTopComplaintsChart(
-data
-) {
-destroyChart(
-'topComplaints'
-);
-const labels =
-data.map(
-item =>
-item._id ||
-'Unknown'
-);
-const values =
-data.map(
-item =>
-item.count
-);
+function createTopComplaintsChart(data) {
+    destroyChart('topComplaints');
+    
+    const labels = data.map(item => item._id || 'Unknown');
+    const values = data.map(item => item.count);
 
-charts.topComplaints =
-new Chart(
-document
-.getElementById(
-'topComplaintsChart'
-),
-
-{
-type: 'bar',
-data: {
-labels,
-datasets: [
-{
-label:
-'Complaints',
-data:
-values,
-borderWidth:
-1
-}
-]
-},
-options: {
-indexAxis:
-'y',
-responsive:
-true,
-maintainAspectRatio:
-false,
-scales: {
-x: {
-beginAtZero:
-true,
-
-ticks: {
-precision:
-0
-}
-}
-}
-}
-}
-);
+    charts.topComplaints = new Chart(
+        document.getElementById('topComplaintsChart'),
+        {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Complaints',
+                        data: values,
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false // Hides the dataset label/legend
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false // Hides the y-axis grid lines for a cleaner look
+                        }
+                    }
+                }
+            }
+        }
+    );
 }
 
 /* =========================================================
@@ -1487,69 +1719,56 @@ function createDispensingChart(data) {
 /* =========================================================
 TOP DISPENSED ITEMS
 ========================================================= */
-function createTopDispensedItemsChart(
-data
-) {
-destroyChart(
-'topDispensedItems'
-);
-const labels =
-data.map(
-item =>
-item._id ||
-'Unknown'
-);
-const values =
-data.map(
-item =>
-item.quantity
-);
+function createTopDispensedItemsChart(data) {
+    destroyChart('topDispensedItems');
+    
+    const labels = data.map(item => item._id || 'Unknown');
+    const values = data.map(item => item.quantity);
 
-charts.topDispensedItems =
-new Chart(
-document
-.getElementById(
-'topDispensedItemsChart'
-),
-{
-
-type: 'bar',
-data: {
-labels,
-datasets: [
-{
-label:
-'Quantity',
-data:
-values,
-borderWidth:
-1
+    charts.topDispensedItems = new Chart(
+        document.getElementById('topDispensedItemsChart'),
+        {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Quantity',
+                        data: values,
+                        borderWidth: 1,
+                        borderRadius: 10
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false // Hides the dataset label/legend
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: true
+                        }
+                    }
+                }
+            }
+        }
+    );
 }
-]
-},
-options: {
-indexAxis:
-'y',
-responsive:
-true,
-maintainAspectRatio:
-false,
-scales: {
-x: {
-beginAtZero:
-true,
-ticks: {
-
-precision:
-0
-}
-}
-}
-}
-}
-);
-}
-
 /* =========================================================
 INVENTORY CHART
 ========================================================= */
@@ -1584,6 +1803,10 @@ function createInventoryChart(kpis) {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
+                    legend: {
+                        position: 'right',
+                        align: 'end'
+                    },
                     tooltip: { callbacks: { label: ctx => ctx.label } }
                 }
             }
@@ -1929,6 +2152,8 @@ createVisitsByRoleChart(
 data.charts.visitsByRole
 );
 
+createDemographicCharts(data.charts);
+
 createVisitStatusChart(
 data.charts.visitsByStatus
 );
@@ -2176,16 +2401,116 @@ async function generateAiInsights() {
 
 document.getElementById('refreshAiInsightsBtn')
     .addEventListener('click', generateAiInsights);
-/* =========================================================
-INITIAL LOAD
-========================================================= */
-document.addEventListener(
-'DOMContentLoaded',
-function () {
-loadDashboard();
-loadAiInsights();
-}
-);
+
+
+ /* INITIAL LOAD */
+document.addEventListener('DOMContentLoaded', function () {
+    loadDashboard();
+    loadAiInsights();
+
+    const exportBtn = document.getElementById('exportDashboardBtn');
+    const exportModal = document.getElementById('exportPasswordModal');
+    const cancelBtn = document.getElementById('cancelExportBtn');
+    const exportForm = document.getElementById('exportPasswordForm');
+    const passwordInput = document.getElementById('exportPassword');
+    const exportError = document.getElementById('exportPasswordError');
+    const confirmBtn = document.getElementById('confirmExportBtn');
+
+    if (!exportBtn || !exportModal || !cancelBtn || !exportForm) {
+        console.error('Export modal elements are missing.');
+        return;
+    }
+
+    exportBtn.addEventListener('click', function () {
+        exportForm.reset();
+        exportError.textContent = '';
+        exportModal.classList.add('show');
+        passwordInput.focus();
+    });
+
+    cancelBtn.addEventListener('click', function () {
+        exportModal.classList.remove('show');
+        exportForm.reset();
+        exportError.textContent = '';
+    });
+
+    exportForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        exportError.textContent = '';
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Verifying...';
+
+        try {
+           
+        const chartImages = {};
+
+        [
+            'inventoryChart',
+            'topDispensedItemsChart',
+            'topComplaintsChart',
+            'dispensingChart',
+            'visitTrendChart',
+            'demographicGenderChart',
+            'demographicCampusChart',
+            'demographicDepartmentChart',
+            'visitsByRoleChart',
+            'visitStatusChart'
+        ].forEach(id => {
+            const canvas = document.getElementById(id);
+
+            if (canvas) {
+                chartImages[id] = canvas.toDataURL('image/png');
+            }
+        });
+
+        const response = await fetch('/api/dashboard/export-pdf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/pdf, application/json'
+            },
+            body: JSON.stringify({
+                password: passwordInput.value,
+                dashboardData: currentDashboardData,
+                chartImages: chartImages
+            })
+        });
+
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data.message || 'Export failed.');
+            }
+
+            const blob = await response.blob();
+
+            if (blob.type !== 'application/pdf') {
+                throw new Error('The server did not return a PDF file.');
+            }
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            link.href = url;
+            link.download = 'dashboard-report.pdf';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+            exportModal.classList.remove('show');
+            exportForm.reset();
+
+        } catch (error) {
+            exportError.textContent = error.message;
+        } finally {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Verify & Export';
+        }
+    });
+});
+
 </script>
 </body>
 </html>

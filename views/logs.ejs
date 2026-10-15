@@ -26,7 +26,7 @@
         </div>
 </div>
 
-<div class="height90 col justifyStart padding10 overflow-y1 block">
+<div class="height80 col justifyStart padding10 overflow-y1 block">
     <table>
         <tbody id="logsTableBody">
             <% if (allLogs && allLogs.length > 0) { %>
@@ -51,63 +51,340 @@
             <% } %>
         </tbody>
     </table>
-    <p id="noResultsMsg" class="textCenter padding20 hidden">No matching logs found.</p>
+    
+<p id="noResultsMsg" class="textCenter padding20 hidden">
+    No matching logs found.
+</p>
+
+
+
+</div>
+<div
+    id="logsPagination"
+    style="
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        padding:12px 0;
+        min-height: 10%;
+        height: 10%;
+    "
+>
+   <div style="display:flex; align-items:center; gap:8px; width: auto;">
+        <label for="logsPerPage" class="size14">Per page:</label>
+
+        <select id="logsPerPage"
+                style="height:34px; padding:0 8px; border:1px solid #d0d0d0; border-radius:6px; background:#fff; width: 100px;">
+            <option value="15" selected>15</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+
+        <span id="logsPageInfo" class="size14">
+            Showing 0–0 of 0 logs
+        </span>
+    </div>
+
+    <div
+            id="logsPageButtons"
+            style="
+                display:flex;
+                align-items:center;
+                gap:5px;
+                width: auto;
+            "
+        >
+    </div>
 </div>
 
 <script>
+(function () {
     const logSearchInput = document.getElementById('logSearch');
     const dateFilterSelect = document.getElementById('dateFilter');
-    const logRows = document.querySelectorAll('.logRow');
+    const logsTableBody = document.getElementById('logsTableBody');
+    const logRows = Array.from(logsTableBody.querySelectorAll('.logRow'));
     const noResultsMsg = document.getElementById('noResultsMsg');
+    const pageInfo = document.getElementById('logsPageInfo');
+    const pageButtons = document.getElementById('logsPageButtons');
+    const perPageSelect = document.getElementById('logsPerPage');
 
-    function isWithinRange(dateStr, range) {
-        if (range === 'all') return true;
-        if (!dateStr) return false;
+    const ROWS_PER_PAGE = 10;
+    let currentPage = 1;
 
-        const logDate = new Date(dateStr);
-        const now = new Date();
-
-        if (range === 'today') {
-            return logDate.getFullYear() === now.getFullYear()
-                && logDate.getMonth() === now.getMonth()
-                && logDate.getDate() === now.getDate();
-        }
-
-        if (range === 'week') {
-            const startOfWeek = new Date(now);
-            startOfWeek.setDate(now.getDate() - now.getDay());
-            startOfWeek.setHours(0, 0, 0, 0);
-            return logDate >= startOfWeek;
-        }
-
-        if (range === 'month') {
-            return logDate.getFullYear() === now.getFullYear()
-                && logDate.getMonth() === now.getMonth();
-        }
-
-        return true;
+    function startOfDay(date) {
+        const result = new Date(date);
+        result.setHours(0, 0, 0, 0);
+        return result;
     }
 
-    function applyFilters() {
-        const searchTerm = logSearchInput.value.trim().toLowerCase();
-        const dateRange = dateFilterSelect.value;
-        let visibleCount = 0;
+    function endOfDay(date) {
+        const result = new Date(date);
+        result.setHours(23, 59, 59, 999);
+        return result;
+    }
 
-        logRows.forEach(row => {
-            const matchesSearch = !searchTerm || row.dataset.search.includes(searchTerm);
-            const matchesDate = isWithinRange(row.dataset.date, dateRange);
+    function startOfWeek(date) {
+        const result = startOfDay(date);
+        result.setDate(result.getDate() - result.getDay());
+        return result;
+    }
 
-            if (matchesSearch && matchesDate) {
-                row.classList.remove('hidden');
-                visibleCount++;
-            } else {
-                row.classList.add('hidden');
+    function endOfWeek(date) {
+        const result = endOfDay(startOfWeek(date));
+        result.setDate(result.getDate() + 6);
+        return result;
+    }
+
+    function getDateRange(filter) {
+        const now = new Date();
+        let start;
+        let end;
+
+        switch (filter) {
+            case 'today':
+                start = startOfDay(now);
+                end = endOfDay(now);
+                break;
+
+            case 'yesterday': {
+                const yesterday = new Date(now);
+                yesterday.setDate(yesterday.getDate() - 1);
+                start = startOfDay(yesterday);
+                end = endOfDay(yesterday);
+                break;
             }
+
+            case 'thisWeek':
+                start = startOfWeek(now);
+                end = endOfWeek(now);
+                break;
+
+            case 'lastWeek': {
+                const lastWeek = new Date(now);
+                lastWeek.setDate(lastWeek.getDate() - 7);
+                start = startOfWeek(lastWeek);
+                end = endOfWeek(lastWeek);
+                break;
+            }
+
+            case 'thisMonth':
+                start = new Date(now.getFullYear(), now.getMonth(), 1);
+                end = endOfDay(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+                break;
+
+            case 'lastMonth':
+                start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                end = endOfDay(new Date(now.getFullYear(), now.getMonth(), 0));
+                break;
+
+            case 'thisYear':
+                start = new Date(now.getFullYear(), 0, 1);
+                end = endOfDay(new Date(now.getFullYear(), 11, 31));
+                break;
+
+            case 'lastYear':
+                start = new Date(now.getFullYear() - 1, 0, 1);
+                end = endOfDay(new Date(now.getFullYear() - 1, 11, 31));
+                break;
+
+            default:
+                return null;
+        }
+
+        return [start.getTime(), end.getTime()];
+    }
+
+    function matchesDate(row, range) {
+        if (!range) return true;
+
+        const dateValue = row.dataset.date;
+        if (!dateValue) return false;
+
+        const timestamp = new Date(dateValue).getTime();
+        if (Number.isNaN(timestamp)) return false;
+
+        return timestamp >= range[0] && timestamp <= range[1];
+    }
+
+    function createPageButton(label, page, disabled, active) {
+        const button = document.createElement('button');
+
+        button.type = 'button';
+        button.textContent = label;
+        button.disabled = disabled;
+
+        button.style.cssText = `
+            min-width:34px;
+            height:34px;
+            padding:0 10px;
+            border:1px solid #d0d0d0;
+            border-radius:6px;
+            cursor:${disabled ? 'not-allowed' : 'pointer'};
+            background:${active ? '#1b5f99' : '#fff'};
+            color:${active ? '#fff' : '#222'};
+            opacity:${disabled ? '0.5' : '1'};
+        `;
+
+        if (active) {
+            button.setAttribute('aria-current', 'page');
+        }
+
+        button.addEventListener('click', function () {
+            currentPage = page;
+            renderLogs();
         });
 
-        noResultsMsg.classList.toggle('hidden', visibleCount !== 0);
+        return button;
     }
 
-    logSearchInput.addEventListener('input', applyFilters);
-    dateFilterSelect.addEventListener('change', applyFilters);
+    function renderPagination(total, totalPages, startIndex, endIndex) {
+        pageButtons.replaceChildren();
+
+        pageInfo.textContent = total === 0
+            ? 'Showing 0–0 of 0 logs'
+            : `Showing ${startIndex + 1}–${endIndex} of ${total} logs`;
+
+        if (totalPages <= 1) {
+            pageButtons.style.display = 'none';
+            return;
+        }
+
+        pageButtons.style.display = 'flex';
+
+        pageButtons.appendChild(
+            createPageButton(
+                'Previous',
+                Math.max(1, currentPage - 1),
+                currentPage === 1,
+                false
+            )
+        );
+
+        // Show a small window of page numbers around the current page.
+        let firstPage = Math.max(1, currentPage - 2);
+        let lastPage = Math.min(totalPages, currentPage + 2);
+
+        if (currentPage <= 3) {
+            lastPage = Math.min(totalPages, 5);
+        }
+
+        if (currentPage >= totalPages - 2) {
+            firstPage = Math.max(1, totalPages - 4);
+        }
+
+        if (firstPage > 1) {
+            pageButtons.appendChild(
+                createPageButton('1', 1, false, currentPage === 1)
+            );
+
+            if (firstPage > 2) {
+                const dots = document.createElement('span');
+                dots.textContent = '…';
+                dots.style.padding = '0 4px';
+                pageButtons.appendChild(dots);
+            }
+        }
+
+        for (let page = firstPage; page <= lastPage; page++) {
+            pageButtons.appendChild(
+                createPageButton(
+                    String(page),
+                    page,
+                    false,
+                    page === currentPage
+                )
+            );
+        }
+
+        if (lastPage < totalPages) {
+            if (lastPage < totalPages - 1) {
+                const dots = document.createElement('span');
+                dots.textContent = '…';
+                dots.style.padding = '0 4px';
+                pageButtons.appendChild(dots);
+            }
+
+            pageButtons.appendChild(
+                createPageButton(
+                    String(totalPages),
+                    totalPages,
+                    false,
+                    currentPage === totalPages
+                )
+            );
+        }
+
+        pageButtons.appendChild(
+            createPageButton(
+                'Next',
+                Math.min(totalPages, currentPage + 1),
+                currentPage === totalPages,
+                false
+            )
+        );
+    }
+
+    function renderLogs() {
+        const searchTerm = logSearchInput.value.trim().toLowerCase();
+        const dateRange = getDateRange(dateFilterSelect.value);
+
+        // Apply search and date filtering BEFORE pagination.
+        const filteredRows = logRows.filter(function (row) {
+            const matchesSearch =
+                (row.dataset.search || '').includes(searchTerm);
+
+            return matchesSearch && matchesDate(row, dateRange);
+        });
+
+const total = filteredRows.length;
+const ROWS_PER_PAGE = Number(perPageSelect.value) || 15;
+const totalPages = Math.ceil(total / ROWS_PER_PAGE);
+
+        // Keep the current page valid after filtering.
+        if (totalPages === 0) {
+            currentPage = 1;
+        } else if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        // Hide all rows first.
+        logRows.forEach(function (row) {
+            row.classList.add('hidden');
+        });
+
+        // Show only rows on the selected page.
+        const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+        const endIndex = Math.min(startIndex + ROWS_PER_PAGE, total);
+
+        filteredRows.slice(startIndex, endIndex).forEach(function (row) {
+            row.classList.remove('hidden');
+        });
+
+        noResultsMsg.classList.toggle('hidden', total !== 0);
+
+        renderPagination(total, totalPages, startIndex, endIndex);
+    }
+
+    // Reset to page 1 whenever the search changes.
+    logSearchInput.addEventListener('input', function () {
+        currentPage = 1;
+        renderLogs();
+    });
+
+    // Reset to page 1 whenever the date filter changes.
+    dateFilterSelect.addEventListener('change', function () {
+        currentPage = 1;
+        renderLogs();
+    });
+
+    perPageSelect.addEventListener('change', function () {
+    currentPage = 1;
+    renderLogs();
+});
+
+    // Initial display.
+    renderLogs();
+})();
 </script>

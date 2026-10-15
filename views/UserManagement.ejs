@@ -1,4 +1,91 @@
 <% layout('layout') %>
+<style>
+
+    
+/* Keep the page within the viewport */
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+/* Prevent the whole page from scrolling */
+body {
+    overflow: hidden;
+}
+
+/* Keep the account management content inside the available height */
+.height90.col.justifyStart.padding10.overflow-y1.block {
+    height: calc(100vh - 100px);
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Keep the filters and search at the top */
+.height90.col.justifyStart.padding10.overflow-y1.block > .height0.justifyBetween {
+    flex-shrink: 0;
+}
+
+/* Make the table area scroll independently */
+#userTable {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Scrollable table body */
+#userTable tbody {
+    display: block;
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Keep header and body columns aligned */
+#userTable thead,
+#userTable tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* Keep the table headings visible */
+#userTable thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+    
+#userPaginationButtons button {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 6px 10px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: #fff;
+    color: #1b5f99;
+    cursor: pointer;
+}
+
+#userPaginationButtons button.active {
+    background: #1b5f99;
+    color: #fff;
+    border-color: #1b5f99;
+}
+
+#userPaginationButtons button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+#userPaginationButtons button:hover:not(:disabled):not(.active) {
+    background: #edf5fc;
+}
+
+</style>
 
 <div class="height10 justifyBetween">
     <div class="width0">
@@ -66,10 +153,15 @@
             <div class="searchBar w220">
                 <i class="fas fa-search"></i>
                 <input
-                    type="search"
-                    id="userSearchInput"
-                    placeholder="Search..."
-                >
+                        type="search"
+                        id="userSearchInput"
+                        name="account-directory-filter"
+                        placeholder="Search..."
+                        value=""
+                        autocomplete="new-password"
+                        autocapitalize="off"
+                        spellcheck="false"
+                    >
             </div>
         </div>
 
@@ -134,6 +226,33 @@
 
     </table>
 
+    
+<!-- USER TABLE PAGINATION -->
+    <div id="userPagination"
+        style="display:flex; justify-content:space-between; align-items:center; gap:12px; padding:15px 0; min-height: 10%;">
+
+        <p id="userPaginationInfo" class="size14" style="margin:0;">
+            Showing 0–0 of 0 users
+        </p>
+
+        <div style="display:flex; align-items:center; gap:8px;" class="width0">
+            <label for="userPageSize" class="size14">Per page:</label>
+
+            <select id="userPageSize"
+                    style="padding:7px 10px; border:1px solid #ccc; border-radius:6px; width: 100px;">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+
+        <div id="userPaginationButtons" class="width0"
+            style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+        </div>
+    </div>
+
+
     <p id="noResultsMsg"
        class="size14 gray hidden"
        style="padding:15px 0;">
@@ -161,154 +280,339 @@
     </section>
 </section>
 
+
 <script>
+(function () {
+    // =========================================================
+    // USER TABLE + FILTERS + PAGINATION
+    // =========================================================
 
-const searchInput = document.getElementById("userSearchInput");
-const roleFilter = document.getElementById("roleFilter");
-const departmentFilter = document.getElementById("departmentFilter");
-const campusFilter = document.getElementById("Campus"); // null kung hindi Super Admin
-const tableBody = document.getElementById("userTableBody");
-const noResults = document.getElementById("noResultsMsg");
+    const searchInput = document.getElementById("userSearchInput");
+    searchInput.value = "";
+    const roleFilter = document.getElementById("roleFilter");
+    const departmentFilter = document.getElementById("departmentFilter");
+    const campusFilter = document.getElementById("Campus");
+    const tableBody = document.getElementById("userTableBody");
+    const noResults = document.getElementById("noResultsMsg");
 
-const rows = [...tableBody.querySelectorAll("tr")];
+    const pageSizeSelect = document.getElementById("userPageSize");
+    const paginationButtons = document.getElementById("userPaginationButtons");
+    const paginationInfo = document.getElementById("userPaginationInfo");
 
-function filterUsers() {
+    if (!tableBody) return;
 
-    const keyword = searchInput.value.toLowerCase().trim();
-    const role = roleFilter.value;
-    const department = departmentFilter.value;
-    const campus = campusFilter ? campusFilter.value : "";
+    const rows = Array.from(tableBody.querySelectorAll("tr"))
+        .filter(row => row.querySelectorAll("td").length >= 5);
 
-    let visible = 0;
+    let currentPage = 1;
+    let pageSize = pageSizeSelect
+        ? parseInt(pageSizeSelect.value, 10) || 10
+        : 10;
 
-    rows.forEach(row => {
+    let filteredRows = [];
 
-        const cells = row.querySelectorAll("td");
-        if (cells.length < 5) return; // skip "No users found" row
+    // =========================================================
+    // FILTER ALL USERS FIRST, THEN PAGINATE
+    // =========================================================
 
-        const name = cells[1].innerText.toLowerCase();
-        const schoolId = cells[2].innerText.toLowerCase();
-        const userRole = cells[3].innerText;
-        const userDepartment = cells[4].innerText;
-        const userCampus = row.dataset.campus || "";
+    function filterUsers() {
+        const keyword = (searchInput.value || "").toLowerCase().trim();
+        const role = roleFilter.value;
+        const department = departmentFilter.value;
+        const campus = campusFilter ? campusFilter.value : "";
 
-        const matchesSearch =
-            name.includes(keyword) ||
-            schoolId.includes(keyword) ||
-            userRole.toLowerCase().includes(keyword) ||
-            userDepartment.toLowerCase().includes(keyword);
+        filteredRows = rows.filter(row => {
+            const cells = row.querySelectorAll("td");
 
-        const matchesRole =
-            role === "" || userRole === role;
+            const name = cells[1].innerText.toLowerCase();
+            const schoolId = cells[2].innerText.toLowerCase();
+            const userRole = cells[3].innerText.trim();
+            const userDepartment = cells[4].innerText.trim();
+            const userCampus = row.dataset.campus || "";
 
-        const matchesDepartment =
-            department === "" || userDepartment === department;
+            const matchesSearch =
+                name.includes(keyword) ||
+                schoolId.toLowerCase().includes(keyword) ||
+                userRole.toLowerCase().includes(keyword) ||
+                userDepartment.toLowerCase().includes(keyword);
 
-        const matchesCampus =
-            campus === "" || userCampus === campus;
+            const matchesRole =
+                role === "" || userRole === role;
 
-        const isVisible =
-            matchesSearch && matchesRole && matchesDepartment && matchesCampus;
+            const matchesDepartment =
+                department === "" || userDepartment === department;
 
-        row.style.display = isVisible ? "" : "none";
+            const matchesCampus =
+                campus === "" || userCampus === campus;
 
-        if (isVisible) visible++;
+            return (
+                matchesSearch &&
+                matchesRole &&
+                matchesDepartment &&
+                matchesCampus
+            );
+        });
 
+        // New search/filter always starts on page 1
+        currentPage = 1;
+        renderTable();
+    }
+
+    // =========================================================
+    // RENDER TABLE PAGE
+    // =========================================================
+
+    function renderTable() {
+        const total = filteredRows.length;
+        const totalPages = Math.ceil(total / pageSize);
+
+        if (totalPages > 0 && currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        if (total === 0) {
+            currentPage = 1;
+        }
+
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = Math.min(startIndex + pageSize, total);
+
+        const visibleRows = new Set(
+            filteredRows.slice(startIndex, endIndex)
+        );
+
+        // Hide all rows not on the current filtered page
+        rows.forEach(row => {
+            row.style.display = visibleRows.has(row) ? "" : "none";
+        });
+
+        // Update the row number column for the visible page
+        filteredRows.slice(startIndex, endIndex).forEach((row, index) => {
+            row.cells[0].textContent = startIndex + index + 1;
+        });
+
+        // No results message
+        if (noResults) {
+            noResults.classList.toggle("hidden", total > 0);
+        }
+
+        renderPagination(total, totalPages, startIndex, endIndex);
+    }
+
+    // =========================================================
+    // RENDER PAGINATION BUTTONS
+    // =========================================================
+
+    function renderPagination(total, totalPages, startIndex, endIndex) {
+        if (!paginationButtons || !paginationInfo) return;
+
+        paginationButtons.innerHTML = "";
+
+        if (total === 0) {
+            paginationInfo.textContent = "Showing 0–0 of 0 users";
+            return;
+        }
+
+        paginationInfo.textContent =
+            `Showing ${startIndex + 1}–${endIndex} of ${total} users`;
+
+        function addButton(label, page, disabled, active = false) {
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.textContent = label;
+            button.disabled = disabled;
+
+            if (active) {
+                button.classList.add("active");
+                button.setAttribute("aria-current", "page");
+            }
+
+            button.addEventListener("click", () => {
+                currentPage = page;
+                renderTable();
+            });
+
+            paginationButtons.appendChild(button);
+        }
+
+        addButton("‹", currentPage - 1, currentPage <= 1);
+
+        // Show all pages when there are few; compact when there are many
+        let pages;
+
+        if (totalPages <= 7) {
+            pages = Array.from(
+                { length: totalPages },
+                (_, index) => index + 1
+            );
+        } else {
+            pages = [...new Set([
+                1,
+                currentPage - 1,
+                currentPage,
+                currentPage + 1,
+                totalPages
+            ])]
+                .filter(page => page >= 1 && page <= totalPages)
+                .sort((a, b) => a - b);
+        }
+
+        let previousPage = 0;
+
+        pages.forEach(page => {
+            if (previousPage && page - previousPage > 1) {
+                const dots = document.createElement("span");
+                dots.textContent = "…";
+                paginationButtons.appendChild(dots);
+            }
+
+            addButton(
+                String(page),
+                page,
+                false,
+                page === currentPage
+            );
+
+            previousPage = page;
+        });
+
+        addButton("›", currentPage + 1, currentPage >= totalPages);
+    }
+
+    // =========================================================
+    // FILTER EVENTS
+    // =========================================================
+
+    if (searchInput) {
+        searchInput.addEventListener("input", filterUsers);
+    }
+
+    if (roleFilter) {
+        roleFilter.addEventListener("change", filterUsers);
+    }
+
+    if (departmentFilter) {
+        departmentFilter.addEventListener("change", filterUsers);
+    }
+
+    if (campusFilter) {
+        campusFilter.addEventListener("change", filterUsers);
+    }
+
+    if (pageSizeSelect) {
+        pageSizeSelect.addEventListener("change", function () {
+            pageSize = parseInt(this.value, 10) || 10;
+            currentPage = 1;
+            renderTable();
+        });
+    }
+
+    // Initial render
+    filterUsers();
+
+    // =========================================================
+    // PASSWORD POPUP — EXISTING FUNCTIONALITY PRESERVED
+    // =========================================================
+
+    const proceedNotif = document.getElementById("proceednotif");
+    const proceedOverlay = document.getElementById("proceedOverlay");
+    const proceedPassword = document.getElementById("proceedPassword");
+    const proceedError = document.getElementById("proceedError");
+    const proceedConfirm = document.getElementById("proceedConfirm");
+    const proceedCancel = document.getElementById("proceedCancel");
+
+    let targetHref = null;
+    let targetId = null;
+    let isSubmitting = false;
+
+    function openProceed(href, id) {
+        targetHref = href;
+        targetId = id;
+
+        proceedPassword.value = "";
+        proceedError.textContent = "Incorrect password.";
+        proceedError.classList.add("hidden");
+
+        proceedNotif.classList.remove("hidden");
+        proceedOverlay.classList.remove("hidden");
+        proceedPassword.focus();
+    }
+
+    function closeProceed() {
+        targetHref = null;
+        targetId = null;
+        proceedPassword.value = "";
+
+        proceedNotif.classList.add("hidden");
+        proceedOverlay.classList.add("hidden");
+    }
+
+    // Clicking a patient name opens the password popup
+    tableBody.addEventListener("click", function (event) {
+        const link = event.target.closest(".patientLink");
+
+        if (!link) return;
+
+        event.preventDefault();
+        openProceed(link.dataset.href, link.dataset.id);
     });
 
-    noResults.classList.toggle("hidden", visible > 0);
+    async function submitProceed() {
+        const password = proceedPassword.value;
 
-}
-
-searchInput.addEventListener("input", filterUsers);
-roleFilter.addEventListener("change", filterUsers);
-departmentFilter.addEventListener("change", filterUsers);
-if (campusFilter) {
-    campusFilter.addEventListener("change", filterUsers);
-}
-
-/* ===== Password popup ===== */
-
-const proceedNotif = document.getElementById("proceednotif");
-const proceedOverlay = document.getElementById("proceedOverlay");
-const proceedPassword = document.getElementById("proceedPassword");
-const proceedError = document.getElementById("proceedError");
-const proceedConfirm = document.getElementById("proceedConfirm");
-const proceedCancel = document.getElementById("proceedCancel");
-
-let targetHref = null;
-let targetId = null;
-
-function openProceed(href, id) {
-    targetHref = href;
-    targetId = id;
-    proceedPassword.value = "";
-    proceedError.textContent = "Incorrect password.";
-    proceedError.classList.add("hidden");
-    proceedNotif.classList.remove("hidden");
-    proceedOverlay.classList.remove("hidden");
-    proceedPassword.focus();
-}
-
-function closeProceed() {
-    targetHref = null;
-    targetId = null;
-    proceedPassword.value = "";
-    proceedNotif.classList.add("hidden");
-    proceedOverlay.classList.add("hidden");
-}
-
-// Click sa pangalan -> popup
-tableBody.addEventListener("click", (e) => {
-    const link = e.target.closest(".patientLink");
-    if (!link) return;
-    e.preventDefault();
-    openProceed(link.dataset.href, link.dataset.id);
-});
-
-let isSubmitting = false;
-
-async function submitProceed() {
-    const password = proceedPassword.value;
-    if (!password || !targetHref || !targetId || isSubmitting) return;
-
-    isSubmitting = true;
-    proceedConfirm.disabled = true;
-
-    try {
-        const res = await fetch("/verify-password", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ password, patientId: targetId })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-            window.location.href = targetHref;
-        } else {
-            proceedError.textContent = "Incorrect password.";
-            proceedError.classList.remove("hidden");
-            proceedPassword.value = "";
-            proceedPassword.focus();
+        if (!password || !targetHref || !targetId || isSubmitting) {
+            return;
         }
-    } catch (err) {
-        proceedError.textContent = "Something went wrong. Try again.";
-        proceedError.classList.remove("hidden");
-    } finally {
-        isSubmitting = false;
-        proceedConfirm.disabled = false;
+
+        isSubmitting = true;
+        proceedConfirm.disabled = true;
+
+        try {
+            const response = await fetch("/verify-password", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    password,
+                    patientId: targetId
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                window.location.href = targetHref;
+            } else {
+                proceedError.textContent = "Incorrect password.";
+                proceedError.classList.remove("hidden");
+                proceedPassword.value = "";
+                proceedPassword.focus();
+            }
+        } catch (error) {
+            proceedError.textContent = "Something went wrong. Try again.";
+            proceedError.classList.remove("hidden");
+        } finally {
+            isSubmitting = false;
+            proceedConfirm.disabled = false;
+        }
     }
-}
 
-proceedConfirm.addEventListener("click", submitProceed);
-proceedCancel.addEventListener("click", closeProceed);
-proceedOverlay.addEventListener("click", closeProceed);
+    proceedConfirm.addEventListener("click", submitProceed);
+    proceedCancel.addEventListener("click", closeProceed);
+    proceedOverlay.addEventListener("click", closeProceed);
 
-proceedPassword.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") submitProceed();
-});
-document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeProceed();
-});
+    proceedPassword.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            submitProceed();
+        }
+    });
 
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeProceed();
+        }
+    });
+})();
 </script>

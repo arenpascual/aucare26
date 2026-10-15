@@ -14,4 +14,6 @@ const logSchema = new mongoose.Schema({
   timestamps: true
 });
 
+logSchema.index({ archive: 1, createdAt: -1 });
+
 module.exports = mongoose.model('log', logSchema);

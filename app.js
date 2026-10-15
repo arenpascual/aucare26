@@ -16,6 +16,7 @@ const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
 const isoWeek = require('dayjs/plugin/isoWeek');
 const cron = require('node-cron');
+const PDFDocument = require('pdfkit');
 
 
 // Models
@@ -79,8 +80,8 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use(morgan('dev'));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 app.use(express.static(path.join(__dirname, 'public'), {
     maxAge: '0',
     etag: true
@@ -710,12 +711,33 @@ app.get('/d', isLogin, async (req, res) => {
         });
         const PATIENT_ROLES = ['Student', 'Faculty', 'Staff'];
 
-        const [departments, campuses, genders, visitStatuses] = await Promise.all([
-            Users.distinct('department', { archive: false, department: { $nin: [null, ''] } }),
-            Users.distinct('campus', { archive: false, campus: { $nin: [null, ''] } }),
-            Users.distinct('gender', { archive: false, gender: { $nin: [null, ''] } }),
+
+        const [userDepartments, campuses, genders, visitStatuses] = await Promise.all([
+            Users.distinct('department', {
+                archive: false,
+                role: { $in: ['Faculty', 'Staff'] },
+                department: { $nin: [null, ''] }
+            }),
+            Users.distinct('campus', {
+                archive: false,
+                campus: { $nin: [null, ''] }
+            }),
+            Users.distinct('gender', {
+                archive: false,
+                gender: { $nin: [null, ''] }
+            }),
             Visits.distinct('status')
         ]);
+
+        const studentDepartments = Object.keys(DEPARTMENT_COURSES);
+
+        const departments = [
+            ...new Set([
+                ...userDepartments,
+                ...studentDepartments
+            ])
+        ].sort();
+
 
         res.render('dashboard', {
             title: 'Dashboard',
@@ -844,797 +866,385 @@ const DEPARTMENT_COURSES = {
     ]
 };
 
-app.get('/api/dashboard/analytics', isLogin, isDashboardCampus, async (req, res) => { try {
+// ===== NEW: DEMOGRAPHIC VISIT CHART HELPER =====
+async function getDemographicVisitChart({
+    groupField,
+    query,
+    campus,
+    start,
+    end,
+    hasDateFilter
+}) {
+    const has = value => value && value !== 'all';
 
-const dateRange = getDashboardDateRange(req.query);
-const userMatch = buildDashboardUserMatch(req.query);
+    const userMatch = {
+        archive: false,
+        verify: false,
+        suspend: false
+    };
 
-const selectedDepartment = req.query.department;
+    // Apply the other filters, but not the chart's own filter.
+    if (groupField !== 'role' && has(query.role)) {
+        userMatch.role = query.role;
+    }
 
-const departmentCourses =
-    selectedDepartment &&
-    selectedDepartment !== 'all'
-        ? DEPARTMENT_COURSES[selectedDepartment] || []
-        : [];
+    if (groupField !== 'gender' && has(query.gender)) {
+        userMatch.gender = query.gender;
+    }
 
-const { start, end } = dateRange; const hasDateFilter = start !== null && end !== null; const visitMatch = { archive: false
-};
+    if (groupField === 'campus') {
+        // Admin/Sub Admin must remain limited to their own campus.
+        if (campus) userMatch.campus = campus;
+    } else if (campus) {
+        userMatch.campus = campus;
+    }
 
-if (hasDateFilter) {
-visitMatch.createdAt = {
-$gte: start,
-$lte: end
-};
+    if (groupField !== 'department' && has(query.department)) {
+        const courses = DEPARTMENT_COURSES[query.department] || [];
+
+        userMatch.$or = [
+            { department: query.department },
+            ...(courses.length ? [{ course: { $in: courses } }] : [])
+        ];
+    }
+
+    const users = await Users.find(userMatch)
+        .select('_id role gender campus department course')
+        .lean();
+
+    const userIds = users.map(user => user._id);
+
+    if (!userIds.length) return [];
+
+    const visitMatch = {
+        archive: false,
+        patient: { $in: userIds }
+    };
+
+    if (hasDateFilter) {
+        visitMatch.createdAt = { $gte: start, $lte: end };
+    }
+
+    if (has(query.visitStatus)) {
+        visitMatch.status = query.visitStatus;
+    }
+
+    const visits = await Visits.aggregate([
+        { $match: visitMatch },
+        {
+            $group: {
+                _id: '$patient',
+                count: { $sum: 1 }
+            }
+        }
+    ]);
+
+    const userById = new Map(
+        users.map(user => [String(user._id), user])
+    );
+
+    const counts = {};
+
+    for (const visit of visits) {
+        const user = userById.get(String(visit._id));
+        if (!user) continue;
+
+
+    let label = user[groupField];
+
+    if (groupField === 'department') {
+        if (user.role === 'Student') {
+            // Student department comes from their course.
+            label = Object.keys(DEPARTMENT_COURSES).find(department =>
+                DEPARTMENT_COURSES[department].includes(user.course)
+            );
+        } else {
+            // Faculty and Staff use their saved department.
+            label = user.department;
+        }
+    }
+
+        label = label || 'Unknown';
+        counts[label] = (counts[label] || 0) + visit.count;
+    }
+
+    return Object.entries(counts)
+        .map(([_id, count]) => ({ _id, count }))
+        .sort((a, b) => b.count - a.count);
 }
-if (
-req.query.visitStatus &&
-req.query.visitStatus !== 'all'
-) {
-visitMatch.status =
-req.query.visitStatus;
-}
-/*
-=====================================================
-1. USERS
-=====================================================
-*/
+// ===== END NEW HELPER =====
+
+app.get('/api/dashboard/analytics', isLogin, isDashboardCampus, async (req, res) => {
+  try {
+    const q = req.query;
+    const has = v => v && v !== 'all';
+    const dateRange = getDashboardDateRange(q);
+    const { start, end } = dateRange;
+    const hasDateFilter = start !== null && end !== null;
+
+    // Campus: Admin/Sub Admin = forced to their own campus
+    const me = req.session.user;
+    const campus = ['Admin', 'Sub Admin'].includes(me.role)
+      ? me.campus
+      : (has(q.campus) ? q.campus : null);
+
+    // ---------- Shared user filter ----------
+    const userFilter = {};
+    if (has(q.role)) userFilter.role = q.role;
+    if (has(q.gender)) userFilter.gender = q.gender;
+    if (campus) userFilter.campus = campus;
+    if (has(q.department)) {
+      const courses = DEPARTMENT_COURSES[q.department] || [];
+      userFilter.$or = [
+        { department: q.department },
+        ...(courses.length ? [{ course: { $in: courses } }] : [])
+      ];
+    }
+
+    // ---------- Patients (isang query lang, wala nang $lookup) ----------
+    const patients = await Users.find({
+      archive: false, verify: false, suspend: false, ...userFilter
+    }).select('_id role').lean();
+
+    const patientIds = patients.map(p => p._id);
+    const roleById = new Map(patients.map(p => [String(p._id), p.role]));
+
+    // ---------- Visit filter ----------
+    const visitMatch = { archive: false, patient: { $in: patientIds } };
+    if (hasDateFilter) visitMatch.createdAt = { $gte: start, $lte: end };
+    if (has(q.visitStatus)) visitMatch.status = q.visitStatus;
+
+    const todayStart = dayjs().tz(APP_TIMEZONE).startOf('day').toDate();
+    const todayEnd = dayjs().tz(APP_TIMEZONE).endOf('day').toDate();
+
+    // ---------- Complaint / Dispense scope ----------
+    // Visits na pasok sa lahat ng filters (date, role, campus, dept, gender, status)
+    const visitIds = await Visits.find(visitMatch).distinct('_id');
+    const scopeFor = () => ({ visitId: { $in: visitIds } });
+
+    // ---------- Inventory scope ----------
+    const now = new Date();
+    const expirationLimit = dayjs().tz(APP_TIMEZONE).add(30, 'day').endOf('day').toDate();
+    const stockMatch = { archive: false, ...(campus ? { campus } : {}) };
+    const notExpired = { $or: [{ expirationDate: null }, { expirationDate: { $gte: now } }] };
+
+    // ---------- LAHAT NG QUERY NG SABAY ----------
+    const [
+      totalUsers, activeUsers, pendingUsers, suspendedUsers,
+      visitFacet, todayVisits,
+      topComplaints, dispensing, inventory, expiringSoon, recentActivity
+    ] = await Promise.all([
+      Users.countDocuments({ archive: false, ...userFilter }),
+      Users.countDocuments({ archive: false, verify: false, suspend: false, ...userFilter }),
+      Users.countDocuments({ archive: false, verify: true, ...(campus ? { campus } : {}) }),
+      Users.countDocuments({ archive: false, suspend: true, ...userFilter }),
+
+      // Isang scan lang para sa lahat ng visit data
+      Visits.aggregate([
+        { $match: visitMatch },
+        {
+          $facet: {
+            byStatus: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
+            byPatient: [{ $group: { _id: '$patient', count: { $sum: 1 } } }],
+            trend: [
+              {
+                $group: {
+                  _id: {
+                    year: { $year: { date: '$createdAt', timezone: APP_TIMEZONE } },
+                    month: { $month: { date: '$createdAt', timezone: APP_TIMEZONE } },
+                    day: { $dayOfMonth: { date: '$createdAt', timezone: APP_TIMEZONE } }
+                  },
+                  visits: { $sum: 1 }
+                }
+              },
+              { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
+            ]
+          }
+        }
+      ]).allowDiskUse(true),
+
+      Visits.countDocuments({
+        archive: false,
+        patient: { $in: patientIds },
+        createdAt: { $gte: todayStart, $lte: todayEnd }
+      }),
+
+      Complaint.aggregate([
+        { $match: scopeFor(Complaint) },
+        { $group: { _id: '$type', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 10 }
+      ]),
+
+      Dispense.aggregate([
+        { $match: scopeFor(Dispense) },
+        {
+          $facet: {
+            byType: [{ $group: { _id: '$type', quantity: { $sum: '$qty' }, transactions: { $sum: 1 } } }],
+            topItems: [
+              { $group: { _id: '$item', quantity: { $sum: '$qty' } } },
+              { $sort: { quantity: -1 } },
+              { $limit: 10 }
+            ]
+          }
+        }
+      ]),
+
+      Stocks.aggregate([
+        { $match: stockMatch },
+        {
+          $facet: {
+            total: [{ $count: 'count' }],
+            lowStock: [{ $match: { remaining: { $gt: 0, $lte: 10 }, ...notExpired } }, { $count: 'count' }],
+            outOfStock: [{ $match: { remaining: 0, ...notExpired } }, { $count: 'count' }],
+            expired: [{ $match: { expirationDate: { $ne: null, $lt: now } } }, { $count: 'count' }]
+          }
+        }
+      ]),
+
+      Stocks.countDocuments({
+        ...stockMatch,
+        expirationDate: { $gte: now, $lte: expirationLimit }
+      }),
+
+      Logs.find({ archive: false })
+        .populate('who', 'fName lName username role')
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .lean()
+    ]);
+
+    // ---------- Visit results ----------
+    const vf = visitFacet[0] || {};
+    const statusMap = {};
+    (vf.byStatus || []).forEach(s => { statusMap[s._id] = s.count; });
+
+    const totalVisits = (vf.byStatus || []).reduce((sum, s) => sum + s.count, 0);
+    const uniquePatients = (vf.byPatient || []).length;
+    const attended = statusMap['Attended'] || 0;
+    const pending = statusMap['Pending'] || 0;
+    const notAttended = statusMap['Not Attended'] || 0;
+    const proceed = statusMap['Proceed'] || 0;
+
+    const pct = n => totalVisits > 0 ? Number(((n / totalVisits) * 100).toFixed(2)) : 0;
+    const attendanceRate = pct(attended);
+    const noShowRate = pct(notAttended);
+    const pendingRate = pct(pending);
+
+    const visitsByStatus = (vf.byStatus || [])
+      .map(s => ({ ...s, percentage: pct(s.count) }))
+      .sort((a, b) => b.count - a.count);
+
+    const roleCounts = {};
+    (vf.byPatient || []).forEach(p => {
+      const role = roleById.get(String(p._id)) || 'Unknown';
+      roleCounts[role] = (roleCounts[role] || 0) + p.count;
+    });
+    const visitsByRole = Object.entries(roleCounts)
+      .map(([_id, count]) => ({ _id, count }))
+      .sort((a, b) => b.count - a.count);
+
+    const visitTrend = vf.trend || [];
+
+    // ===== NEW: DATA FOR FOUR DEMOGRAPHIC CHARTS =====
 const [
-totalUsers,
-activeUsers,
-pendingUsers,
-suspendedUsers
-
+    visitsByGender,
+    visitsByCampus,
+    visitsByDepartment,
+    visitsByRoleComparison
 ] = await Promise.all([
-Users.countDocuments({
-archive: false
-}),
-Users.countDocuments({
-archive: false,
-verify: false,
-suspend: false,
-...(
-Object.keys(userMatch).length > 0
-? userMatch
-: {}
-)
-}),
-Users.countDocuments({
-archive: false,
-verify: true
-}),
-Users.countDocuments({
-archive: false,
-suspend: true
-})
+    getDemographicVisitChart({
+        groupField: 'gender',
+        query: q,
+        campus,
+        start,
+        end,
+        hasDateFilter
+    }),
+    getDemographicVisitChart({
+        groupField: 'campus',
+        query: q,
+        campus,
+        start,
+        end,
+        hasDateFilter
+    }),
+    getDemographicVisitChart({
+        groupField: 'department',
+        query: q,
+        campus,
+        start,
+        end,
+        hasDateFilter
+    }),
+    getDemographicVisitChart({
+        groupField: 'role',
+        query: q,
+        campus,
+        start,
+        end,
+        hasDateFilter
+    })
 ]);
+// ===== END NEW CHART DATA =====
 
-/*
-=====================================================
-2. VISIT KPIs
-=====================================================
-*/
-const visitKpis = await Visits.aggregate([
-{
-$match: visitMatch
-},
-{
-$lookup: {
+    // ---------- Inventory results ----------
+    const inv = inventory[0] || {};
+    const totalInventory = inv.total?.[0]?.count || 0;
+    const lowStockCount = inv.lowStock?.[0]?.count || 0;
+    const outOfStockCount = inv.outOfStock?.[0]?.count || 0;
+    const expiredCount = inv.expired?.[0]?.count || 0;
+    const healthyInventory = Math.max(totalInventory - lowStockCount - outOfStockCount - expiredCount, 0);
+    const inventoryHealth = totalInventory > 0
+      ? Number(((healthyInventory / totalInventory) * 100).toFixed(2))
+      : 0;
 
-from: 'users',
-localField: 'patient',
-foreignField: '_id',
-as: 'patientData'
-}
-},
-{
-$unwind: {
-path: '$patientData',
-preserveNullAndEmptyArrays: false
-}
-},
-{
-$match: {
-'patientData.archive': false,
-'patientData.verify': false,
-'patientData.suspend': false,
-...(req.query.role &&
-req.query.role !== 'all'
-? {
-'patientData.role':
-req.query.role
-}
-: {}),
-// ...(req.query.department &&
-// req.query.department !== 'all'
-// ? {
-// 'patientData.department':
-// req.query.department
-// }
-// : {}),
-...(departmentCourses.length > 0
-    ? {
-        'patientData.course': {
-            $in: departmentCourses
-        }
-    }
-    : {}),
-...(req.query.campus &&
-req.query.campus !== 'all'
-? {
-'patientData.campus':
-req.query.campus
-}
-: {}),
+    const dispensingStats = dispensing[0] || {};
 
-...(req.query.gender &&
-req.query.gender !== 'all'
-? {
-'patientData.gender':
-req.query.gender
-}
-: {})
-}
-},
-{
-$facet: {
-totalVisits: [
-{
-$count: 'count'
-}
-],
-uniquePatients: [
-{
-$group: {
-_id: '$patient'
-}
-},
-{
-$count: 'count'
-}
-],
-attended: [
-{
-$match: {
-status: 'Attended'
-}
-},
-{
-$count: 'count'
-}
-],
-pending: [
-{
-$match: {
-
-status: 'Pending'
-}
-},
-{
-$count: 'count'
-}
-],
-notAttended: [
-{
-$match: {
-status: 'Not Attended'
-}
-},
-{
-$count: 'count'
-}
-],
-proceed: [
-{
-$match: {
-status: 'Proceed'
-}
-},
-{
-$count: 'count'
-}
-]
-}
-}
-]);
-const visitStats =
-visitKpis[0] || {};
-const totalVisits =
-visitStats.totalVisits?.[0]?.count || 0;
-const uniquePatients =
-visitStats.uniquePatients?.[0]?.count || 0;
-
-const attended =
-visitStats.attended?.[0]?.count || 0;
-const pending =
-visitStats.pending?.[0]?.count || 0;
-const notAttended =
-visitStats.notAttended?.[0]?.count || 0;
-const proceed =
-visitStats.proceed?.[0]?.count || 0;
-
-/*
-=====================================================
-EXACT KPI FORMULAS
-=====================================================
-*/
-const attendanceRate =
-totalVisits > 0
-? Number(
-(
-attended /
-totalVisits
-) * 100
-).toFixed(2)
-: 0;
-const noShowRate =
-totalVisits > 0
-? Number(
-(
-notAttended /
-totalVisits
-) * 100
-).toFixed(2)
-: 0;
-const pendingRate =
-totalVisits > 0
-? Number(
-(
-pending /
-
-totalVisits
-) * 100
-).toFixed(2)
-: 0;
-
-/*
-=====================================================
-3. TODAY'S VISITS
-=====================================================
-*/
-const todayStart =
-dayjs()
-.tz(APP_TIMEZONE)
-.startOf('day')
-.toDate();
-const todayEnd =
-dayjs()
-.tz(APP_TIMEZONE)
-.endOf('day')
-.toDate();
-const todayVisits =
-await Visits.countDocuments({
-archive: false,
-createdAt: {
-$gte: todayStart,
-$lte: todayEnd
-}
+    res.json({
+      success: true,
+      filters: {
+        period: dateRange.period,
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        role: q.role || 'all',
+        department: q.department || 'all',
+        campus: campus || 'all',
+        gender: q.gender || 'all',
+        visitStatus: q.visitStatus || 'all'
+      },
+      kpis: {
+        totalUsers, activeUsers, pendingUsers, suspendedUsers,
+        totalVisits, todayVisits, uniquePatients,
+        attended, pending, notAttended, proceed,
+        attendanceRate, noShowRate, pendingRate,
+        totalInventory, lowStockCount, outOfStockCount,
+        expiredCount, expiredMedicines: expiredCount,
+        expiringSoon, inventoryHealth
+      },
+      charts: {
+        visitTrend,
+        visitsByRole,
+        visitsByStatus,
+        topComplaints,
+        dispensingByType: dispensingStats.byType || [],
+        topDispensedItems: dispensingStats.topItems || [],
+        // NEW CHARTS
+        visitsByGender,
+        visitsByCampus,
+        visitsByDepartment,
+        visitsByRoleComparison
+      },
+      recentActivity
+    });
+  } catch (error) {
+    console.error('Dashboard Analytics API Error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to load dashboard analytics.'
+    });
+  }
 });
-
-/*
-=====================================================
-4. VISIT TREND
-=====================================================
-*/
-const visitTrend = await Visits.aggregate([
-    {
-        $match: visitMatch
-    },
-    {
-        $lookup: {
-            from: 'users',
-            localField: 'patient',
-            foreignField: '_id',
-            as: 'patientData'
-        }
-    },
-    {
-        $unwind: {
-            path: '$patientData',
-            preserveNullAndEmptyArrays: false
-        }
-    },
-    {
-        $match: {
-            'patientData.archive': false,
-            'patientData.verify': false,
-            'patientData.suspend': false,
-
-            ...(departmentCourses.length > 0
-                ? {
-                    'patientData.course': {
-                        $in: departmentCourses
-                    }
-                }
-                : {}),
-
-            ...(req.query.role &&
-            req.query.role !== 'all'
-                ? {
-                    'patientData.role':
-                        req.query.role
-                }
-                : {}),
-
-            ...(req.query.campus &&
-            req.query.campus !== 'all'
-                ? {
-                    'patientData.campus':
-                        req.query.campus
-                }
-                : {}),
-
-            ...(req.query.gender &&
-            req.query.gender !== 'all'
-                ? {
-                    'patientData.gender':
-                        req.query.gender
-                }
-                : {})
-        }
-    },
-    {
-        $group: {
-            _id: {
-                year: {
-                    $year: '$createdAt'
-                },
-                month: {
-                    $month: '$createdAt'
-                },
-                day: {
-                    $dayOfMonth: '$createdAt'
-                }
-            },
-            visits: {
-                $sum: 1
-            }
-        }
-    },
-    {
-        $sort: {
-            '_id.year': 1,
-            '_id.month': 1,
-            '_id.day': 1
-        }
-    }
-]);
-/*
-=====================================================
-5. VISITS BY ROLE
-=====================================================
-*/
-
-const visitsByRole =
-await Visits.aggregate([
-{
-$match: visitMatch
-},
-{
-$lookup: {
-from: 'users',
-localField: 'patient',
-foreignField: '_id',
-as: 'patient'
-}
-},
-{
-$unwind: '$patient'
-},
-{
-    $match: {
-        'patient.archive': false,
-
-        ...(departmentCourses.length > 0
-            ? {
-                'patient.course': {
-                    $in: departmentCourses
-                }
-            }
-            : {}),
-
-        ...(req.query.role &&
-        req.query.role !== 'all'
-            ? {
-                'patient.role':
-                    req.query.role
-            }
-            : {}),
-
-        ...(req.query.campus &&
-        req.query.campus !== 'all'
-            ? {
-                'patient.campus':
-                    req.query.campus
-            }
-            : {}),
-
-        ...(req.query.gender &&
-        req.query.gender !== 'all'
-            ? {
-                'patient.gender':
-                    req.query.gender
-            }
-            : {})
-    }
-},
-{
-$group: {
-_id: '$patient.role',
-count: {
-$sum: 1
-}
-}
-},
-{
-$sort: {
-count: -1
-}
-}
-
-]);
-
-/*
-=====================================================
-6. VISITS BY STATUS
-=====================================================
-*/
-const visitsByStatus =
-await Visits.aggregate([
-{
-$match: visitMatch
-},
-{
-$group: {
-_id: '$status',
-count: {
-$sum: 1
-}
-}
-},
-{
-$sort: {
-count: -1
-}
-}
-]);
-
-const totalStatusCount = visitsByStatus.reduce((sum, s) => sum + s.count, 0);
-const visitsByStatusPercent = visitsByStatus.map(s => ({
-    ...s,
-    percentage: totalStatusCount > 0
-        ? Number(((s.count / totalStatusCount) * 100).toFixed(2))
-        : 0
-}));
-
-/*
-=====================================================
-7. TOP COMPLAINTS
-=====================================================
-*/
-
-const complaintMatch =
-hasDateFilter
-? {
-createdAt: {
-$gte: start,
-$lte: end
-}
-}
-: {};
-const topComplaints =
-await Complaint.aggregate([
-{
-$match: complaintMatch
-},
-{
-$group: {
-_id: '$type',
-count: {
-$sum: 1
-}
-}
-},
-{
-$sort: {
-count: -1
-}
-},
-{
-$limit: 10
-}
-]);
-
-/*
-=====================================================
-
-8. DISPENSE ANALYTICS
-=====================================================
-*/
-const dispenseMatch =
-hasDateFilter
-? {
-createdAt: {
-$gte: start,
-$lte: end
-}
-}
-: {};
-const dispensing =
-await Dispense.aggregate([
-{
-$match: dispenseMatch
-},
-{
-$facet: {
-byType: [
-{
-$group: {
-_id: '$type',
-quantity: {
-$sum: '$qty'
-},
-transactions: {
-$sum: 1
-}
-}
-}
-],
-
-topItems: [
-{
-$group: {
-_id: '$item',
-quantity: {
-$sum: '$qty'
-}
-}
-},
-{
-$sort: {
-quantity: -1
-}
-},
-{
-$limit: 10
-}
-]
-}
-}
-]);
-const dispensingStats =
-dispensing[0] || {};
-
-/*
-=====================================================
-9. INVENTORY
-=====================================================
-*/
-const inventory =
-await Stocks.aggregate([
-
-{
-$match: {
-archive: false
-}
-},
-{
-$facet: {
-total: [
-{
-$count: 'count'
-}
-],
-medicines: [
-{
-$match: {
-type: 'medicine'
-}
-},
-{
-$count: 'count'
-}
-],
-supplies: [
-{
-$match: {
-type: 'supply'
-}
-},
-{
-$count: 'count'
-}
-],
-lowStock: [
-{
-$match: {
-remaining: {
-$gt: 0,
-
-$lte: 10
-}
-},
-},
-{
-$count: 'count'
-}
-],
-outOfStock: [
-{
-$match: {
-remaining: 0
-}
-},
-{
-$count: 'count'
-}
-],
-expired: [
-{
-$match: {
-expirationDate: {
-$ne: null,
-$lt: new Date()
-}
-}
-},
-{
-$count: 'count'
-}
-]
-}
-
-}
-]);
-
-/*
-=====================================================
-10. EXPIRING SOON
-=====================================================
-*/
-const expirationLimit =
-dayjs()
-.tz(APP_TIMEZONE)
-.add(30, 'day')
-.endOf('day')
-.toDate();
-const expiringSoon =
-await Stocks.countDocuments({
-archive: false,
-expirationDate: {
-$gte: new Date(),
-$lte: expirationLimit
-}
-});
-
-/*
-=====================================================
-11. RECENT ACTIVITY
-=====================================================
-*/
-const recentActivity =
-await Logs.find({
-archive: false
-})
-
-.populate(
-'who',
-'fName lName username role'
-)
-.sort({
-createdAt: -1
-})
-.limit(10)
-.lean();
-
-/*
-=====================================================
-12. INVENTORY PERCENTAGES
-=====================================================
-*/
-const inventoryData =
-inventory[0] || {};
-const totalInventory =
-inventoryData.total?.[0]?.count || 0;
-const lowStockCount =
-inventoryData.lowStock?.[0]?.count || 0;
-const outOfStockCount =
-inventoryData.outOfStock?.[0]?.count || 0;
-const expiredCount =
-inventoryData.expired?.[0]?.count || 0;
-const healthyInventory =
-Math.max(
-totalInventory -
-lowStockCount -
-outOfStockCount -
-expiredCount,
-0
-);
-
-const inventoryHealth =
-totalInventory > 0
-? Number(
-(
-healthyInventory /
-totalInventory
-) * 100
-).toFixed(2)
-: 0;
-
-/*
-=====================================================
-13. RESPONSE
-=====================================================
-*/
-res.json({
-success: true,
-filters: {
-period: dateRange.period,
-startDate:
-dateRange.startDate,
-endDate:
-dateRange.endDate,
-role:
-req.query.role || 'all',
-department:
-req.query.department || 'all',
-campus:
-req.query.campus || 'all',
-gender:
-req.query.gender || 'all',
-
-visitStatus:
-req.query.visitStatus || 'all'
-},
-kpis: {
-totalUsers,
-activeUsers,
-pendingUsers,
-suspendedUsers,
-totalVisits,
-todayVisits,
-uniquePatients,
-attended,
-pending,
-notAttended,
-proceed,
-attendanceRate,
-noShowRate,
-pendingRate,
-totalInventory,
-lowStockCount,
-outOfStockCount,
-expiredCount,
-expiringSoon,
-
-inventoryHealth
-},
-charts: {
-visitTrend,
-visitsByRole,
-visitsByStatus,
-topComplaints,
-dispensingByType:
-dispensingStats.byType || [],
-topDispensedItems:
-dispensingStats.topItems || []
-},
-recentActivity
-});
-} catch (error) {
-console.error(
-'Dashboard Analytics API Error:',
-error
-);
-res.status(500).json({
-success: false,
-message:
-error.message ||
-'Failed to load dashboard analytics.'
-});
-
-}
-}
-);
 
 // ============================================================
 // AI INSIGHTS ROUTES
@@ -5087,6 +4697,209 @@ app.post('/api/users/reject/:id', isLogin, async (req, res) => {
         res.json({ success: false, message: 'Failed to decline account.' });
     }
 });
+
+app.post('/api/dashboard/export-pdf', async (req, res) => {
+    try {
+        const loggedInUser = req.session?.user;
+
+        if (!loggedInUser) {
+            return res.status(401).json({
+                success: false,
+                message: 'Please log in first.'
+            });
+        }
+
+        const { password, dashboardData, chartImages } = req.body;
+
+        if (!password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please enter your password.'
+            });
+        }
+
+        const storedPassword =
+            typeof loggedInUser === 'object'
+                ? loggedInUser.password
+                : null;
+
+        if (!storedPassword || password !== storedPassword) {
+            return res.status(401).json({
+                success: false,
+                message: 'Incorrect password.'
+            });
+        }
+
+        if (!dashboardData?.kpis || !dashboardData?.charts) {
+            return res.status(400).json({
+                success: false,
+                message: 'Dashboard data is missing. Reload the dashboard and try again.'
+            });
+        }
+
+        const PDFDocument = require('pdfkit');
+        const pdf = new PDFDocument({
+            size: 'A4',
+            margin: 40,
+            bufferPages: true
+        });
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader(
+            'Content-Disposition',
+            'attachment; filename="dashboard-report.pdf"'
+        );
+
+        pdf.pipe(res);
+
+        const addSection = (title) => {
+            if (pdf.y > 730) pdf.addPage();
+
+            pdf.moveDown(0.5);
+            pdf.font('Helvetica-Bold').fontSize(15).text(title);
+            pdf.moveDown(0.4);
+            pdf.font('Helvetica').fontSize(10);
+        };
+
+        pdf.font('Helvetica-Bold')
+            .fontSize(22)
+            .text('Analytics Dashboard Report');
+
+        pdf.moveDown();
+
+        pdf.font('Helvetica')
+            .fontSize(10)
+            .text(`Generated: ${new Date().toLocaleString()}`);
+
+        pdf.text(
+            `Period: ${dashboardData.filters?.period || 'Selected dashboard period'}`
+        );
+
+        addSection('Dashboard Summary');
+
+        const kpis = dashboardData.kpis;
+
+        const summary = [
+            ['Total Users', kpis.totalUsers],
+            ['Total Visits', kpis.totalVisits],
+            ['Unique Patients', kpis.uniquePatients],
+            ["Today's Visits", kpis.todayVisits],
+            ['Expired Medicines', kpis.expiredMedicines],
+            ['Low Stock', kpis.lowStockCount],
+            ['Out of Stock', kpis.outOfStockCount],
+            ['Attendance Rate', `${Number(kpis.attendanceRate || 0).toFixed(2)}%`]
+        ];
+
+        summary.forEach(([label, value]) => {
+            if (pdf.y > 750) pdf.addPage();
+
+            pdf.font('Helvetica-Bold').text(`${label}: `, {
+                continued: true
+            });
+
+            pdf.font('Helvetica').text(String(value ?? 0));
+        });
+
+        addSection('Dashboard Charts');
+
+        const chartList = [
+            ['inventoryChart', 'Inventory Status'],
+            ['topDispensedItemsChart', 'Top Dispensed Items'],
+            ['topComplaintsChart', 'Top Complaints'],
+            ['dispensingChart', 'Medicine and Supply Consumption'],
+            ['visitTrendChart', 'Clinic Visit Trend'],
+            ['demographicGenderChart', 'Visits by Gender'],
+            ['demographicCampusChart', 'Visits by Campus'],
+            ['demographicDepartmentChart', 'Visits by Department'],
+            ['visitsByRoleChart', 'Visits by Role'],
+            ['visitStatusChart', 'Visit Status']
+        ];
+
+        let addedCharts = 0;
+
+        for (const [id, title] of chartList) {
+            const image = chartImages?.[id];
+
+            if (
+                typeof image !== 'string' ||
+                !image.startsWith('data:image/png;base64,')
+            ) {
+                continue;
+            }
+
+            const imageBuffer = Buffer.from(
+                image.substring('data:image/png;base64,'.length),
+                'base64'
+            );
+
+            if (!imageBuffer.length) continue;
+
+            if (pdf.y > 490) pdf.addPage();
+
+            addSection(title);
+
+            pdf.image(imageBuffer, {
+                fit: [510, 250],
+                align: 'center'
+            });
+
+            pdf.moveDown();
+            addedCharts++;
+        }
+
+        if (addedCharts === 0) {
+            pdf.moveDown();
+            pdf.text(
+                'No chart images were received. Check the frontend chartImages request.'
+            );
+        }
+
+        addSection('Detailed Analytics');
+
+        const chartData = dashboardData.charts;
+
+        const details = [
+            ['Top Complaints', chartData.topComplaints, 'count'],
+            ['Top Dispensed Items', chartData.topDispensedItems, 'quantity'],
+            ['Visits by Role', chartData.visitsByRole, 'count'],
+            ['Visits by Gender', chartData.visitsByGender, 'count'],
+            ['Visits by Campus', chartData.visitsByCampus, 'count'],
+            ['Visits by Department', chartData.visitsByDepartment, 'count'],
+            ['Visit Status', chartData.visitsByStatus, 'count'],
+            ['Dispensing by Type', chartData.dispensingByType, 'quantity']
+        ];
+
+        for (const [title, rows, valueKey] of details) {
+            if (!Array.isArray(rows) || rows.length === 0) continue;
+
+            addSection(title);
+
+            for (const row of rows) {
+                if (pdf.y > 750) pdf.addPage();
+
+                const label = String(row._id ?? 'Unknown');
+                const value = row[valueKey] ?? row.visits ?? row.percentage ?? 0;
+
+                pdf.text(`${label}: ${value}`);
+            }
+        }
+
+        pdf.end();
+
+    } catch (error) {
+        console.error('PDF export error:', error);
+
+        if (!res.headersSent) {
+            return res.status(500).json({
+                success: false,
+                message: 'Unable to export PDF.'
+            });
+        }
+
+        res.end();
+    }
+});
+
 
 app.use((req, res) => {
     res.status(404);

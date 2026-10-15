@@ -23,4 +23,7 @@ temperature: { type: String, trim: true },
 , {
   timestamps: true
 });
+
+visitSchema.index({ archive: 1, patient: 1, createdAt: -1, status: 1 });
+
 module.exports = mongoose.model('visit', visitSchema);

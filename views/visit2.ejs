@@ -1,6 +1,59 @@
 <% layout('layout') %>
 
 <style>
+    
+/* ============================================================
+   VISIT PAGINATION
+   ============================================================ */
+
+#visitsPagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#paginationButtons button {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 6px 10px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #1b5f99;
+    cursor: pointer;
+    font: inherit;
+}
+
+#paginationButtons button.active {
+    background: #1b5f99;
+    color: #ffffff;
+    border-color: #1b5f99;
+}
+
+#paginationButtons button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+#paginationButtons button:hover:not(:disabled):not(.active) {
+    background: #edf5fc;
+}
+
+@media (max-width: 600px) {
+    #visitsPagination {
+        justify-content: center;
+    }
+
+    #paginationInfo {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+
+
 .ts-wrapper{
     width:100%;
 }
@@ -353,6 +406,8 @@
                         <p class="size14">
 
                             <%= request.patient.schoolId %>
+                            &bull;
+                            <%= request.patient.campus %>
 
                         </p>
 
@@ -476,9 +531,40 @@
             No matching visits found.
         </div>
 
+ 
     </section>
 
+    <!-- PAGINATION CONTROLS -->
+    <div id="visitsPagination"
+         class="width100 justifyBetween alignCenter gap10 height10"
+         style="padding: 12px 0;">
+
+        <p id="paginationInfo" class="size14">
+            Showing 0–0 of 0 visits
+        </p>
+
+        <div class="width0 gap8 alignCenter" style="min-width: fit-content !important;">
+            <label for="pageSizeSelect" class="size14">
+                Per page:
+            </label>
+
+            <select id="pageSizeSelect"
+                    style="padding: 8px; border: 1px solid #ccc; border-radius: 6px; width: 100px;">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+
+        <div id="paginationButtons"
+             class="width0 gap5 alignCenter"
+             style="flex-wrap: wrap;">
+        </div>
+    </div>
+
 </div>
+
 
 
 <!-- =============================================================
@@ -1129,1014 +1215,512 @@ list.addEventListener(
 ============================================================== -->
 
 <script>
-
 (function () {
+    const container = document.getElementById('visitsContainer');
+    if (!container) return;
 
-    const container =
-        document.getElementById(
-            'visitsContainer'
-        );
+    const cards = Array.from(container.querySelectorAll('.visitCard'));
+    const noResultsMsg = document.getElementById('noResultsMsg');
 
+    const tabAll = document.getElementById('tabAll');
+    const tabProceed = document.getElementById('tabProceed');
+    const tabAttended = document.getElementById('tabAttended');
 
-    const cards =
-        Array.from(
-            container.querySelectorAll(
-                '.visitCard'
-            )
-        );
+    const dateFilterSelect = document.getElementById('dateFilterSelect');
+    const customDateRange = document.getElementById('customDateRange');
+    const customDateFrom = document.getElementById('customDateFrom');
+    const customDateTo = document.getElementById('customDateTo');
+    const searchInput = document.getElementById('visitSearchInput');
 
+    // Pagination controls
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    const paginationButtons = document.getElementById('paginationButtons');
+    const paginationInfo = document.getElementById('paginationInfo');
 
-    const noResultsMsg =
-        document.getElementById(
-            'noResultsMsg'
-        );
-
-
-    const tabAll =
-        document.getElementById(
-            'tabAll'
-        );
-
-
-    const tabProceed =
-        document.getElementById(
-            'tabProceed'
-        );
-
-
-    const tabAttended =
-        document.getElementById(
-            'tabAttended'
-        );
-
-
-    const dateFilterSelect =
-        document.getElementById(
-            'dateFilterSelect'
-        );
-
-
-    const customDateRange =
-        document.getElementById(
-            'customDateRange'
-        );
-
-
-    const customDateFrom =
-        document.getElementById(
-            'customDateFrom'
-        );
-
-
-    const customDateTo =
-        document.getElementById(
-            'customDateTo'
-        );
-
-
-    const searchInput =
-        document.getElementById(
-            'visitSearchInput'
-        );
-
-
-    // =========================================================
-    // STATUS FILTER
-    // =========================================================
-
+    // Status filter
     let statusFilter = 'all';
 
+    // Pagination state
+    let currentPage = 1;
+    let pageSize = pageSizeSelect
+        ? (parseInt(pageSizeSelect.value, 10) || 10)
+        : 10;
+
+    // Store the currently filtered cards
+    let filteredCards = [];
 
     // =========================================================
     // ACTIVE TAB
     // =========================================================
 
     function setActiveTab(tab) {
+        [tabAll, tabProceed, tabAttended].forEach(element => {
+            if (element) element.classList.remove('navTabActive');
+        });
 
-        tabAll.classList.remove(
-            'navTabActive'
-        );
-
-        tabProceed.classList.remove(
-            'navTabActive'
-        );
-
-        tabAttended.classList.remove(
-            'navTabActive'
-        );
-
-
-        if (tab === 'all') {
-
-            tabAll.classList.add(
-                'navTabActive'
-            );
-
+        if (tab === 'all' && tabAll) {
+            tabAll.classList.add('navTabActive');
+        } else if (tab === 'proceed' && tabProceed) {
+            tabProceed.classList.add('navTabActive');
+        } else if (tab === 'attended' && tabAttended) {
+            tabAttended.classList.add('navTabActive');
         }
-
-
-        if (tab === 'proceed') {
-
-            tabProceed.classList.add(
-                'navTabActive'
-            );
-
-        }
-
-
-        if (tab === 'attended') {
-
-            tabAttended.classList.add(
-                'navTabActive'
-            );
-
-        }
-
     }
 
-
-    // Default
     setActiveTab('all');
 
-
     // =========================================================
-    // PROCEED TAB
-    // =========================================================
-
-    tabProceed.addEventListener(
-        'click',
-        () => {
-
-            statusFilter =
-                (
-                    statusFilter ===
-                    'proceed'
-                )
-                    ? 'all'
-                    : 'proceed';
-
-
-            setActiveTab(
-                statusFilter === 'proceed'
-                    ? 'proceed'
-                    : 'all'
-            );
-
-
-            applyFilters();
-
-        }
-    );
-
-
-    // =========================================================
-    // ATTENDED TAB
+    // RESET PAGE WHEN FILTERS OR SEARCH CHANGE
     // =========================================================
 
-    tabAttended.addEventListener(
-        'click',
-        () => {
-
-            statusFilter =
-                (
-                    statusFilter ===
-                    'attended'
-                )
-                    ? 'all'
-                    : 'attended';
-
-
-            setActiveTab(
-                statusFilter === 'attended'
-                    ? 'attended'
-                    : 'all'
-            );
-
-
-            applyFilters();
-
-        }
-    );
-
+    function resetPageAndApplyFilters() {
+        currentPage = 1;
+        applyFilters();
+    }
 
     // =========================================================
-    // ALL TAB
+    // STATUS TABS
     // =========================================================
 
-    tabAll.addEventListener(
-        'click',
-        () => {
+    if (tabProceed) {
+        tabProceed.addEventListener('click', () => {
+            statusFilter = statusFilter === 'proceed' ? 'all' : 'proceed';
 
+            setActiveTab(statusFilter);
+            resetPageAndApplyFilters();
+        });
+    }
+
+    if (tabAttended) {
+        tabAttended.addEventListener('click', () => {
+            statusFilter = statusFilter === 'attended' ? 'all' : 'attended';
+
+            setActiveTab(statusFilter);
+            resetPageAndApplyFilters();
+        });
+    }
+
+    if (tabAll) {
+        tabAll.addEventListener('click', () => {
             statusFilter = 'all';
-
             setActiveTab('all');
-
-            applyFilters();
-
-        }
-    );
-
+            resetPageAndApplyFilters();
+        });
+    }
 
     // =========================================================
-    // DATE FUNCTIONS
+    // DATE HELPERS
     // =========================================================
 
-    function startOfDay(d) {
-
-        const nd =
-            new Date(d);
-
-        nd.setHours(
-            0,
-            0,
-            0,
-            0
-        );
-
-        return nd;
+    function startOfDay(date) {
+        const result = new Date(date);
+        result.setHours(0, 0, 0, 0);
+        return result;
     }
 
-
-    function endOfDay(d) {
-
-        const nd =
-            new Date(d);
-
-        nd.setHours(
-            23,
-            59,
-            59,
-            999
-        );
-
-        return nd;
+    function endOfDay(date) {
+        const result = new Date(date);
+        result.setHours(23, 59, 59, 999);
+        return result;
     }
 
-
-    function startOfWeek(d) {
-
-        const nd =
-            startOfDay(d);
-
-
-        const day =
-            nd.getDay();
-
-
-        // Sunday = 0
-        nd.setDate(
-            nd.getDate() - day
-        );
-
-
-        return nd;
-
+    function startOfWeek(date) {
+        const result = startOfDay(date);
+        result.setDate(result.getDate() - result.getDay());
+        return result;
     }
 
-
-    function endOfWeek(d) {
-
-        const nd =
-            startOfWeek(d);
-
-
-        nd.setDate(
-            nd.getDate() + 6
-        );
-
-
-        return endOfDay(nd);
-
+    function endOfWeek(date) {
+        const result = startOfWeek(date);
+        result.setDate(result.getDate() + 6);
+        return endOfDay(result);
     }
-
 
     // =========================================================
-    // GET PRESET DATE RANGE
+    // PRESET DATE RANGE
     // =========================================================
 
     function getDateRange(filterValue) {
-
-        const now =
-            new Date();
-
+        const now = new Date();
 
         switch (filterValue) {
-
-            // -------------------------------------------------
-            // TODAY
-            // -------------------------------------------------
-
             case 'today':
-
                 return [
-
-                    startOfDay(now)
-                        .getTime(),
-
-                    endOfDay(now)
-                        .getTime()
-
+                    startOfDay(now).getTime(),
+                    endOfDay(now).getTime()
                 ];
-
-
-            // -------------------------------------------------
-            // YESTERDAY
-            // -------------------------------------------------
 
             case 'yesterday': {
-
-                const y =
-                    new Date(now);
-
-
-                y.setDate(
-                    y.getDate() - 1
-                );
-
+                const yesterday = new Date(now);
+                yesterday.setDate(yesterday.getDate() - 1);
 
                 return [
-
-                    startOfDay(y)
-                        .getTime(),
-
-                    endOfDay(y)
-                        .getTime()
-
+                    startOfDay(yesterday).getTime(),
+                    endOfDay(yesterday).getTime()
                 ];
-
             }
-
-
-            // -------------------------------------------------
-            // THIS WEEK
-            // -------------------------------------------------
 
             case 'thisWeek':
-
                 return [
-
-                    startOfWeek(now)
-                        .getTime(),
-
-                    endOfWeek(now)
-                        .getTime()
-
+                    startOfWeek(now).getTime(),
+                    endOfWeek(now).getTime()
                 ];
-
-
-            // -------------------------------------------------
-            // LAST WEEK
-            // -------------------------------------------------
 
             case 'lastWeek': {
-
-                const lw =
-                    new Date(now);
-
-
-                lw.setDate(
-                    lw.getDate() - 7
-                );
-
+                const lastWeek = new Date(now);
+                lastWeek.setDate(lastWeek.getDate() - 7);
 
                 return [
-
-                    startOfWeek(lw)
-                        .getTime(),
-
-                    endOfWeek(lw)
-                        .getTime()
-
+                    startOfWeek(lastWeek).getTime(),
+                    endOfWeek(lastWeek).getTime()
                 ];
-
             }
-
-
-            // -------------------------------------------------
-            // THIS MONTH
-            // -------------------------------------------------
 
             case 'thisMonth': {
-
-                const start =
-                    new Date(
-                        now.getFullYear(),
-                        now.getMonth(),
-                        1
-                    );
-
-
-                const end =
-                    new Date(
-                        now.getFullYear(),
-                        now.getMonth() + 1,
-                        0
-                    );
-
+                const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
                 return [
-
-                    startOfDay(start)
-                        .getTime(),
-
-                    endOfDay(end)
-                        .getTime()
-
+                    startOfDay(start).getTime(),
+                    endOfDay(end).getTime()
                 ];
-
             }
-
-
-            // -------------------------------------------------
-            // LAST MONTH
-            // -------------------------------------------------
 
             case 'lastMonth': {
-
-                const start =
-                    new Date(
-                        now.getFullYear(),
-                        now.getMonth() - 1,
-                        1
-                    );
-
-
-                const end =
-                    new Date(
-                        now.getFullYear(),
-                        now.getMonth(),
-                        0
-                    );
-
+                const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                const end = new Date(now.getFullYear(), now.getMonth(), 0);
 
                 return [
-
-                    startOfDay(start)
-                        .getTime(),
-
-                    endOfDay(end)
-                        .getTime()
-
+                    startOfDay(start).getTime(),
+                    endOfDay(end).getTime()
                 ];
-
             }
-
-
-            // -------------------------------------------------
-            // THIS YEAR
-            // -------------------------------------------------
 
             case 'thisYear': {
-
-                const start =
-                    new Date(
-                        now.getFullYear(),
-                        0,
-                        1
-                    );
-
-
-                const end =
-                    new Date(
-                        now.getFullYear(),
-                        11,
-                        31
-                    );
-
+                const start = new Date(now.getFullYear(), 0, 1);
+                const end = new Date(now.getFullYear(), 11, 31);
 
                 return [
-
-                    startOfDay(start)
-                        .getTime(),
-
-                    endOfDay(end)
-                        .getTime()
-
+                    startOfDay(start).getTime(),
+                    endOfDay(end).getTime()
                 ];
-
             }
-
-
-            // -------------------------------------------------
-            // LAST YEAR
-            // -------------------------------------------------
 
             case 'lastYear': {
-
-                const start =
-                    new Date(
-                        now.getFullYear() - 1,
-                        0,
-                        1
-                    );
-
-
-                const end =
-                    new Date(
-                        now.getFullYear() - 1,
-                        11,
-                        31
-                    );
-
+                const start = new Date(now.getFullYear() - 1, 0, 1);
+                const end = new Date(now.getFullYear() - 1, 11, 31);
 
                 return [
-
-                    startOfDay(start)
-                        .getTime(),
-
-                    endOfDay(end)
-                        .getTime()
-
+                    startOfDay(start).getTime(),
+                    endOfDay(end).getTime()
                 ];
-
             }
 
-
-            // -------------------------------------------------
-            // CUSTOM RANGE
-            // -------------------------------------------------
-
             case 'custom':
-
                 return getCustomDateRange();
 
-
-            // -------------------------------------------------
-            // NO FILTER
-            // -------------------------------------------------
-
             default:
-
                 return null;
-
         }
-
     }
-
 
     // =========================================================
     // CUSTOM DATE RANGE
     // =========================================================
 
     function getCustomDateRange() {
+        const fromValue = customDateFrom.value;
+        const toValue = customDateTo.value;
 
-        const fromValue =
-            customDateFrom.value;
-
-
-        const toValue =
-            customDateTo.value;
-
-
-        // Both dates required
-        if (
-            !fromValue ||
-            !toValue
-        ) {
-
+        if (!fromValue || !toValue) {
             return null;
-
         }
 
+        const fromParts = fromValue.split('-');
+        const toParts = toValue.split('-');
 
-        // =====================================================
-        // Convert YYYY-MM-DD to LOCAL DATE
-        // =====================================================
-
-        const fromParts =
-            fromValue.split('-');
-
-
-        const toParts =
-            toValue.split('-');
-
-
-        const fromDate =
-            new Date(
-                Number(fromParts[0]),
-                Number(fromParts[1]) - 1,
-                Number(fromParts[2])
-            );
-
-
-        const toDate =
-            new Date(
-                Number(toParts[0]),
-                Number(toParts[1]) - 1,
-                Number(toParts[2])
-            );
-
-
-        // Start of From Date
-        fromDate.setHours(
-            0,
-            0,
-            0,
-            0
+        const fromDate = new Date(
+            Number(fromParts[0]),
+            Number(fromParts[1]) - 1,
+            Number(fromParts[2])
         );
 
-
-        // End of To Date
-        toDate.setHours(
-            23,
-            59,
-            59,
-            999
+        const toDate = new Date(
+            Number(toParts[0]),
+            Number(toParts[1]) - 1,
+            Number(toParts[2])
         );
 
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(23, 59, 59, 999);
 
-        // Invalid range
-        if (
-            fromDate.getTime() >
-            toDate.getTime()
-        ) {
-
+        if (fromDate.getTime() > toDate.getTime()) {
             return 'invalid';
-
         }
 
-
-        return [
-
-            fromDate.getTime(),
-
-            toDate.getTime()
-
-        ];
-
+        return [fromDate.getTime(), toDate.getTime()];
     }
 
-
     // =========================================================
-    // DATE FILTER CHANGE
+    // DATE FILTER EVENTS
     // =========================================================
 
-    dateFilterSelect.addEventListener(
-        'change',
-        function () {
-
-            if (
-                this.value === 'custom'
-            ) {
-
-                customDateRange
-                    .classList
-                    .remove('hidden');
-
+    if (dateFilterSelect) {
+        dateFilterSelect.addEventListener('change', function () {
+            if (this.value === 'custom') {
+                customDateRange.classList.remove('hidden');
             } else {
+                customDateRange.classList.add('hidden');
 
-                customDateRange
-                    .classList
-                    .add('hidden');
-
-
-                // Clear custom dates
                 customDateFrom.value = '';
-
                 customDateTo.value = '';
 
-                customDateFrom
-                    .removeAttribute('max');
-
-                customDateTo
-                    .removeAttribute('min');
-
+                customDateFrom.removeAttribute('max');
+                customDateTo.removeAttribute('min');
             }
 
+            resetPageAndApplyFilters();
+        });
+    }
 
-            applyFilters();
-
-        }
-    );
-
-
-    // =========================================================
-    // FROM DATE CHANGE
-    // =========================================================
-
-    customDateFrom.addEventListener(
-        'change',
-        function () {
-
+    if (customDateFrom) {
+        customDateFrom.addEventListener('change', function () {
             if (this.value) {
-
-                customDateTo.min =
-                    this.value;
-
+                customDateTo.min = this.value;
             } else {
-
-                customDateTo
-                    .removeAttribute('min');
-
+                customDateTo.removeAttribute('min');
             }
 
+            resetPageAndApplyFilters();
+        });
+    }
 
-            applyFilters();
-
-        }
-    );
-
-
-    // =========================================================
-    // TO DATE CHANGE
-    // =========================================================
-
-    customDateTo.addEventListener(
-        'change',
-        function () {
-
+    if (customDateTo) {
+        customDateTo.addEventListener('change', function () {
             if (this.value) {
-
-                customDateFrom.max =
-                    this.value;
-
+                customDateFrom.max = this.value;
             } else {
-
-                customDateFrom
-                    .removeAttribute('max');
-
+                customDateFrom.removeAttribute('max');
             }
 
+            resetPageAndApplyFilters();
+        });
+    }
 
+    // =========================================================
+    // SEARCH EVENT
+    // =========================================================
+
+    if (searchInput) {
+        searchInput.addEventListener('input', resetPageAndApplyFilters);
+    }
+
+    // =========================================================
+    // PAGE SIZE EVENT
+    // =========================================================
+
+    if (pageSizeSelect) {
+        pageSizeSelect.addEventListener('change', function () {
+            pageSize = parseInt(this.value, 10) || 10;
+            currentPage = 1;
             applyFilters();
+        });
+    }
 
+    // =========================================================
+    // RENDER PAGINATION
+    // =========================================================
+
+    function renderPagination(totalItems) {
+        if (!paginationButtons || !paginationInfo) return;
+
+        paginationButtons.innerHTML = '';
+
+        if (totalItems === 0) {
+            paginationInfo.textContent = 'Showing 0–0 of 0 visits';
+            return;
         }
-    );
 
+        const totalPages = Math.ceil(totalItems / pageSize);
+
+        currentPage = Math.min(
+            Math.max(currentPage, 1),
+            totalPages
+        );
+
+        const firstItem = (currentPage - 1) * pageSize + 1;
+        const lastItem = Math.min(currentPage * pageSize, totalItems);
+
+        paginationInfo.textContent =
+            `Showing ${firstItem}–${lastItem} of ${totalItems} visits`;
+
+        function addButton(label, page, disabled, active = false) {
+            const button = document.createElement('button');
+
+            button.type = 'button';
+            button.textContent = label;
+            button.disabled = disabled;
+
+            if (active) button.classList.add('active');
+
+            button.addEventListener('click', () => {
+                currentPage = page;
+                applyFilters();
+            });
+
+            paginationButtons.appendChild(button);
+        }
+
+        addButton('‹', currentPage - 1, currentPage === 1);
+
+        // Keep page buttons compact for many pages
+        let pages = [];
+
+        if (totalPages <= 7) {
+            pages = Array.from(
+                { length: totalPages },
+                (_, index) => index + 1
+            );
+        } else {
+            pages = [...new Set([
+                1,
+                currentPage - 1,
+                currentPage,
+                currentPage + 1,
+                totalPages
+            ])]
+                .filter(page => page >= 1 && page <= totalPages)
+                .sort((a, b) => a - b);
+        }
+
+        let previousPage = 0;
+
+        pages.forEach(page => {
+            if (previousPage && page - previousPage > 1) {
+                const dots = document.createElement('span');
+                dots.textContent = '…';
+                dots.style.padding = '0 4px';
+                paginationButtons.appendChild(dots);
+            }
+
+            addButton(
+                String(page),
+                page,
+                false,
+                page === currentPage
+            );
+
+            previousPage = page;
+        });
+
+        addButton(
+            '›',
+            currentPage + 1,
+            currentPage === totalPages
+        );
+    }
 
     // =========================================================
-    // SEARCH
-    // =========================================================
-
-    searchInput.addEventListener(
-        'input',
-        applyFilters
-    );
-
-
-    // =========================================================
-    // APPLY ALL FILTERS
+    // APPLY SEARCH + FILTERS + PAGINATION
     // =========================================================
 
     function applyFilters() {
+        const dateRange = getDateRange(dateFilterSelect.value);
+        const searchTerm = searchInput.value.trim().toLowerCase();
 
-        const dateRange =
-            getDateRange(
-                dateFilterSelect.value
-            );
-
-
-        const searchTerm =
-            searchInput.value
-                .trim()
-                .toLowerCase();
-
-
-        // =====================================================
-        // INVALID CUSTOM DATE RANGE
-        // =====================================================
-
-        if (
-            dateRange === 'invalid'
-        ) {
-
-            cards.forEach(card => {
-
-                card.classList.add(
-                    'hidden'
-                );
-
-            });
-
+        // Invalid custom range
+        if (dateRange === 'invalid') {
+            cards.forEach(card => card.classList.add('hidden'));
 
             noResultsMsg.textContent =
                 'Invalid date range. Please check the selected dates.';
 
-
-            noResultsMsg.classList.remove(
-                'hidden'
-            );
-
-
+            noResultsMsg.classList.remove('hidden');
+            renderPagination(0);
             return;
-
         }
 
-
-        // =====================================================
-        // CUSTOM RANGE NOT COMPLETE
-        // =====================================================
-
+        // Require both custom dates
         if (
             dateFilterSelect.value === 'custom' &&
-            (
-                !customDateFrom.value ||
-                !customDateTo.value
-            )
+            (!customDateFrom.value || !customDateTo.value)
         ) {
-
-            cards.forEach(card => {
-
-                card.classList.add(
-                    'hidden'
-                );
-
-            });
-
+            cards.forEach(card => card.classList.add('hidden'));
 
             noResultsMsg.textContent =
                 'Please select both From Date and To Date.';
 
-
-            noResultsMsg.classList.remove(
-                'hidden'
-            );
-
-
+            noResultsMsg.classList.remove('hidden');
+            renderPagination(0);
             return;
-
         }
 
-
-        // =====================================================
-        // FILTER CARDS
-        // =====================================================
-
-        let visibleCount = 0;
-
-
-        cards.forEach(card => {
-
-            // =================================================
-            // STATUS
-            // =================================================
-
-            const cardStatus =
-                (
-                    card.dataset.status ||
-                    ''
-                ).toLowerCase();
-
-
-            // =================================================
-            // DATE
-            // =================================================
-
-            const cardDate =
-                parseInt(
-                    card.dataset.date,
-                    10
-                ) || 0;
-
-
-            // =================================================
-            // SEARCH TEXT
-            // =================================================
-
-            const cardSearchText =
-                card.dataset.search ||
-                '';
-
-
-            // =================================================
-            // STATUS MATCH
-            // =================================================
+        // Filter every card first, not just the current page
+        filteredCards = cards.filter(card => {
+            const cardStatus = (card.dataset.status || '').toLowerCase();
+            const cardDate = parseInt(card.dataset.date, 10) || 0;
+            const cardSearchText = (card.dataset.search || '').toLowerCase();
 
             let matchesStatus = true;
 
-
-            if (
-                statusFilter === 'proceed'
-            ) {
-
-                matchesStatus =
-                    cardStatus ===
-                    'proceed';
-
+            if (statusFilter === 'proceed') {
+                matchesStatus = cardStatus === 'proceed';
+            } else if (statusFilter === 'attended') {
+                matchesStatus = cardStatus === 'attended';
             }
-
-
-            else if (
-                statusFilter === 'attended'
-            ) {
-
-                matchesStatus =
-                    cardStatus ===
-                    'attended';
-
-            }
-
-
-            // =================================================
-            // DATE MATCH
-            // =================================================
 
             let matchesDate = true;
 
-
             if (dateRange) {
-
                 matchesDate =
-                    cardDate >=
-                        dateRange[0] &&
-
-                    cardDate <=
-                        dateRange[1];
-
+                    cardDate >= dateRange[0] &&
+                    cardDate <= dateRange[1];
             }
 
+            const matchesSearch = cardSearchText.includes(searchTerm);
 
-            // =================================================
-            // SEARCH MATCH
-            // =================================================
-
-            let matchesSearch = true;
-
-
-            if (
-                searchTerm.length > 0
-            ) {
-
-                matchesSearch =
-                    cardSearchText
-                        .includes(
-                            searchTerm
-                        );
-
-            }
-
-
-            // =================================================
-            // FINAL MATCH
-            // =================================================
-
-            const isVisible =
-                matchesStatus &&
-                matchesDate &&
-                matchesSearch;
-
-
-            card.classList.toggle(
-                'hidden',
-                !isVisible
-            );
-
-
-            if (isVisible) {
-
-                visibleCount++;
-
-            }
-
+            return matchesStatus && matchesDate && matchesSearch;
         });
 
+        // If no results, hide all cards and show message
+        if (filteredCards.length === 0) {
+            cards.forEach(card => card.classList.add('hidden'));
 
-        // =====================================================
-        // NO RESULTS
-        // =====================================================
-
-        if (
-            visibleCount === 0
-        ) {
-
-            if (
-                dateFilterSelect.value ===
-                'custom'
-            ) {
-
+            if (dateFilterSelect.value === 'custom') {
                 noResultsMsg.textContent =
                     'No visits found within the selected date range.';
-
             } else {
-
-                noResultsMsg.textContent =
-                    'No matching visits found.';
-
+                noResultsMsg.textContent = 'No matching visits found.';
             }
 
-
-            noResultsMsg.classList.remove(
-                'hidden'
-            );
-
-        } else {
-
-            noResultsMsg.classList.add(
-                'hidden'
-            );
-
+            noResultsMsg.classList.remove('hidden');
+            renderPagination(0);
+            return;
         }
 
+        noResultsMsg.classList.add('hidden');
+
+        const totalPages = Math.ceil(filteredCards.length / pageSize);
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const currentPageCards = new Set(
+            filteredCards.slice(startIndex, endIndex)
+        );
+
+        // Only show matching cards on the current page
+        cards.forEach(card => {
+            card.classList.toggle('hidden', !currentPageCards.has(card));
+        });
+
+        renderPagination(filteredCards.length);
     }
 
-
-    // =========================================================
-    // INITIAL FILTER
-    // =========================================================
-
+    // Initial display
     applyFilters();
-
 })();
-
 </script>
-```
