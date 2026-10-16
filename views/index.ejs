@@ -139,7 +139,13 @@
         <div class="bottom justifyStart paddingInline75 paddingBottom70 paddingTop20" id="h2">
             <section class="h300 corner15 padding20 glass col alignStart gap15">
                 <p class="size18 str500 marginLeft10 colorPrimary">Need Help? <a href="" class="inline sizeInherit underline">Learn More </a></p>
-                <video class="abstractBG2 width100 height100 corner15" src="/image/video.mp4"></video>
+<video class="abstractBG2 width100 height100 corner15 helpVid"
+       src="/images/learnmore1.mp4#t=0.5"
+       preload="metadata"
+       controls
+       playsinline
+       style="object-fit: contain;">
+</video>
             </section>
         </div>
     </div>
@@ -190,7 +196,13 @@
     <div class="hidden" id="h8">
         <section class="h250 corner15 padding20 glass col alignStart gap15">
             <p class="size18 str500 marginLeft10 colorPrimary">Need Help? <a href="" class="inline sizeInherit underline">Learn More </a></p>
-            <video class="abstractBG2 width100 height100 corner15" src="/image/video.mp4"></video>
+          <video class="abstractBG2 width100 height100 corner15 helpVid"
+       src="/images/learnmore1.mp4#t=0.5"
+       preload="metadata"
+       controls
+       playsinline
+       style="object-fit: contain;">
+</video>
         </section>
     </div>
 
@@ -265,6 +277,27 @@
         window.location.href = "/s";
     });
 
+    // Click sa video mismo: play/pause
+document.querySelectorAll(".helpVid").forEach(function(vid){
+    vid.addEventListener("click", function(){
+        if (vid.paused) {
+            vid.controls = true;
+            vid.play();
+        } else {
+            vid.pause();
+        }
+    });
+});
+
+// Click sa "Learn More": play sa loob ng card
+document.querySelectorAll("#h2 a, #h8 a").forEach(function(link){
+    link.addEventListener("click", function(e){
+        e.preventDefault();
+        const vid = link.closest("section").querySelector("video");
+        vid.controls = true;
+        vid.play();
+    });
+});
 </script>
 
 

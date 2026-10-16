@@ -135,7 +135,8 @@
         <br>
         <p class="size20" style="margin-top: -5px !important;">AuCare | CSDL</p>
         <p class="size20" style="margin-top: -5px !important;">Phinma Araullo University </p>
-        <p class="size20" style="margin-top: -5px !important;">Need Help? <a href="" class="sizeInherit inline navy">Learn More</a></p>
+        <p class="size20" style="margin-top: -5px !important;">Need Help? <a href="#" id="learnMoreBtn" class="sizeInherit inline navy">Learn More</a></p>
+        
     </div>
     
 </div>
@@ -245,6 +246,20 @@
         <p class="size17">Wait for the approval notification.</p>
     </section>
     <a class="nav w120 size15" href="javascript:void(0)" id="gotItBtn">Got It!</a>
+</section>
+
+<!-- LEARN MORE VIDEO -->
+<section class="shadow1 col absolute translateCenter bgWhite gap15 corner15 padding25 index500 height0 width45 alignStart hidden mdl3" id="videoModal">
+    <a href="#" id="videoClose" class="nav cnav absolute right20 top20"><i class="fas fa-times"></i></a>
+    <p class="size20 colorPrimary str600">Need Help?</p>
+    <video id="helpVideo"
+           src="/images/learnmore2.mp4"
+           class="width100 corner15"
+           preload="metadata"
+           controls
+           playsinline
+           style="object-fit: contain; background: #000;">
+    </video>
 </section>
 
 <script>
@@ -370,4 +385,26 @@ gotItBtn.addEventListener("click", function(){
 <% if (typeof success !== 'undefined' && success === 'Request Submitted Successfully!') { %>
     notification.classList.remove("hidden");
 <% } %>
+
+// =============================
+// LEARN MORE VIDEO MODAL
+// =============================
+const learnMoreBtn = document.getElementById("learnMoreBtn");
+const videoModal = document.getElementById("videoModal");
+const helpVideo = document.getElementById("helpVideo");
+const videoClose = document.getElementById("videoClose");
+
+learnMoreBtn.addEventListener("click", function(e){
+    e.preventDefault();
+    videoModal.classList.remove("hidden");
+    helpVideo.play();
+});
+
+videoClose.addEventListener("click", function(e){
+    e.preventDefault();
+    videoModal.classList.add("hidden");
+    helpVideo.pause();
+    helpVideo.currentTime = 0;
+});
+
 </script>
