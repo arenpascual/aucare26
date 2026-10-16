@@ -1491,6 +1491,13 @@ app.get('/uv/:id', isLogin, async (req, res) => {
             dob
         });
 
+         await Logs.create({
+            who: req.session.user._id,
+            what: `View Patient Details: ${patient.fName} ${patient.lName}`,
+            archive: false
+        });
+
+
     } catch (err) {
         console.error('UserView Fetch Error:', err.message);
         req.session.error = "Failed to load user details.";
