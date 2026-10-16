@@ -333,6 +333,11 @@
   </div>
 
   <div class="summ">
+  <p class="size28 str500" style="color:var(--bs-danger);"><%= stocks.filter(s => s.expirationDate && new Date(s.expirationDate) < new Date()).length %></p>
+  <p class="size12" style="color:var(--black10);">Expired</p>
+</div>
+
+  <div class="summ">
     <p class="size28 str500"><%= medicines.length %></p>
     <p class="size12" style="color:var(--black10);">Medicines</p>
   </div>
@@ -350,6 +355,7 @@
     <div class="cursor pointer selectBar w80 filterTab" data-filter="in">In Stock</div>
     <div class="cursor pointer selectBar w90 filterTab" data-filter="low">Low Stock</div>
     <div class="cursor pointer selectBar w100 filterTab" data-filter="out">Out of Stock</div>
+    <div class="cursor pointer selectBar w100 filterTab" data-filter="expired">Expired</div>
   </div>
 
   <div class="width0 gap8">
@@ -404,12 +410,19 @@
           const formattedExp = item.expirationDate
             ? new Date(item.expirationDate).toISOString().split('T')[0]
             : '';
+
+            const isExpired = item.expirationDate && new Date(item.expirationDate) < new Date();
+if (isExpired) {
+  statusLabel = 'Expired';
+  statusColor = 'var(--bs-danger)';
+  filterTag = 'expired';
+}
         %>
 
         <section class="stCard width20 gap5 shadow1 corner10 padding15 relative height col alignStart justifyStart"
           data-filter="<%= filterTag %>"
           data-category="<%= item.type %>"
-          data-name="<%= item.name.toLowerCase() %>">
+          data-name="<%= item.name.toLowerCase() %>" style="<%= isExpired ? 'border:2px solid var(--bs-danger); background:#fff1f1;' : '' %>">
 
           <div class="cnav absolute top15 right15 borderGray" title="<%= item.type %>">
             <i class="fas <%= typeIcon %>"></i>
@@ -445,7 +458,7 @@
           </p>
 
           <% if (item.expirationDate) { %>
-            <p class="size11" style="color:var(--black10);">Exp: <%= formattedExp %></p>
+            <p class="size11" style="color:<%= isExpired ? 'var(--bs-danger)' : 'var(--black10)' %>;<%= isExpired ? ' font-weight:600;' : '' %>">Exp: <%= formattedExp %></p>
           <% } %>
 
           <p class="size11" style="color:var(--black12); text-transform:uppercase; letter-spacing:0.5px; margin:2px 0;"><%= item.type %></p>

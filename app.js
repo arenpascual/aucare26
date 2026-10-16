@@ -331,11 +331,8 @@ app.use(isCampus);
 
 app.get('/', async (req, res) => {
     res.render('index', {
-        recaptchaSiteKey: process.env.RECAPTCHA_SITE_KEY || '',
-        error: req.session.error || null
+        recaptchaSiteKey: process.env.RECAPTCHA_SITE_KEY || ''
     });
-
-    req.session.error = null;
 });
 
 app.get('/x', async (req, res) => {
@@ -481,8 +478,13 @@ app.post('/login', async (req, res) => {
 
         const user = await Users.findOne({ email: email.trim().toLowerCase(), archive: false });
 
-        if (!user || user.password !== password) {
-            req.session.error = "Invalid email or password.";
+                if (!user) {
+            req.session.error = "Email does not exist.";
+            return req.session.save(() => res.redirect('/'));
+        }
+
+        if (user.password !== password) {
+            req.session.error = "Incorrect password. Please try again.";
             return req.session.save(() => res.redirect('/'));
         }
 
@@ -917,9 +919,9 @@ async function getDemographicVisitChart({
     if (!userIds.length) return [];
 
     const visitMatch = {
-        archive: false,
-        patient: { $in: userIds }
-    };
+    patient: { $in: userIds },
+    $or: [{ archive: false }, { status: 'Not Attended' }]
+};
 
     if (hasDateFilter) {
         visitMatch.createdAt = { $gte: start, $lte: end };
@@ -1010,7 +1012,10 @@ app.get('/api/dashboard/analytics', isLogin, isDashboardCampus, async (req, res)
     const roleById = new Map(patients.map(p => [String(p._id), p.role]));
 
     // ---------- Visit filter ----------
-    const visitMatch = { archive: false, patient: { $in: patientIds } };
+    const visitMatch = {
+  patient: { $in: patientIds },
+  $or: [{ archive: false }, { status: 'Not Attended' }]
+};
     if (hasDateFilter) visitMatch.createdAt = { $gte: start, $lte: end };
     if (has(q.visitStatus)) visitMatch.status = q.visitStatus;
 
