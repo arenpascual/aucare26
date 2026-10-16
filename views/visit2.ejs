@@ -1220,7 +1220,19 @@ list.addEventListener(
     if (!container) return;
 
     const cards = Array.from(container.querySelectorAll('.visitCard'));
-    const noResultsMsg = document.getElementById('noResultsMsg');
+const noResultsMsg = document.getElementById('noResultsMsg');
+
+// SORT: latest visit first (newest -> oldest)
+cards.sort((a, b) => {
+    const dateA = parseInt(a.dataset.date, 10) || 0;
+    const dateB = parseInt(b.dataset.date, 10) || 0;
+    return dateB - dateA;
+});
+
+// Re-arrange the cards in the DOM using the sorted order
+cards.forEach(card => {
+    container.insertBefore(card, noResultsMsg);
+});
 
     const tabAll = document.getElementById('tabAll');
     const tabProceed = document.getElementById('tabProceed');

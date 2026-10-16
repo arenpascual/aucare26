@@ -18,13 +18,13 @@ const CAMPUSES = [
 
 // TARGET ACCOUNTS PER CAMPUS
 const CAMPUS_TARGETS = {
-    Main: 2756,
-    South: 1648,
-    'San Jose': 2034
+    Main: 1054,
+    South: 1521,
+    'San Jose': 1005
 };
 
 const MIN_VISITS = 3;
-const MAX_VISITS = 5;
+const MAX_VISITS = 4;
 const START_DATE = new Date('2024-01-01T00:00:00.000Z');
 
 const ENROLLMENT_YEARS = [

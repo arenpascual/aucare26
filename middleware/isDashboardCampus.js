@@ -140,12 +140,14 @@ async function isDashboardCampus(req, res, next) {
 
     const campus = sessionUser.campus?.trim();
 
-    if (!campus || !VALID_CAMPUS.includes(campus)) {
+        if (!campus || !VALID_CAMPUS.includes(campus)) {
         return res.status(403).json({
             success: false,
             message: 'Your account has no valid campus assigned. Please contact the Super Admin.'
         });
     }
+
+    return next();   // <-- IDAGDAG ITO
 
     try {
         const query = req.query;

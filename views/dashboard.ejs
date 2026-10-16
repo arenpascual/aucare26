@@ -979,10 +979,11 @@ Key Insights
         width:100%;
         max-width:400px;
     flex-direction: column !important;
+    height: auto;
     ">
-        <h2 style="margin-bottom:10px;">Verify Your Password</h2>
+        <h2 style="margin-bottom:10px; font-size: 20px;">Verify Your Password</h2>
 
-        <p style="margin-bottom:15px;">
+        <p class="textBalance size14 textCenter" style="margin-bottom:15px;">
             Enter your account password to export the dashboard PDF.
         </p>
 
@@ -1009,12 +1010,15 @@ Key Insights
                 justify-content:flex-end;
                 gap:10px;
                 margin-top:15px;
+                width: 100% !important;
             ">
-                <button class="nav" type="button" id="cancelExportBtn">
+                <button class="nav" type="button" id="cancelExportBtn"
+                    style="flex:1;">
                     Cancel
                 </button>
 
-                <button class="nav pnav" type="submit" id="confirmExportBtn">
+                <button class="nav pnav" type="submit" id="confirmExportBtn"
+                    style="flex:1;">
                     Verify & Export
                 </button>
             </div>

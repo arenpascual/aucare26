@@ -5,11 +5,11 @@
     <div class="width0">
         <p class="size40 str400">Activity Logs</p>
     </div>
-        <div class="width0 gap5">
-            <div class="selectBar w190"><i class="fas fa-filter"></i> 
-                <select name="" id="dateFilter">
-                    <option value="all">All</option>
-                    <option value="today">Today</option>
+    <div class="width0 gap5" style="width:auto; display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:8px;">
+        <div class="selectBar w190" style="flex-shrink:0; width:210px; max-width:none;"><i class="fas fa-filter"></i> 
+            <select name="" id="dateFilter">
+                <option value="all">All</option>
+                <option value="today">Today</option>
                 <option value="yesterday">Yesterday</option>
                 <option value="thisWeek">This Week</option>
                 <option value="lastWeek">Last Week</option>
@@ -17,13 +17,19 @@
                 <option value="lastMonth">Last Month</option>
                 <option value="thisYear">This Year</option>
                 <option value="lastYear">Last Year</option>
-                </select>
-            </div>
-            <div class="searchBar">
-                <i class="fas fa-search"></i>
-                <input type="search" id="logSearch" placeholder="Search name or activity...">
-            </div>
+                <option value="custom">Custom Range</option>
+            </select>
         </div>
+        <div id="customRange" style="display:none; align-items:center; gap:6px; width:auto; flex-shrink:0;">
+            <input type="date" id="customFrom" style="width:150px; height:34px; padding:0 8px; border:1px solid #d0d0d0; border-radius:6px; background:#fff;">
+            <span class="size14" style="width:auto;">to</span>
+            <input type="date" id="customTo" style="width:150px; height:34px; padding:0 8px; border:1px solid #d0d0d0; border-radius:6px; background:#fff;">
+        </div>
+        <div class="searchBar" style="flex-shrink:0; width:260px;">
+            <i class="fas fa-search"></i>
+            <input type="search" id="logSearch" placeholder="Search name or activity...">
+        </div>
+    </div>
 </div>
 
 <div class="height80 col justifyStart padding10 overflow-y1 block">
@@ -110,8 +116,17 @@
     const pageButtons = document.getElementById('logsPageButtons');
     const perPageSelect = document.getElementById('logsPerPage');
 
+    const customRange = document.getElementById('customRange');
+    const customFrom = document.getElementById('customFrom');
+    const customTo = document.getElementById('customTo');
+
     const ROWS_PER_PAGE = 10;
     let currentPage = 1;
+
+    function parseLocalDate(value) {
+        const [y, m, d] = value.split('-').map(Number);
+        return new Date(y, m - 1, d);
+    }
 
     function startOfDay(date) {
         const result = new Date(date);
@@ -188,6 +203,25 @@
                 start = new Date(now.getFullYear() - 1, 0, 1);
                 end = endOfDay(new Date(now.getFullYear() - 1, 11, 31));
                 break;
+
+            case 'custom': {
+                if (!customFrom.value && !customTo.value) return null;
+
+                start = customFrom.value
+                    ? startOfDay(parseLocalDate(customFrom.value))
+                    : new Date(0);
+                end = customTo.value
+                    ? endOfDay(parseLocalDate(customTo.value))
+                    : new Date(8640000000000000);
+
+                // swap if the dates are entered backwards
+                if (start.getTime() > end.getTime()) {
+                    const temp = start;
+                    start = startOfDay(end);
+                    end = endOfDay(temp);
+                }
+                break;
+            }
 
             default:
                 return null;
@@ -375,8 +409,17 @@ const totalPages = Math.ceil(total / ROWS_PER_PAGE);
 
     // Reset to page 1 whenever the date filter changes.
     dateFilterSelect.addEventListener('change', function () {
+        customRange.style.display = dateFilterSelect.value === 'custom' ? 'flex' : 'none';
         currentPage = 1;
         renderLogs();
+    });
+
+    // Re-filter whenever the custom From/To dates change.
+    [customFrom, customTo].forEach(function (input) {
+        input.addEventListener('change', function () {
+            currentPage = 1;
+            renderLogs();
+        });
     });
 
     perPageSelect.addEventListener('change', function () {
