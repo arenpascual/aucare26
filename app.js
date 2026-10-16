@@ -865,6 +865,13 @@ const DEPARTMENT_COURSES = {
 
     "CCJE": [
         "Bachelor of Science in Criminology"
+    ],
+
+    "CAS": [
+        "ABM",
+        "STEM",
+        "GAS",
+        "HUMSS"
     ]
 };
 
@@ -4256,7 +4263,7 @@ app.post('/signup', async (req, res) => {
         const normalizedEmail = email.trim().toLowerCase();
 
                 // ADDED: Department (Student = auto, Faculty / Staff = dropdown)
-        const VALID_DEPARTMENTS = ['CMA', 'COE', 'CIT', 'CAHS', 'CELA', 'CCJE'];
+        const VALID_DEPARTMENTS = ['CMA', 'COE', 'CIT', 'CAHS', 'CELA', 'CCJE', 'CAS'];
         let finalDepartment;
 
         if (role === 'Student') {
@@ -4365,7 +4372,7 @@ app.post('/new-user', isLogin, async (req, res) => {
         }
 
         // ADDED: Department (Student = auto, Faculty / Staff = dropdown)
-        const VALID_DEPARTMENTS = ['CMA', 'COE', 'CIT', 'CAHS', 'CELA', 'CCJE'];
+        const VALID_DEPARTMENTS = ['CMA', 'COE', 'CIT', 'CAHS', 'CELA', 'CCJE', 'CAS'];
         let finalDepartment;
 
         if (role === 'Student') {
