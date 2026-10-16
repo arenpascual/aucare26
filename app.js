@@ -367,12 +367,6 @@ app.post('/vip-login', async (req, res) => {
 
         req.session.user = user;
 
-        await Logs.create({
-            who: user._id,
-            what: `VIP login as ${user.username}`,
-            archive: false
-        });
-
         req.session.save(() => {
 
             if (user.reset) {
