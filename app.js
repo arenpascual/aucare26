@@ -518,7 +518,7 @@ app.post('/login', async (req, res) => {
                 return res.redirect('/d');
             } else if (['Sub Admin'].includes(user.role)) {
                 return res.redirect('/r');
-            } else if (['Student'].includes(user.role)) {
+            } else if (['Student', 'Faculty', 'Staff'].includes(user.role)) {
                 return res.redirect('/h');
             } else {
                 return res.redirect('/');
