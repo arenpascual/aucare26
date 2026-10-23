@@ -106,8 +106,6 @@ body {
         <a href="/nu" class="nav pnav w100 marginTop5">
             <i class="fas fa-plus"></i> New User
         </a>
-        |
-        <a href="/ua" class="nav w100 marginTop5">Archive</a>
     </div>
 </div>
 
@@ -146,6 +144,13 @@ body {
                 </select>
             </div>
             <% } %>
+            |
+            <!-- Archive filter: goes to the archive page -->
+            <a href="/ua"
+               id="archiveTab"
+               class="cursor pointer selectBar w100 filterTab"
+               data-filter="archive"
+               style="text-decoration:none; color:inherit;">Archive</a>
 
         </div>
 
@@ -262,6 +267,19 @@ body {
 
 <script>
 (function () {
+    // =========================================================
+    // ARCHIVE FILTER TAB → GO TO ARCHIVE PAGE
+    // =========================================================
+
+    const archiveTab = document.getElementById("archiveTab");
+
+    if (archiveTab) {
+        archiveTab.addEventListener("click", function (event) {
+            event.preventDefault();
+            window.location.href = "/ua";
+        });
+    }
+
     // =========================================================
     // USER TABLE + FILTERS + PAGINATION
     // =========================================================

@@ -19,6 +19,10 @@
     }
 </style>
 
+<% const locked = v.status === "Attended"; %>
+
+<% if (!locked) { %>
+
 <div class="bgModal5 absolute justifyCenter alignCenter hidden" id="successModal" style="z-index:9999999999;">
 
     <form id="successForm" action="" method="POST" class="width30 corner20 bgWhite col padding20 alignCenter">
@@ -86,6 +90,8 @@
         </section>
 </div>
 
+<% } %>
+
 <div class="polaroid gap0 colorPrimary justifyEnd relative">
     <a href="/v2" class="nav cnav absolute left20 top20"><i class="fas fa-chevron-left"></i></a>
 
@@ -124,7 +130,9 @@
         <section class="col alignStart colorPrimary padding10">
             <section class="padding0 justifyBetween">
                 <p class="size18 str500">Vital Sign</p>
-                <button id="openVitals" class="nav cnav glass shadowNone pointer"><i class="fas fa-pen"></i></button>
+                <% if (!locked) { %>
+                    <button id="openVitals" class="nav cnav glass shadowNone pointer"><i class="fas fa-pen"></i></button>
+                <% } %>
             </section>
             <section class="gap20 justifyStart">
                 <div class="col width20">
@@ -155,7 +163,9 @@
         <section class="glass col alignStart colorPrimary padding20 borderWhite"> 
             <section class="padding0 justifyBetween">
                 <p class="size18 str500">Complaint</p>
-                <button id="openComplaint" class="nav cnav glass shadowNone pointer"><i class="fas fa-plus"></i></button>
+                <% if (!locked) { %>
+                    <button id="openComplaint" class="nav cnav glass shadowNone pointer"><i class="fas fa-plus"></i></button>
+                <% } %>
             </section>
             <section class="gap30 justifyStart padding0" style="align-items: start !important;">
                 <% if (v.complaints && v.complaints.length > 0) { %>
@@ -163,9 +173,11 @@
                         <div class="col width0 gap3 justifyStart padding0" style="max-width: 100px !important;">
                             <section class="width0 padding0 relative" style="border-bottom-left-radius: 50%; border-bottom-right-radius: 50%;">
                                 <img src="/images/<%= item.type %>.png" onerror="this.src='/images/item.png'" alt="" class="corner500 bgWhite h60 w60 porcelain padding5">
-                                <button type="button" class="removeComplaintBtn absolute right0 top0 corner500 h20 w20 pointer borderNone" data-url="/visit/complaint/delete/<%= item._id %>" style="padding:0;">
-                                    <i class="fa-solid fa-circle-minus red h15 w15"></i>
-                                </button>
+                                <% if (!locked) { %>
+                                    <button type="button" class="removeComplaintBtn absolute right0 top0 corner500 h20 w20 pointer borderNone" data-url="/visit/complaint/delete/<%= item._id %>" style="padding:0;">
+                                        <i class="fa-solid fa-circle-minus red h15 w15"></i>
+                                    </button>
+                                <% } %>
                             </section>
                             <p class="size14 str500 textCenter"><%= item.type %></p>
                         </div>
@@ -179,8 +191,7 @@
 
     <div class="col justifyStart padding10 paddingInline15 colorPrimary gap15 width50">
 
-        
-        <% if (v.status !== "Attended") { %>
+        <% if (!locked) { %>
         <section class="glass justifyBetween colorPrimary borderWhite">
             <p class="size16">Action Panel</p>
             <section class="padding0 width0 gap10">
@@ -199,7 +210,9 @@
             <section class="glass borderWhite col gap5 alignStart colorPrimary">
                 <section class="padding0 justifyBetween">
                     <p class="size22 str500">Treatment</p>
-                    <button id="openTreatment2" class="nav cnav pointer"><i class="fas fa-pen"></i></button>
+                    <% if (!locked) { %>
+                        <button id="openTreatment2" class="nav cnav pointer"><i class="fas fa-pen"></i></button>
+                    <% } %>
                 </section>
                 <section class="bgWhite corner10 padding15 widthFull">
                     <p class="size14"><%= v.treatment || 'No treatment details provided.' %></p>
@@ -211,43 +224,41 @@
         <section class="col alignStart gap10 padding15">
             <section class="padding0 justifyBetween">
                 <p class="size22 str500">Medication</p>
-                <button id="openMedicine2" class="nav cnav pointer"><i class="fas fa-plus"></i></button>
+                <% if (!locked) { %>
+                    <button id="openMedicine2" class="nav cnav pointer"><i class="fas fa-plus"></i></button>
+                <% } %>
             </section>
 
-            <% if (v.dispensed && v.dispensed.length > 0) { %>
-                <% v.dispensed.forEach(med => { %>
-                    <section class="padding5 gap5 bgWhite justifyStart corner16 shadow1 relative">
-                        <img src="/images/item.png" alt="" class="h80 width0">
+            <% v.dispensed.forEach(med => { %>
+                <section class="padding5 gap5 bgWhite justifyStart corner16 shadow1 relative">
+                    <img src="/images/item.png" alt="" class="h80 width0">
 
-                        <section class="col padding0 alignStart">
-                            <p class="size18 str500"><%= med.item %></p>
-                            <p class="size14 str400 textWrap"><%= med.remarks %></p>
-                        </section>
+                    <section class="col padding0 alignStart">
+                        <p class="size18 str500"><%= med.item %></p>
+                        <p class="size14 str400 textWrap"><%= med.remarks %></p>
+                    </section>
 
-                        <p class="size14 str500 absolute right15 top15">
-                            <%= med.qty %> piece(s)
-                        </p>
+                    <p class="size14 str500 absolute right15 top15">
+                        <%= med.qty %> piece(s)
+                    </p>
 
+                    <% if (!locked) { %>
                         <button
                             type="button"
                             class="pointer size12 nav red str600 borderNone removeMedicationBtn absolute right10 bottom5"
                             data-action="/visit/medicine/delete/<%= med._id %>">
                             <i class="fas fa-trash"></i> Remove
                         </button>
-                    </section>
-                <% }) %>
-            <% } else { %>
-                <p class="opacity50 size14">No medicine dispensed.</p>
-            <% } %>
+                    <% } %>
+                </section>
+            <% }) %>
         </section>
         <% } %>
 
-        
-        
     </div>
 </div>
 
-
+<% if (!locked) { %>
 
 <div id="vitalModal" class="modal-overlay">
     <div class="modal-content glass bgWhite padding20 corner16 col gap15">
@@ -476,7 +487,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-    
 const rMedicationModal = document.getElementById("rMedicationModal");
 const rMedicationForm = document.getElementById("rMedicationForm");
 const cancelrMedication = document.getElementById("cancelrMedication");
@@ -501,8 +511,6 @@ rMedicationModal.addEventListener("click", function (e) {
     }
 });
 </script>
-
-
 
 <script>
 (function(){
@@ -797,7 +805,7 @@ rMedicationModal.addEventListener("click", function (e) {
 </script>
 
 <script>
-    const successBtn = document.getElementById("successVisit");
+const successBtn = document.getElementById("successVisit");
 const successModal = document.getElementById("successModal");
 const cancelSuccess = document.getElementById("cancelSuccess");
 const successForm = document.getElementById("successForm");
@@ -805,29 +813,23 @@ const successForm = document.getElementById("successForm");
 // Current visit id
 const visitId = "<%= v._id %>";
 
-successBtn.addEventListener("click", () => {
-
-    successModal.classList.remove("hidden");
-
-    successForm.action = `/successVisit/${visitId}`;
-
-});
+if (successBtn) {
+    successBtn.addEventListener("click", () => {
+        successModal.classList.remove("hidden");
+        successForm.action = `/successVisit/${visitId}`;
+    });
+}
 
 cancelSuccess.addEventListener("click", () => {
-
     successModal.classList.add("hidden");
-
 });
 
 // Click outside modal
-successModal.addEventListener("click", (e)=>{
-
-    if(e.target === successModal){
+successModal.addEventListener("click", (e) => {
+    if (e.target === successModal) {
         successModal.classList.add("hidden");
     }
-
 });
-
-
 </script>
 
+<% } %>

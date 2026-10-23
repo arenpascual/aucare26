@@ -205,9 +205,10 @@
     </section>
     
     <div class="field">
-        <label for="">Complaint <span class="gray inherit">( Optional )</span></label>
+        <label for="complaintSelect">Complaint <span class="gray inherit">( Optional )</span></label>
         <div class="selectBar">
-            <select name="complaint" id="">
+            <!-- NEW: added id="complaintSelect" -->
+            <select name="complaint" id="complaintSelect">
                 <option value="" disabled selected >Select Complaint</option>
                 <option value="Allergy">Allergy</option>
                 <option value="Body Muscle Pain">Body/Muscle pain</option>
@@ -222,9 +223,18 @@
                 <option value="Lbm">LBM</option>
                 <option value="Toothache">Toothache</option>
                 <option value="Abdominal Pain Cramps">Abdominal pain/cramps</option>
+                <!-- NEW: added data-others="true" -->
+                <option value="" data-others="true">Others</option>
             </select>
         </div>
     </div>
+
+    <!-- NEW: textbox na lalabas kapag "Others" ang pinili -->
+    <div class="field hidden" id="otherComplaintField">
+        <label for="otherComplaintInput">Please specify your complaint</label>
+        <input type="text" name="otherComplaint" id="otherComplaintInput" class="width100" maxlength="100" placeholder="Type your complaint here">
+    </div>
+
     <br>
     <div class="noteBlue col textBalance">
         <p class="str400"><span class="str600">Before You Submit, </span>Please review your selected Concern and Complaint to ensure your request is accurate.</p>
@@ -274,6 +284,27 @@ concern.addEventListener("change", function() {
         medicineField.classList.remove("hidden");
     } else {
         medicineField.classList.add("hidden");
+    }
+});
+
+
+// =============================
+// NEW: SHOW TEXTBOX WHEN COMPLAINT = "OTHERS"
+// =============================
+const complaintSelect = document.getElementById("complaintSelect");
+const otherComplaintField = document.getElementById("otherComplaintField");
+const otherComplaintInput = document.getElementById("otherComplaintInput");
+
+complaintSelect.addEventListener("change", function() {
+    const opt = complaintSelect.options[complaintSelect.selectedIndex];
+    if (opt.dataset.others === "true") {
+        otherComplaintField.classList.remove("hidden");
+        otherComplaintInput.required = true;
+        otherComplaintInput.focus();
+    } else {
+        otherComplaintField.classList.add("hidden");
+        otherComplaintInput.required = false;
+        otherComplaintInput.value = "";
     }
 });
 

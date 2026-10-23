@@ -35,6 +35,10 @@
         resize: vertical;
         box-sizing: border-box;
     }
+    .resendBtn.disabled {
+        opacity: 0.6;
+        pointer-events: none;
+    }
 </style>
 
 <div class="height10 justifyBetween">
@@ -105,14 +109,20 @@
                         <td><%= u.schoolId || '' %></td>
                         <td><%= u.role %></td>
                         <td><%= u.course || u.department || '' %></td>
-                        <td class="gap8 row">
+                        <td class="gap8 row" id="actions-<%= u._id %>">
                             <section class="padding0 width100 gap10">
-                                <a href="javascript:void(0)" class="approveBtn nav pnav" data-id="<%= u._id %>" title="Approve">
-                                    <i class="fas fa-check"></i> Approve
-                                </a>
-                                <a href="javascript:void(0)" class="rejectBtn nav" data-id="<%= u._id %>" title="Reject">
-                                    <i class="fas fa-times"></i> Decline
-                                </a>
+                                <% if (u.isApproved) { %>
+                                    <a href="javascript:void(0)" class="resendBtn nav pnav w100" data-id="<%= u._id %>" title="Resend temporary password">
+                                        <i class="fas fa-paper-plane"></i> Resend
+                                    </a>
+                                <% } else { %>
+                                    <a href="javascript:void(0)" class="approveBtn nav pnav" data-id="<%= u._id %>" title="Approve">
+                                        <i class="fas fa-check"></i> Approve
+                                    </a>
+                                    <a href="javascript:void(0)" class="rejectBtn nav" data-id="<%= u._id %>" title="Reject">
+                                        <i class="fas fa-times"></i> Decline
+                                    </a>
+                                <% } %>
                             </section>
                         </td>
                     </tr>
@@ -246,7 +256,7 @@
 })();
 
 // =============================
-// APPROVE MODAL
+// ELEMENTS
 // =============================
 const appnotif = document.getElementById('appnotif');
 const appsuccess = document.getElementById('appsuccess');
@@ -254,15 +264,48 @@ const appCancelBtn = appnotif.querySelector('a.nav');
 const appApproveBtn = appnotif.querySelector('button');
 const appGotItBtn = appsuccess.querySelector('a.nav');
 
-let selectedApproveId = null;
+const rejnotif = document.getElementById('rejnotif');
+const decsuccess = document.getElementById('decsuccess');
+const decGotItBtn = decsuccess.querySelector('a.nav');
+const rejCancelBtn = document.getElementById('rejCancelBtn');
+const declineReasonForm = document.getElementById('declineReasonForm');
+const declineReasonSelect = document.getElementById('declineReasonSelect');
+const customReasonWrapper = document.getElementById('customReasonWrapper');
+const customReasonInput = document.getElementById('customReasonInput');
 
-document.querySelectorAll('.approveBtn').forEach(btn => {
-    btn.addEventListener('click', function () {
-        selectedApproveId = this.dataset.id;
+let selectedApproveId = null;
+let selectedRejectId = null;
+
+// =============================
+// TABLE BUTTONS (event delegation: Approve / Decline / Resend)
+// =============================
+document.getElementById('pendingTableBody').addEventListener('click', function (e) {
+    const approveBtn = e.target.closest('.approveBtn');
+    if (approveBtn) {
+        selectedApproveId = approveBtn.dataset.id;
         appnotif.classList.remove('hidden');
-    });
+        return;
+    }
+
+    const rejectBtn = e.target.closest('.rejectBtn');
+    if (rejectBtn) {
+        selectedRejectId = rejectBtn.dataset.id;
+        declineReasonForm.reset();
+        customReasonWrapper.classList.add('hidden');
+        customReasonInput.removeAttribute('required');
+        rejnotif.classList.remove('hidden');
+        return;
+    }
+
+    const resendBtn = e.target.closest('.resendBtn');
+    if (resendBtn) {
+        resendTempPassword(resendBtn);
+    }
 });
 
+// =============================
+// APPROVE MODAL
+// =============================
 appCancelBtn.addEventListener('click', function (e) {
     e.preventDefault();
     appnotif.classList.add('hidden');
@@ -282,7 +325,17 @@ appApproveBtn.addEventListener('click', async function () {
         const data = await response.json();
 
         if (data.success) {
-            // Itago ang confirm modal, ipakita ang success modal
+            // Mananatili ang row sa pending, papalitan lang ang Actions ng Resend
+            const actionsCell = document.getElementById(`actions-${selectedApproveId}`);
+            if (actionsCell) {
+                actionsCell.innerHTML = `
+                    <section class="padding0 width100 gap10">
+                        <a href="javascript:void(0)" class="resendBtn nav pnav" data-id="${selectedApproveId}" title="Resend temporary password">
+                            <i class="fas fa-paper-plane"></i> Resend
+                        </a>
+                    </section>`;
+            }
+
             appnotif.classList.add('hidden');
             appsuccess.classList.remove('hidden');
             selectedApproveId = null;
@@ -297,36 +350,48 @@ appApproveBtn.addEventListener('click', async function () {
     }
 });
 
-// "Got it" → balik sa /pd
+// "Got it" → isara lang ang modal (hindi na magre-redirect)
 appGotItBtn.addEventListener('click', function (e) {
     e.preventDefault();
-    window.location.href = '/pd';
+    appsuccess.classList.add('hidden');
 });
+
+// =============================
+// RESEND TEMPORARY PASSWORD
+// =============================
+async function resendTempPassword(btn) {
+    if (btn.classList.contains('disabled')) return;
+
+    const id = btn.dataset.id;
+    const originalHTML = btn.innerHTML;
+
+    btn.classList.add('disabled');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+    try {
+        const response = await fetch(`/api/users/resend-temp-password/${id}`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('A new temporary password has been sent.');
+        } else {
+            alert(data.message || 'Failed to resend temporary password.');
+        }
+    } catch (err) {
+        console.error('Resend error:', err);
+        alert('An error occurred while resending the temporary password.');
+    } finally {
+        btn.innerHTML = originalHTML;
+        btn.classList.remove('disabled');
+    }
+}
 
 // =============================
 // REJECT MODAL LOGIC
 // =============================
-const rejnotif = document.getElementById('rejnotif');
-const decsuccess = document.getElementById('decsuccess');
-const decGotItBtn = decsuccess.querySelector('a.nav');
-const rejCancelBtn = document.getElementById('rejCancelBtn');
-const declineReasonForm = document.getElementById('declineReasonForm');
-const declineReasonSelect = document.getElementById('declineReasonSelect');
-const customReasonWrapper = document.getElementById('customReasonWrapper');
-const customReasonInput = document.getElementById('customReasonInput');
-
-let selectedRejectId = null;
-
-document.querySelectorAll('.rejectBtn').forEach(btn => {
-    btn.addEventListener('click', function () {
-        selectedRejectId = this.dataset.id;
-        declineReasonForm.reset();
-        customReasonWrapper.classList.add('hidden');
-        customReasonInput.removeAttribute('required');
-        rejnotif.classList.remove('hidden');
-    });
-});
-
 declineReasonSelect.addEventListener('change', function () {
     if (this.value === 'Others') {
         customReasonWrapper.classList.remove('hidden');

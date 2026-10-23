@@ -29,6 +29,12 @@
             <i class="fas fa-search"></i>
             <input type="search" id="logSearch" placeholder="Search name or activity...">
         </div>
+
+        <!-- Export PDF -->
+        <button type="button" id="exportPdfBtn"
+            style="flex-shrink:0; width:auto; height:34px; padding:0 14px; border:none; border-radius:6px; background:#1b5f99; color:#fff; cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:6px;">
+            <i class="fas fa-download"></i> Export Logs
+        </button>
     </div>
 </div>
 
@@ -45,7 +51,12 @@
                             : 'N/A';
                         const searchText = `${logName} ${log.what || ''}`.toLowerCase();
                     %>
-                    <tr class="logRow" data-date="<%= logDateRaw %>" data-search="<%= searchText %>">
+                    <tr class="logRow"
+                        data-date="<%= logDateRaw %>"
+                        data-search="<%= searchText %>"
+                        data-name="<%= logName %>"
+                        data-what="<%= log.what || '' %>"
+                        data-display="<%= logDateDisplay %>">
                         <td class="width15"><%= logDateDisplay %></td>
                         <td class="width85"><%= logName %> — <%= log.what %></td>
                     </tr>
@@ -105,6 +116,10 @@
     </div>
 </div>
 
+<!-- PDF libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
 <script>
 (function () {
     const logSearchInput = document.getElementById('logSearch');
@@ -120,7 +135,9 @@
     const customFrom = document.getElementById('customFrom');
     const customTo = document.getElementById('customTo');
 
-    const ROWS_PER_PAGE = 10;
+    // Report button
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+
     let currentPage = 1;
 
     function parseLocalDate(value) {
@@ -242,6 +259,17 @@
         return timestamp >= range[0] && timestamp <= range[1];
     }
 
+    // Returns ALL rows matching the current search + date filter (no pagination)
+    function getFilteredRows() {
+        const searchTerm = logSearchInput.value.trim().toLowerCase();
+        const dateRange = getDateRange(dateFilterSelect.value);
+
+        return logRows.filter(function (row) {
+            const matchesSearch = (row.dataset.search || '').includes(searchTerm);
+            return matchesSearch && matchesDate(row, dateRange);
+        });
+    }
+
     function createPageButton(label, page, disabled, active) {
         const button = document.createElement('button');
 
@@ -361,20 +389,11 @@
     }
 
     function renderLogs() {
-        const searchTerm = logSearchInput.value.trim().toLowerCase();
-        const dateRange = getDateRange(dateFilterSelect.value);
+        const filteredRows = getFilteredRows();
 
-        // Apply search and date filtering BEFORE pagination.
-        const filteredRows = logRows.filter(function (row) {
-            const matchesSearch =
-                (row.dataset.search || '').includes(searchTerm);
-
-            return matchesSearch && matchesDate(row, dateRange);
-        });
-
-const total = filteredRows.length;
-const ROWS_PER_PAGE = Number(perPageSelect.value) || 15;
-const totalPages = Math.ceil(total / ROWS_PER_PAGE);
+        const total = filteredRows.length;
+        const ROWS_PER_PAGE = Number(perPageSelect.value) || 15;
+        const totalPages = Math.ceil(total / ROWS_PER_PAGE);
 
         // Keep the current page valid after filtering.
         if (totalPages === 0) {
@@ -401,6 +420,119 @@ const totalPages = Math.ceil(total / ROWS_PER_PAGE);
         renderPagination(total, totalPages, startIndex, endIndex);
     }
 
+    // ---------------- PDF EXPORT ----------------
+
+    function todayStamp() {
+        const d = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    function getFilterLabel() {
+        const value = dateFilterSelect.value;
+        if (value === 'custom') {
+            const from = customFrom.value || 'Beginning';
+            const to = customTo.value || 'Present';
+            return `Custom Range (${from} to ${to})`;
+        }
+        return dateFilterSelect.options[dateFilterSelect.selectedIndex].text;
+    }
+
+    // jsPDF's built-in fonts can't draw emojis / unsupported symbols,
+    // so replace anything outside Latin-1 (except common dashes/quotes).
+    function pdfSafe(value) {
+        return String(value == null ? '' : value)
+            .replace(/[\u2018\u2019]/g, "'")
+            .replace(/[\u201C\u201D]/g, '"')
+            .replace(/[\u2013\u2014]/g, '-')
+            .replace(/[^\x20-\x7E\u00A0-\u00FF]/g, '?');
+    }
+
+    function exportPdf() {
+        const rows = getFilteredRows();
+
+        if (rows.length === 0) {
+            alert('No logs to export. Adjust your filter or search first.');
+            return;
+        }
+
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+            alert('PDF library failed to load. Check your internet connection and try again.');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 40;
+
+        // Title
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(18);
+        doc.setTextColor(34, 34, 34);
+        doc.text('Activity Logs Report', margin, 50);
+
+        // Meta info
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(85, 85, 85);
+        doc.text('Generated: ' + new Date().toLocaleString('en-US'), margin, 70);
+        doc.text('Date Filter: ' + pdfSafe(getFilterLabel()), margin, 84);
+        doc.text('Search: ' + pdfSafe(logSearchInput.value.trim() || 'None'), margin, 98);
+        doc.text('Total Logs: ' + rows.length, margin, 112);
+
+        // Table
+        const body = rows.map(function (row, i) {
+            return [
+                String(i + 1),
+                pdfSafe(row.dataset.display || ''),
+                pdfSafe(row.dataset.name || ''),
+                pdfSafe(row.dataset.what || '')
+            ];
+        });
+
+        doc.autoTable({
+            startY: 128,
+            head: [['#', 'Date & Time', 'User', 'Activity']],
+            body: body,
+            margin: { left: margin, right: margin, bottom: 40 },
+            styles: { font: 'helvetica', fontSize: 9, cellPadding: 5, overflow: 'linebreak', valign: 'top' },
+            headStyles: { fillColor: [27, 95, 153], textColor: 255, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [245, 247, 250] },
+            columnStyles: {
+                0: { cellWidth: 28 },
+                1: { cellWidth: 100 },
+                2: { cellWidth: 110 },
+                3: { cellWidth: 'auto' }
+            },
+            rowPageBreak: 'avoid'
+        });
+
+        // Page numbers
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(120, 120, 120);
+            doc.text('Page ' + i + ' of ' + totalPages, pageWidth - margin, pageHeight - 20, { align: 'right' });
+        }
+
+        doc.save('activity-logs-' + todayStamp() + '.pdf');
+    }
+
+    exportPdfBtn.addEventListener('click', function () {
+        try {
+            exportPdf();
+        } catch (err) {
+            console.error('PDF export failed:', err);
+            alert('Could not generate the PDF. Check the browser console for details.');
+        }
+    });
+
+    // ---------------- EVENTS ----------------
+
     // Reset to page 1 whenever the search changes.
     logSearchInput.addEventListener('input', function () {
         currentPage = 1;
@@ -423,9 +555,9 @@ const totalPages = Math.ceil(total / ROWS_PER_PAGE);
     });
 
     perPageSelect.addEventListener('change', function () {
-    currentPage = 1;
-    renderLogs();
-});
+        currentPage = 1;
+        renderLogs();
+    });
 
     // Initial display.
     renderLogs();
