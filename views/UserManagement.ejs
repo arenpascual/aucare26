@@ -47,7 +47,7 @@
     </div>
     <div class="width0 gap8 ">
         <div class="width0 relative height0 paddingTop5">
-            <a href="/pd" class="nav pnav w140">Pending Account</a>
+            <a href="/pd" class="nav pnav w140"><i class="fa-solid fa-hourglass-start"></i>Pending Account</a>
             <% if (pendingCount > 0) { %>
                 <div class="h20 w20 corner500 bgWhite absolute right0 top0" style="border:0.5px rgb(9,27,163) solid; display:flex; align-items:center; justify-content:center;">
                     <p class="size12 str600" style="color:rgb(9,27,163); margin:0;">
@@ -142,7 +142,7 @@
         <tbody id="userTableBody">
             <% if (allUsers && allUsers.length > 0) { %>
                 <% allUsers.forEach((user,index)=>{ %>
-                    <tr data-campus="<%= user.campus || '' %>">
+                        <tr data-campus="<%= user.campus || '' %>" data-email="<%= (user.email || '').toLowerCase() %>">
                         <td><%= index + 1 %></td>
                         <td>
                             <a href="/uv/<%= user._id %>" class="underline navy patientLink" data-href="/uv/<%= user._id %>" data-id="<%= user._id %>" >
@@ -279,12 +279,14 @@
             const userRole = cells[3].innerText.trim();
             const userDepartment = cells[4].innerText.trim();
             const userCampus = row.dataset.campus || "";
+            const userEmail = row.dataset.email || "";
 
             const matchesSearch =
                 name.includes(keyword) ||
                 schoolId.toLowerCase().includes(keyword) ||
                 userRole.toLowerCase().includes(keyword) ||
-                userDepartment.toLowerCase().includes(keyword);
+                userDepartment.toLowerCase().includes(keyword) ||
+                userEmail.includes(keyword);
 
             const matchesRole =
                 role === "" || userRole === role;

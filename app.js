@@ -1256,35 +1256,151 @@ const [
 // AI INSIGHTS ROUTES
 // ============================================================
 
-// GET: kunin yung cached insights (dashboard reads this)
+// GET: kunin yung huling na-generate na insights ng naka-login na user
 app.get('/api/ai-insights', isLogin, async (req, res) => {
     try {
-        const insights = await AiInsight.find().sort({ generatedAt: -1 });
-        res.json({ success: true, insights });
+        const insights = await AiInsight.find({ owner: req.session.user._id })
+            .sort({ generatedAt: -1 })
+            .lean();
+
+        res.json({
+            success: true,
+            insights,
+            filterLabel: insights[0]?.filterLabel || ''
+        });
     } catch (err) {
         console.error('Fetch AI Insights Error:', err.message);
         res.status(500).json({ success: false, message: 'Failed to load insights.' });
     }
 });
 
-// POST: manual trigger (admin button — "Generate/Refresh Insights")
+// POST: i-generate ang insights base sa filters ng dashboard
 app.post('/api/ai-insights/generate', isLogin, async (req, res) => {
     try {
-        const { insights } = await generateInsights();
+        const q = req.body || {};
+        const has = v => v && v !== 'all';
+        const me = req.session.user;
 
-        await AiInsight.deleteMany({});
-        await AiInsight.insertMany(insights);
+        // Parehong date range logic ng dashboard
+        const dateRange = getDashboardDateRange(q);
+        const { start, end } = dateRange;
+        const hasDateFilter = start !== null && end !== null;
+
+        // Admin / Sub Admin = laging sariling campus, kahit ano pa ang ipadala ng browser
+        const campus = ['Admin', 'Sub Admin'].includes(me.role)
+            ? me.campus
+            : (has(q.campus) ? q.campus : null);
+
+        // Parehong user filter ng dashboard analytics
+        const userFilter = {};
+        if (has(q.role)) userFilter.role = q.role;
+        if (has(q.gender)) userFilter.gender = q.gender;
+        if (campus) userFilter.campus = campus;
+        if (has(q.department)) {
+            const courses = DEPARTMENT_COURSES[q.department] || [];
+            userFilter.$or = [
+                { department: q.department },
+                ...(courses.length ? [{ course: { $in: courses } }] : [])
+            ];
+        }
+
+        const patients = await Users.find({
+            archive: false, verify: false, suspend: false, ...userFilter
+        }).select('_id').lean();
+
+        const patientIds = patients.map(p => p._id);
+
+        // Label na ipapakita sa dashboard
+        const PERIOD_LABELS = {
+            today: 'Today', yesterday: 'Yesterday',
+            this_week: 'This Week', last_week: 'Last Week',
+            this_month: 'This Month', last_month: 'Last Month',
+            this_year: 'This Year', last_year: 'Last Year',
+            overall: 'Overall'
+        };
+
+        const labelParts = [
+            dateRange.period === 'custom'
+                ? `${dateRange.startDate} to ${dateRange.endDate}`
+                : (PERIOD_LABELS[dateRange.period] || dateRange.period)
+        ];
+        if (campus) labelParts.push(`${campus} campus`);
+        if (has(q.role)) labelParts.push(q.role);
+        if (has(q.department)) labelParts.push(q.department);
+        if (has(q.gender)) labelParts.push(q.gender);
+        if (has(q.visitStatus)) labelParts.push(`Status: ${q.visitStatus}`);
+        const filterLabel = labelParts.join(' | ');
+
+        const result = await generateInsights({
+            patientIds,
+            start,
+            end,
+            hasDateFilter,
+            visitStatus: q.visitStatus,
+            campus,
+            filterLabel,
+            focusStock: !!(has(q.role) || has(q.department) || has(q.gender) || has(q.visitStatus))
+        });
+
+        let insights = Array.isArray(result.insights) ? result.insights : [];
+
+        // Kung walang nakitang significant, huwag iwanang blangko
+        if (insights.length === 0) {
+            insights = [{
+                category: 'no_data',
+                title: 'No Significant Findings',
+                message: 'There is not enough data for the selected filters to generate insights.'
+            }];
+        }
+
+        await AiInsight.deleteMany({ owner: me._id });
+        await AiInsight.insertMany(
+            insights.map(i => ({ ...i, owner: me._id, filterLabel }))
+        );
 
         await Logs.create({
-            who: req.session.user._id,
-            what: `Generated new AI insights (${insights.length} insight/s)`,
+            who: me._id,
+            what: `Generated new AI insights (${insights.length} insight/s) for: ${filterLabel}`,
             archive: false
         });
 
-        res.json({ success: true, insights });
+        res.json({ success: true, insights, filterLabel });
     } catch (err) {
         console.error('Generate AI Insights Error:', err.message);
         res.status(500).json({ success: false, message: 'Failed to generate insights.' });
+    }
+});
+
+// ============================================================
+// DASHBOARD NOTIFICATION BELL (Admin lang)
+// ============================================================
+app.get('/api/dashboard/notifications', isLogin, async (req, res) => {
+    try {
+        if (req.session.user.role !== 'Admin') {
+            return res.json({ success: true, notifications: [] });
+        }
+
+        const notifications = await Notification.find({
+            who: req.session.user._id,
+            archive: false
+        })
+            .sort({ createdAt: -1 })
+            .limit(20)
+            .lean();
+
+        res.json({
+            success: true,
+            notifications: notifications.map(n => ({
+                _id: n._id,
+                message: n.message,
+                read: !!n.read,
+                link: n.link || '/p',
+                createdAt: n.createdAt
+            }))
+        });
+    } catch (err) {
+        console.error('Dashboard Notifications Error:', err.message);
+        res.status(500).json({ success: false, notifications: [] });
     }
 });
 
@@ -1993,6 +2109,13 @@ app.post('/api/users/edit/:id', isLogin, async (req, res) => {
             archive: false
         });
 
+                await Notification.create({
+            who: updatedEmployee._id,
+            message: 'A Super Admin updated your account information.',
+            type: 'account',
+            link: '/p'
+        });
+
         req.session.success = "Employee information updated successfully.";
         req.session.save(() => res.redirect(`/emv/${id}`));
 
@@ -2592,6 +2715,13 @@ app.post('/api/users/change-password/:id', isLogin, async (req, res) => {
             who: req.session.user._id,
             what: `Sent a new temporary password to employee: ${employee.fName} ${employee.lName}`,
             archive: false
+        });
+
+                await Notification.create({
+            who: employee._id,
+            message: 'A Super Admin sent you a new temporary password. Check your email.',
+            type: 'account',
+            link: '/p'
         });
 
         // ==========================
@@ -4604,6 +4734,133 @@ app.post('/api/users/approve/:id', isLogin, async (req, res) => {
         return res.json({
             success: false,
             message: 'Failed to approve account.'
+        });
+    }
+});
+
+// ============================================================
+// RESEND TEMPORARY PASSWORD (para sa approved na account na hindi pa nakaka-login)
+// ============================================================
+app.post('/api/users/resend-temp-password/:id', isLogin, async (req, res) => {
+    try {
+        const viewer = req.session.user;
+
+        if (!['Super Admin', 'Admin', 'Sub Admin'].includes(viewer.role)) {
+            return res.status(403).json({
+                success: false,
+                message: 'You are not authorized to perform this action.'
+            });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.json({ success: false, message: 'Account not found.' });
+        }
+
+        // Approved na (verify: false) pero temporary password pa rin ang gamit (reset: true)
+        const filter = {
+            _id: req.params.id,
+            verify: false,
+            archive: false,
+            reset: true
+        };
+
+        // Admin / Sub Admin: sariling campus lang
+        if (['Admin', 'Sub Admin'].includes(viewer.role)) {
+            filter.campus = viewer.campus;
+        }
+
+        const user = await Users.findOne(filter);
+
+        if (!user) {
+            return res.json({
+                success: false,
+                message: 'Account not found, or the user has already set their own password.'
+            });
+        }
+
+        const tempPassword = crypto.randomBytes(4).toString('hex');
+
+        // Ipadala muna ang email bago palitan ang password,
+        // para kung pumalya ang email, valid pa rin ang dating password
+        try {
+            await sgMail.send({
+                from: `AuCare Support <${process.env.EMAIL_USER}>`,
+                to: user.email,
+                subject: "Your New AuCare Temporary Password",
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                        <h2 style="color:#0056b3;text-align:center;">
+                            New Temporary Password
+                        </h2>
+
+                        <p>Hello ${user.fName},</p>
+
+                        <p>
+                            Here is your new temporary password.
+                            Use it with your email to log in:
+                        </p>
+
+                        <p>
+                            <strong>Email (Username):</strong> ${user.email}
+                        </p>
+
+                        <div style="
+                            background:#f4f4f4;
+                            padding:15px;
+                            text-align:center;
+                            font-size:28px;
+                            font-weight:bold;
+                            letter-spacing:4px;
+                        ">
+                            ${tempPassword}
+                        </div>
+
+                        <p style="color:red;">
+                            You'll be required to set a new password immediately after logging in.
+                        </p>
+
+                        <p>
+                            Thank you,<br>
+                            <strong>AuCare Team</strong>
+                        </p>
+                    </div>
+                `
+            });
+        } catch (emailErr) {
+            console.error('================ EMAIL ERROR ================');
+            console.error(emailErr);
+
+            if (emailErr.response) {
+                console.error(emailErr.response.body);
+            }
+
+            return res.json({
+                success: false,
+                message: 'Failed to send the email. Please try again.'
+            });
+        }
+
+        await Users.findByIdAndUpdate(user._id, {
+            password: tempPassword,
+            reset: true
+        });
+
+        await Logs.create({
+            who: viewer._id,
+            what: `Resent temporary password to: ${user.username} (${user.fName} ${user.lName})`,
+            archive: false
+        });
+
+        return res.json({
+            success: true,
+            message: `A new temporary password has been sent to ${user.email}.`
+        });
+
+    } catch (err) {
+        console.error('Resend Temp Password Error:', err);
+        return res.json({
+            success: false,
+            message: 'Failed to resend temporary password.'
         });
     }
 });

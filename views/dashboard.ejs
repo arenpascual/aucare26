@@ -473,6 +473,59 @@ BACK TO TOP
 #backToTopBtn:hover {
     background: rgb(14, 10, 120);
 }
+
+/* =========================================================
+NOTIFICATION POPUP
+========================================================= */
+#notifPanel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 340px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 16px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+    z-index: 1000;
+    text-align: left;
+}
+
+#notifPanel.hidden {
+    display: none !important;
+}
+
+#notifPanel .notifTitle {
+    font-size: 22px;
+    font-weight: 700;
+    color: rgb(8, 8, 36);
+    margin: 0 0 10px;
+}
+
+.notifItem {
+    padding: 10px 8px;
+    border-bottom: 1px solid #eeeeee;
+    font-size: 14px;
+    color: rgb(8, 8, 36);
+}
+
+.notifItem:last-child {
+    border-bottom: none;
+}
+
+.notifItem small {
+    display: block;
+    color: #888888;
+    margin-top: 2px;
+}
+
+.notifEmpty {
+    padding: 20px 0;
+    text-align: center;
+    font-size: 14px;
+    color: #888888;
+}
 </style>
 </head>
 <body class="padding0">
@@ -497,13 +550,27 @@ HEADER
         </span>
     </section>
     <div class="dashboard-status justifyEnd colorPrimary corner10 padding10 height100 bgSky50" style="height: 100% !important; gap: 0 !important;">
+        
+                <% if (user && user.role === 'Admin') { %>
+        <section class="width0 padding5 relative">
+            <a href="javascript:void(0)" class="cnav nav padding10" id="notifBell"><i class="fas fa-bell"></i></a>
+            <div class="padding5 h20 w20 bgSky500 white absolute top0 right0 corner500 hidden" id="notifBadge"></div>
+
+            <div id="notifPanel" class="hidden" style="margin-left: 150px;">
+                <p class="notifTitle">Notifications</p>
+                <div id="notifList"></div>
+            </div>
+        </section>
+        <% } %>
+        
         <section class="width0 padding5 paddingLeft0 relative">
-            <a href="/pd" class="nav pnav"><i class="fas fa-bell"></i> Pending Accounts</a>
+            <a href="/pd" class="nav pnav"><i class="fa-solid fa-hourglass-start"></i> Pending Accounts</a>
             <div class="padding5 h20 w20 bgSky500 white absolute top0 right0 corner500" id="pendingVisits"></div>
         </section>
         <button type="button" class="nav pnav" id="exportDashboardBtn">
             <i class="fas fa-download"></i> Export Reports
         </button>
+        
     </div>
 </section>
     <script>
@@ -981,7 +1048,8 @@ Key Insights
             Refresh
         </button>
     </div>
-    <p>AI-generated recommendations based on clinic trends, inventory, and demographics.</p>
+     <p>AI-generated recommendations based on clinic trends, inventory, and demographics.</p>
+    <p id="aiFilterLabel" class="str600" style="margin-top: 4px;"></p>
     <br>
     <div id="aiInsightList" class="insight-list shadow1 padding10 corner10">
         <div class="empty-state">Loading AI insights...</div>
@@ -2425,8 +2493,31 @@ loadDashboard();
 /* =========================================================
 AI INSIGHTS (DeepSeek-generated)
 ========================================================= */
+// Kunin ang kasalukuyang filter sa dashboard
+function getCurrentFilters() {
+    const filters = {
+        period: periodElement.value,
+        role: roleElement.value,
+        department: departmentElement.value,
+        campus: campusElement.value,
+        gender: genderElement.value,
+        visitStatus: visitStatusElement.value
+    };
+
+    if (periodElement.value === 'custom') {
+        if (!startDateElement.value || !endDateElement.value) {
+            throw new Error('Please select both start and end dates.');
+        }
+        filters.startDate = startDateElement.value;
+        filters.endDate = endDateElement.value;
+    }
+
+    return filters;
+}
+
 async function loadAiInsights() {
     const aiInsightList = document.getElementById('aiInsightList');
+    const aiFilterLabel = document.getElementById('aiFilterLabel');
     aiInsightList.innerHTML = '<div class="empty-state">Loading AI insights...</div>';
 
     try {
@@ -2434,9 +2525,12 @@ async function loadAiInsights() {
         const data = await res.json();
 
         if (!data.success || !data.insights || data.insights.length === 0) {
+            aiFilterLabel.textContent = '';
             aiInsightList.innerHTML = '<div class="empty-state">No AI insights yet. Click Refresh to generate.</div>';
             return;
         }
+
+        aiFilterLabel.textContent = data.filterLabel ? 'Based on: ' + data.filterLabel : '';
 
         aiInsightList.innerHTML = '';
         data.insights.forEach(insight => {
@@ -2461,7 +2555,13 @@ async function generateAiInsights() {
     aiInsightList.innerHTML = '<div class="empty-state">Generating new AI insights, please wait...</div>';
 
     try {
-        const res = await fetch('/api/ai-insights/generate', { method: 'POST' });
+        const filters = getCurrentFilters();
+
+        const res = await fetch('/api/ai-insights/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(filters)
+        });
         const data = await res.json();
 
         if (!data.success) {
@@ -2620,6 +2720,185 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 })();
+</script>
+
+<!-- NOTIFICATION POPUP SCRIPT -->
+<script>
+(function () {
+    function init() {
+        const bell = document.getElementById('notifBell');
+        const panel = document.getElementById('notifPanel');
+        const list = document.getElementById('notifList');
+        const badge = document.getElementById('notifBadge');
+
+        // Walang bell = hindi Admin, kaya walang gagawin
+        if (!bell || !panel || !list) return;
+
+        // Ilipat sa body para hindi ma-clip ng parent
+        document.body.appendChild(panel);
+        panel.classList.remove('hidden');
+
+        // Ayusin ang layout ng list para hindi maapektuhan ng global styles
+        list.style.setProperty('display', 'block', 'important');
+        list.style.setProperty('height', 'auto', 'important');
+        list.style.setProperty('min-height', '0', 'important');
+        list.style.setProperty('width', '100%', 'important');
+        list.style.setProperty('padding', '0', 'important');
+        list.style.setProperty('margin', '0', 'important');
+
+        let notifications = [];
+
+        function renderNotifications() {
+            list.innerHTML = '';
+
+            const unread = notifications.filter(n => !n.read).length;
+            if (badge) {
+                badge.textContent = unread;
+                badge.classList.toggle('hidden', unread === 0);
+            }
+
+            if (notifications.length === 0) {
+                list.innerHTML = '<div class="notifEmpty">No notifications</div>';
+                return;
+            }
+
+            notifications.forEach(n => {
+                const item = document.createElement('div');
+                item.className = 'notifItem';
+
+                // Layout: message sa taas, oras sa ilalim
+                item.style.setProperty('display', 'flex', 'important');
+                item.style.setProperty('flex-direction', 'column', 'important');
+                item.style.setProperty('align-items', 'flex-start', 'important');
+                item.style.setProperty('justify-content', 'flex-start', 'important');
+                item.style.setProperty('gap', '4px', 'important');
+                item.style.setProperty('height', 'auto', 'important');
+                item.style.setProperty('width', '100%', 'important');
+                item.style.setProperty('padding', '12px', 'important');
+                item.style.setProperty('margin-bottom', '8px', 'important');
+                item.style.setProperty('border-radius', '10px', 'important');
+                item.style.setProperty('text-align', 'left', 'important');
+                item.style.cursor = 'pointer';
+                item.style.border = '1px solid #eeeeee';
+                item.style.borderLeft = n.read ? '4px solid transparent' : '4px solid royalblue';
+                item.style.background = n.read ? '#ffffff' : 'rgb(235,245,255)';
+
+                const msg = document.createElement('span');
+                msg.textContent = n.message;
+                msg.style.display = 'block';
+                msg.style.width = '100%';
+                msg.style.textAlign = 'left';
+                msg.style.fontSize = '14px';
+                msg.style.lineHeight = '1.4';
+                msg.style.fontWeight = n.read ? '400' : '600';
+                msg.style.color = 'rgb(8, 8, 36)';
+                item.appendChild(msg);
+
+                const time = document.createElement('small');
+                time.textContent = formatDateTime(n.createdAt);
+                time.style.display = 'block';
+                time.style.margin = '0';
+                time.style.fontSize = '12px';
+                time.style.color = '#888888';
+                item.appendChild(time);
+
+                // Pag na-click: markahan as read, tapos pumunta sa profile
+                item.addEventListener('click', async function () {
+                    try {
+                        if (!n.read) {
+                            await fetch('/api/notifications/read/' + n._id, { method: 'POST' });
+                            n.read = true;
+                        }
+                    } catch (err) {
+                        console.error('Mark read error:', err);
+                    }
+                    window.location.href = n.link || '/p';
+                });
+
+                list.appendChild(item);
+            });
+        }
+
+        async function loadNotifications() {
+            try {
+                const res = await fetch('/api/dashboard/notifications');
+                const data = await res.json();
+                notifications = data.success ? data.notifications : [];
+            } catch (err) {
+                console.error('Load notifications error:', err);
+                notifications = [];
+            }
+            renderNotifications();
+        }
+
+        loadNotifications();
+        setInterval(loadNotifications, 30000); // auto-refresh every 30 seconds
+
+        let isOpen = false;
+
+        function openPanel() {
+            const rect = bell.getBoundingClientRect();
+            const width = Math.min(340, window.innerWidth - 20);
+            const left = Math.max(10, rect.right - width);
+
+            panel.style.setProperty('position', 'fixed', 'important');
+            panel.style.setProperty('top', (rect.bottom + 10) + 'px', 'important');
+            panel.style.setProperty('left', left + 'px', 'important');
+            panel.style.setProperty('right', 'auto', 'important');
+            panel.style.setProperty('width', width + 'px', 'important');
+            panel.style.setProperty('height', 'auto', 'important');
+            panel.style.setProperty('max-height', '420px', 'important');
+            panel.style.setProperty('overflow-y', 'auto', 'important');
+            panel.style.setProperty('padding', '16px', 'important');
+            panel.style.setProperty('text-align', 'left', 'important');
+            panel.style.setProperty('z-index', '2147483647', 'important');
+            panel.style.setProperty('display', 'block', 'important');
+            isOpen = true;
+        }
+
+        function closePanel() {
+            panel.style.setProperty('display', 'none', 'important');
+            isOpen = false;
+        }
+
+        closePanel();
+
+        document.addEventListener('click', function (e) {
+            const clickedBell = e.target.closest('#notifBell');
+
+            if (clickedBell) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (isOpen) {
+                    closePanel();
+                } else {
+                    loadNotifications();
+                    openPanel();
+                }
+                return;
+            }
+
+            if (isOpen && !panel.contains(e.target)) {
+                closePanel();
+            }
+        }, true);
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closePanel();
+        });
+
+        window.addEventListener('resize', function () {
+            if (isOpen) openPanel();
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
 </script>
 </body>
 </html>
